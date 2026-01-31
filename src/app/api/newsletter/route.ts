@@ -35,9 +35,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new subscriber
-    await prisma.subscriber.create({
+    const subscriber = await prisma.subscriber.create({
       data: {
         email: email.toLowerCase(),
+      }
+    })
+
+    // Create notification for admin
+    await prisma.notification.create({
+      data: {
+        type: 'NEW_SUBSCRIBER',
+        title: 'New Newsletter Subscriber',
+        message: `${email.toLowerCase()} subscribed to the newsletter`,
+        data: JSON.stringify({ subscriberId: subscriber.id, email: email.toLowerCase() }),
       }
     })
 
