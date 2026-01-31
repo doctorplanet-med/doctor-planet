@@ -19,6 +19,7 @@ import {
   Hash,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { uploadToFirebase } from '@/lib/upload'
 
 interface Category {
   id: string
@@ -102,24 +103,12 @@ export default function AddProductPage() {
         continue
       }
 
-      const formData = new FormData()
-      formData.append('file', file)
-
       try {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          uploadedUrls.push(data.url)
-        } else {
-          const error = await response.json()
-          toast.error(`${file.name}: ${error.error}`)
-        }
-      } catch (error) {
-        toast.error(`${file.name}: Upload failed`)
+        // Upload directly to Firebase Storage
+        const url = await uploadToFirebase(file, 'products')
+        uploadedUrls.push(url)
+      } catch (error: any) {
+        toast.error(`${file.name}: ${error.message || 'Upload failed'}`)
       }
     }
 

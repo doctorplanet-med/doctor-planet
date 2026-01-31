@@ -14,8 +14,7 @@ import {
   ChevronDown,
   Home,
   Grid3X3,
-  Search,
-  Heart
+  Search
 } from 'lucide-react'
 import { useCartStore } from '@/store/cart-store'
 
@@ -25,14 +24,6 @@ const navLinks = [
   { href: '/products?category=medical-clothes', label: 'Clothes' },
   { href: '/products?category=medical-shoes', label: 'Shoes' },
   { href: '/products?category=medical-equipment', label: 'Equipment' },
-]
-
-// Bottom nav items for mobile
-const mobileNavItems = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/products', label: 'Shop', icon: Grid3X3 },
-  { href: '/products?search=', label: 'Search', icon: Search },
-  { href: '/wishlist', label: 'Wishlist', icon: Heart },
 ]
 
 export default function Navbar() {
@@ -65,13 +56,13 @@ export default function Navbar() {
         }`}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+          <div className="flex items-center justify-between h-14 sm:h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative w-10 h-10 sm:w-12 sm:h-12"
+                className="relative w-9 h-9 sm:w-12 sm:h-12"
               >
                 <Image
                   src="/logos/logo.png"
@@ -80,7 +71,7 @@ export default function Navbar() {
                   className="object-contain"
                 />
               </motion.div>
-              <span className="font-heading font-bold text-lg sm:text-xl">
+              <span className="font-heading font-bold text-base sm:text-xl">
                 <span className="text-primary-600">doctor</span>
                 <span className="text-secondary-950">planet</span>
               </span>
@@ -103,8 +94,8 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Right Side Actions - Desktop */}
+            <div className="hidden sm:flex items-center space-x-4">
               {/* Cart Button */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -112,26 +103,26 @@ export default function Navbar() {
                 onClick={toggleCart}
                 className="relative p-2 rounded-full hover:bg-secondary-100 transition-colors"
               >
-                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-secondary-700" />
+                <ShoppingCart className="w-6 h-6 text-secondary-700" />
                 {itemCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary-600 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-medium"
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center font-medium"
                   >
                     {itemCount}
                   </motion.span>
                 )}
               </motion.button>
 
-              {/* User Menu - Desktop & Mobile */}
+              {/* User Menu - Desktop */}
               {status === 'loading' ? (
                 <div className="w-8 h-8 rounded-full bg-secondary-200 animate-pulse" />
               ) : session ? (
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2 rounded-lg hover:bg-secondary-100 transition-colors"
+                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-secondary-100 transition-colors"
                   >
                     {session.user?.image ? (
                       <Image
@@ -139,14 +130,14 @@ export default function Navbar() {
                         alt={session.user.name || 'User'}
                         width={32}
                         height={32}
-                        className="rounded-full w-7 h-7 sm:w-8 sm:h-8"
+                        className="rounded-full w-8 h-8"
                       />
                     ) : (
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium text-sm">
+                      <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium text-sm">
                         {session.user?.name?.[0] || 'U'}
                       </div>
                     )}
-                    <ChevronDown className="w-4 h-4 text-secondary-500 hidden sm:block" />
+                    <ChevronDown className="w-4 h-4 text-secondary-500" />
                   </button>
 
                   <AnimatePresence>
@@ -222,12 +213,15 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="hidden sm:block btn-primary text-sm px-4 py-2"
+                  className="btn-primary text-sm px-4 py-2"
                 >
                   Sign In
                 </Link>
               )}
             </div>
+
+            {/* Mobile: Only show logo - other actions in bottom nav */}
+            <div className="sm:hidden" />
           </div>
         </nav>
 
@@ -242,36 +236,60 @@ export default function Navbar() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-secondary-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <div className="flex items-center justify-around h-16 px-2">
-          {mobileNavItems.map((item) => {
-            const isActive = pathname === item.href || 
-              (item.href === '/products' && pathname.startsWith('/products'))
-            const Icon = item.icon
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
-                  isActive
-                    ? 'text-primary-600'
-                    : 'text-secondary-500'
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
-                <span className="text-[10px] mt-1 font-medium">{item.label}</span>
-              </Link>
-            )
-          })}
-          
-          {/* Profile/Login Item */}
+        <div className="flex items-center justify-around h-14 px-1">
+          {/* Home */}
+          <Link
+            href="/"
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-colors ${
+              pathname === '/' ? 'text-primary-600' : 'text-secondary-500'
+            }`}
+          >
+            <Home className={`w-5 h-5 ${pathname === '/' ? 'stroke-[2.5]' : ''}`} />
+            <span className="text-[9px] mt-0.5 font-medium">Home</span>
+          </Link>
+
+          {/* Shop */}
+          <Link
+            href="/products"
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-colors ${
+              pathname.startsWith('/products') ? 'text-primary-600' : 'text-secondary-500'
+            }`}
+          >
+            <Grid3X3 className={`w-5 h-5 ${pathname.startsWith('/products') ? 'stroke-[2.5]' : ''}`} />
+            <span className="text-[9px] mt-0.5 font-medium">Shop</span>
+          </Link>
+
+          {/* Search */}
+          <Link
+            href="/products?search="
+            className="flex flex-col items-center justify-center flex-1 py-1.5 text-secondary-500"
+          >
+            <Search className="w-5 h-5" />
+            <span className="text-[9px] mt-0.5 font-medium">Search</span>
+          </Link>
+
+          {/* Cart */}
+          <button
+            onClick={toggleCart}
+            className="flex flex-col items-center justify-center flex-1 py-1.5 text-secondary-500 relative"
+          >
+            <div className="relative">
+              <ShoppingCart className="w-5 h-5" />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary-600 text-white text-[8px] rounded-full flex items-center justify-center font-bold">
+                  {itemCount > 9 ? '9+' : itemCount}
+                </span>
+              )}
+            </div>
+            <span className="text-[9px] mt-0.5 font-medium">Cart</span>
+          </button>
+
+          {/* Profile/Login */}
           {session ? (
             <Link
               href="/profile"
-              className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
-                pathname === '/profile'
-                  ? 'text-primary-600'
-                  : 'text-secondary-500'
+              className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-colors ${
+                pathname === '/profile' ? 'text-primary-600' : 'text-secondary-500'
               }`}
             >
               {session.user?.image ? (
@@ -283,21 +301,21 @@ export default function Navbar() {
                   className="rounded-full w-5 h-5"
                 />
               ) : (
-                <User className={`w-5 h-5 ${pathname === '/profile' ? 'stroke-[2.5]' : ''}`} />
+                <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-white text-[9px] font-bold">
+                  {session.user?.name?.[0] || 'U'}
+                </div>
               )}
-              <span className="text-[10px] mt-1 font-medium">Profile</span>
+              <span className="text-[9px] mt-0.5 font-medium">Profile</span>
             </Link>
           ) : (
             <Link
               href="/login"
-              className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
-                pathname === '/login'
-                  ? 'text-primary-600'
-                  : 'text-secondary-500'
+              className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-colors ${
+                pathname === '/login' ? 'text-primary-600' : 'text-secondary-500'
               }`}
             >
               <User className={`w-5 h-5 ${pathname === '/login' ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[10px] mt-1 font-medium">Login</span>
+              <span className="text-[9px] mt-0.5 font-medium">Login</span>
             </Link>
           )}
         </div>
@@ -307,7 +325,7 @@ export default function Navbar() {
       </nav>
 
       {/* Spacer for bottom nav on mobile */}
-      <div className="lg:hidden h-16" />
+      <div className="lg:hidden h-14" />
     </>
   )
 }

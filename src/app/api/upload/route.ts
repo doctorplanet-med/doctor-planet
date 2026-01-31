@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session || session.user?.role !== 'ADMIN') {
+    // Allow both ADMIN and SALESMAN to upload
+    if (!session || !['ADMIN', 'SALESMAN'].includes(session.user?.role || '')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -34,17 +35,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 })
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products')
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
     // Generate unique filename
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 8)
     const extension = file.name.split('.').pop()
     const filename = `${timestamp}-${randomString}.${extension}`
+
+    // Check if we're on Vercel (read-only filesystem)
+    const isVercel = process.env.VERCEL === '1'
+    
+    if (isVercel) {
+      // On Vercel, return info for client-side Firebase upload
+      // Convert file to base64 for preview
+      const bytes = await file.arrayBuffer()
+      const base64 = Buffer.from(bytes).toString('base64')
+      
+      return NextResponse.json({ 
+        error: 'Server upload not available on Vercel. Please use Firebase Storage.',
+        useFirebase: true,
+        filename: `products/${filename}`,
+        contentType: file.type
+      }, { status: 200 })
+    }
+
+    // Local development: save to public folder
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products')
+    if (!existsSync(uploadDir)) {
+      await mkdir(uploadDir, { recursive: true })
+    }
 
     // Convert file to buffer and save
     const bytes = await file.arrayBuffer()
@@ -59,6 +77,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url })
   } catch (error) {
     console.error('Error uploading file:', error)
-    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to upload file. Please use Firebase Storage instead.',
+      useFirebase: true 
+    }, { status: 500 })
   }
 }

@@ -111,8 +111,8 @@ export default function ProductsContent({
     : 'All Products'
 
   return (
-    <div className="min-h-screen pt-16 sm:pt-24 pb-20 lg:pb-0 bg-secondary-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div className="min-h-screen pt-14 sm:pt-20 pb-16 lg:pb-0 bg-secondary-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
         {/* Header - Compact on Mobile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

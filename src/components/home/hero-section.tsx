@@ -16,13 +16,6 @@ interface HeroSettings {
   freeShippingMinimum: number
 }
 
-const promoFeatures = [
-  { icon: Truck, text: 'Free Delivery', subtext: 'Orders PKR 5000+' },
-  { icon: Shield, text: '100% Genuine', subtext: 'Quality Assured' },
-  { icon: Clock, text: 'Fast Shipping', subtext: '2-3 Days' },
-  { icon: Headphones, text: '24/7 Support', subtext: 'Always Here' },
-]
-
 const bannerSlides = [
   {
     id: 1,
@@ -102,16 +95,27 @@ export default function HeroSection() {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length)
 
+  // Dynamic promo features with settings
+  const promoFeatures = [
+    { icon: Truck, text: 'Free Delivery', subtext: `Orders PKR ${settings.freeShippingMinimum}+` },
+    { icon: Shield, text: '100% Genuine', subtext: 'Quality Assured' },
+    { icon: Clock, text: 'Fast Shipping', subtext: '2-3 Days' },
+    { icon: Headphones, text: '24/7 Support', subtext: 'Always Here' },
+  ]
+
   return (
-    <section className="bg-secondary-50 pt-[64px] sm:pt-[80px]">
-      {/* Promo Banner - Mobile - No gap */}
-      <div className="sm:hidden bg-gradient-to-r from-primary-600 to-primary-700 text-white -mt-px">
-        <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 text-[11px] font-medium">
+    <section className="bg-secondary-50">
+      {/* Mobile: Free Shipping Banner - Directly under navbar with NO gap */}
+      <div className="sm:hidden pt-14 bg-gradient-to-r from-primary-600 to-primary-700">
+        <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 text-[11px] font-medium text-white">
           <Sparkles className="w-3 h-3" />
           <span>Free Shipping on orders above PKR {settings.freeShippingMinimum}</span>
           <Sparkles className="w-3 h-3" />
         </div>
       </div>
+
+      {/* Desktop: Spacing for navbar */}
+      <div className="hidden sm:block h-20" />
 
       {/* Main Hero */}
       <div className="relative">
@@ -119,7 +123,7 @@ export default function HeroSection() {
           <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Main Banner Slider */}
             <div className="lg:col-span-3 relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl">
-              <div className="relative h-[200px] sm:h-[350px] md:h-[480px]">
+              <div className="relative h-[180px] sm:h-[350px] md:h-[480px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentSlide}
@@ -164,7 +168,7 @@ export default function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="text-xl sm:text-3xl md:text-5xl font-bold text-white mb-1.5 sm:mb-4 leading-tight"
+                            className="text-lg sm:text-3xl md:text-5xl font-bold text-white mb-1 sm:mb-4 leading-tight"
                           >
                             {bannerSlides[currentSlide].title}
                           </motion.h1>
@@ -173,7 +177,7 @@ export default function HeroSection() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
-                            className="text-white/90 text-xs sm:text-lg mb-3 sm:mb-6"
+                            className="text-white/90 text-[11px] sm:text-lg mb-2.5 sm:mb-6"
                           >
                             {bannerSlides[currentSlide].subtitle}
                           </motion.p>
@@ -185,11 +189,11 @@ export default function HeroSection() {
                           >
                             <Link
                               href={bannerSlides[currentSlide].link}
-                              className="inline-flex items-center gap-1.5 sm:gap-2 bg-white text-secondary-900 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold text-xs sm:text-base hover:bg-secondary-100 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                              className="inline-flex items-center gap-1.5 sm:gap-2 bg-white text-secondary-900 px-3.5 sm:px-6 py-1.5 sm:py-3 rounded-full font-semibold text-[11px] sm:text-base hover:bg-secondary-100 transition-all shadow-lg hover:shadow-xl hover:scale-105"
                             >
-                              <ShoppingBag className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                              <ShoppingBag className="w-3 h-3 sm:w-5 sm:h-5" />
                               {bannerSlides[currentSlide].cta}
-                              <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                              <ArrowRight className="w-3 h-3 sm:w-5 sm:h-5" />
                             </Link>
                           </motion.div>
                         </motion.div>
@@ -213,15 +217,15 @@ export default function HeroSection() {
                 </button>
 
                 {/* Slide Indicators */}
-                <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
+                <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
                   {bannerSlides.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentSlide(index)}
-                      className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
+                      className={`h-1 sm:h-2 rounded-full transition-all duration-300 ${
                         index === currentSlide
-                          ? 'bg-white w-6 sm:w-8'
-                          : 'bg-white/50 w-1.5 sm:w-2 hover:bg-white/70'
+                          ? 'bg-white w-5 sm:w-8'
+                          : 'bg-white/50 w-1 sm:w-2 hover:bg-white/70'
                       }`}
                     />
                   ))}
@@ -272,7 +276,7 @@ export default function HeroSection() {
       </div>
 
       {/* Quick Categories - Mobile Optimized */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 pb-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 pb-3 sm:pb-4">
         <div className="grid grid-cols-4 gap-2 sm:gap-4">
           {quickCategories.map((cat, index) => (
             <motion.div
@@ -283,10 +287,10 @@ export default function HeroSection() {
             >
               <Link
                 href={cat.href}
-                className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl ${cat.color} hover:scale-105 transition-all shadow-sm hover:shadow-md`}
+                className={`flex flex-col items-center justify-center p-2.5 sm:p-4 rounded-xl sm:rounded-2xl ${cat.color} hover:scale-105 transition-all shadow-sm hover:shadow-md`}
               >
-                <span className="text-2xl sm:text-3xl mb-1">{cat.emoji}</span>
-                <span className="text-[10px] sm:text-sm font-medium">{cat.name}</span>
+                <span className="text-xl sm:text-3xl mb-0.5 sm:mb-1">{cat.emoji}</span>
+                <span className="text-[9px] sm:text-sm font-medium">{cat.name}</span>
               </Link>
             </motion.div>
           ))}
@@ -295,24 +299,24 @@ export default function HeroSection() {
 
       {/* Feature Strip - Mobile Optimized */}
       <div className="bg-white border-y border-secondary-200">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4">
           {/* Mobile: Horizontal Scroll */}
           <div className="sm:hidden overflow-x-auto hide-scrollbar">
-            <div className="flex gap-4 min-w-max px-1">
+            <div className="flex gap-3 min-w-max">
               {promoFeatures.map((feature, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center gap-2.5 py-2"
+                  className="flex items-center gap-2 py-1"
                 >
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-                    <feature.icon className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <feature.icon className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <p className="font-semibold text-secondary-900 text-sm whitespace-nowrap">{feature.text}</p>
-                    <p className="text-xs text-secondary-500 whitespace-nowrap">{feature.subtext}</p>
+                    <p className="font-semibold text-secondary-900 text-xs whitespace-nowrap">{feature.text}</p>
+                    <p className="text-[10px] text-secondary-500 whitespace-nowrap">{feature.subtext}</p>
                   </div>
                 </motion.div>
               ))}
