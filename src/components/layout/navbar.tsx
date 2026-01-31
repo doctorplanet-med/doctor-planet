@@ -8,12 +8,14 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ShoppingCart, 
-  Menu, 
-  X, 
   User, 
   LogOut, 
   LayoutDashboard,
-  ChevronDown
+  ChevronDown,
+  Home,
+  Grid3X3,
+  Search,
+  Heart
 } from 'lucide-react'
 import { useCartStore } from '@/store/cart-store'
 
@@ -25,9 +27,16 @@ const navLinks = [
   { href: '/products?category=medical-equipment', label: 'Equipment' },
 ]
 
+// Bottom nav items for mobile
+const mobileNavItems = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/products', label: 'Shop', icon: Grid3X3 },
+  { href: '/products?search=', label: 'Search', icon: Search },
+  { href: '/wishlist', label: 'Wishlist', icon: Heart },
+]
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const { data: session, status } = useSession()
   const pathname = usePathname()
@@ -42,14 +51,12 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-  }, [pathname])
-
   const isAdmin = session?.user?.role === 'ADMIN'
   const isSalesman = session?.user?.role === 'SALESMAN'
 
   return (
+    <>
+      {/* Top Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
@@ -57,221 +64,250 @@ export default function Navbar() {
             : 'bg-white/95 backdrop-blur-md'
         }`}
       >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative w-12 h-12"
-            >
-              <Image
-                src="/logos/logo.png"
-                alt="Doctor Planet"
-                fill
-                className="object-contain"
-              />
-            </motion.div>
-            <span className="hidden sm:block font-heading font-bold text-xl">
-              <span className="text-primary-600">doctor</span>
-              <span className="text-secondary-950">planet</span>
-            </span>
-          </Link>
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative w-10 h-10 sm:w-12 sm:h-12"
+              >
+                <Image
+                  src="/logos/logo.png"
+                  alt="Doctor Planet"
+                  fill
+                  className="object-contain"
+                />
+              </motion.div>
+              <span className="font-heading font-bold text-lg sm:text-xl">
+                <span className="text-primary-600">doctor</span>
+                <span className="text-secondary-950">planet</span>
+              </span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
-            {navLinks.map((link) => (
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                    pathname === link.href
+                      ? 'text-primary-600 bg-primary-50'
+                      : 'text-secondary-700 hover:text-primary-600 hover:bg-secondary-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Cart Button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleCart}
+                className="relative p-2 rounded-full hover:bg-secondary-100 transition-colors"
+              >
+                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-secondary-700" />
+                {itemCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary-600 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-medium"
+                  >
+                    {itemCount}
+                  </motion.span>
+                )}
+              </motion.button>
+
+              {/* User Menu - Desktop & Mobile */}
+              {status === 'loading' ? (
+                <div className="w-8 h-8 rounded-full bg-secondary-200 animate-pulse" />
+              ) : session ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2 rounded-lg hover:bg-secondary-100 transition-colors"
+                  >
+                    {session.user?.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        width={32}
+                        height={32}
+                        className="rounded-full w-7 h-7 sm:w-8 sm:h-8"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium text-sm">
+                        {session.user?.name?.[0] || 'U'}
+                      </div>
+                    )}
+                    <ChevronDown className="w-4 h-4 text-secondary-500 hidden sm:block" />
+                  </button>
+
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-secondary-100 overflow-hidden"
+                      >
+                        <div className="px-4 py-3 border-b border-secondary-100">
+                          <p className="font-medium text-secondary-900 truncate">
+                            {session.user?.name}
+                          </p>
+                          <p className="text-sm text-secondary-500 truncate">
+                            {session.user?.email}
+                          </p>
+                        </div>
+
+                        <div className="py-2">
+                          {isAdmin && (
+                            <Link
+                              href="/admin"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
+                            >
+                              <LayoutDashboard className="w-4 h-4 mr-3" />
+                              Admin Dashboard
+                            </Link>
+                          )}
+                          {isSalesman && (
+                            <Link
+                              href="/salesman"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
+                            >
+                              <LayoutDashboard className="w-4 h-4 mr-3" />
+                              Salesman Dashboard
+                            </Link>
+                          )}
+                          <Link
+                            href="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
+                          >
+                            <User className="w-4 h-4 mr-3" />
+                            My Profile
+                          </Link>
+                          <Link
+                            href="/orders"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
+                          >
+                            <ShoppingCart className="w-4 h-4 mr-3" />
+                            My Orders
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setIsUserMenuOpen(false)
+                              signOut()
+                            }}
+                            className="w-full flex items-center px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <LogOut className="w-4 h-4 mr-3" />
+                            Sign Out
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="hidden sm:block btn-primary text-sm px-4 py-2"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </div>
+        </nav>
+
+        {/* Overlay for user menu */}
+        {isUserMenuOpen && (
+          <div
+            className="fixed inset-0 z-[-1]"
+            onClick={() => setIsUserMenuOpen(false)}
+          />
+        )}
+      </header>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-secondary-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="flex items-center justify-around h-16 px-2">
+          {mobileNavItems.map((item) => {
+            const isActive = pathname === item.href || 
+              (item.href === '/products' && pathname.startsWith('/products'))
+            const Icon = item.icon
+            
+            return (
               <Link
-                key={link.href}
-                href={link.href}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  pathname === link.href
-                    ? 'text-primary-600 bg-primary-50'
-                    : 'text-secondary-700 hover:text-primary-600 hover:bg-secondary-50'
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
+                  isActive
+                    ? 'text-primary-600'
+                    : 'text-secondary-500'
                 }`}
               >
-                {link.label}
+                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] mt-1 font-medium">{item.label}</span>
               </Link>
-            ))}
-          </div>
-
-          {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Cart Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={toggleCart}
-              className="relative p-2 rounded-full hover:bg-secondary-100 transition-colors"
+            )
+          })}
+          
+          {/* Profile/Login Item */}
+          {session ? (
+            <Link
+              href="/profile"
+              className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
+                pathname === '/profile'
+                  ? 'text-primary-600'
+                  : 'text-secondary-500'
+              }`}
             >
-              <ShoppingCart className="w-6 h-6 text-secondary-700" />
-              {itemCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center font-medium"
-                >
-                  {itemCount}
-                </motion.span>
-              )}
-            </motion.button>
-
-            {/* User Menu */}
-            {status === 'loading' ? (
-              <div className="w-8 h-8 rounded-full bg-secondary-200 animate-pulse" />
-            ) : session ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-secondary-100 transition-colors"
-                >
-                  {session.user?.image ? (
-                    <Image
-                      src={session.user.image}
-                      alt={session.user.name || 'User'}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium">
-                      {session.user?.name?.[0] || 'U'}
-                    </div>
-                  )}
-                  <ChevronDown className="w-4 h-4 text-secondary-500" />
-                </button>
-
-                <AnimatePresence>
-                  {isUserMenuOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-secondary-100 overflow-hidden"
-                    >
-                      <div className="px-4 py-3 border-b border-secondary-100">
-                        <p className="font-medium text-secondary-900 truncate">
-                          {session.user?.name}
-                        </p>
-                        <p className="text-sm text-secondary-500 truncate">
-                          {session.user?.email}
-                        </p>
-                      </div>
-
-                      <div className="py-2">
-                        {isAdmin && (
-                          <Link
-                            href="/admin"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
-                          >
-                            <LayoutDashboard className="w-4 h-4 mr-3" />
-                            Admin Dashboard
-                          </Link>
-                        )}
-                        {isSalesman && (
-                          <Link
-                            href="/salesman"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
-                          >
-                            <LayoutDashboard className="w-4 h-4 mr-3" />
-                            Salesman Dashboard
-                          </Link>
-                        )}
-                        <Link
-                          href="/profile"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
-                        >
-                          <User className="w-4 h-4 mr-3" />
-                          My Profile
-                        </Link>
-                        <Link
-                          href="/orders"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-secondary-700 hover:bg-secondary-50 transition-colors"
-                        >
-                          <ShoppingCart className="w-4 h-4 mr-3" />
-                          My Orders
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setIsUserMenuOpen(false)
-                            signOut()
-                          }}
-                          className="w-full flex items-center px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <LogOut className="w-4 h-4 mr-3" />
-                          Sign Out
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="btn-primary text-sm px-4 py-2"
-              >
-                Sign In
-              </Link>
-            )}
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-secondary-100 transition-colors"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-secondary-700" />
+              {session.user?.image ? (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  width={20}
+                  height={20}
+                  className="rounded-full w-5 h-5"
+                />
               ) : (
-                <Menu className="w-6 h-6 text-secondary-700" />
+                <User className={`w-5 h-5 ${pathname === '/profile' ? 'stroke-[2.5]' : ''}`} />
               )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="lg:hidden overflow-hidden bg-white rounded-xl shadow-lg mb-4"
+              <span className="text-[10px] mt-1 font-medium">Profile</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className={`flex flex-col items-center justify-center flex-1 py-2 transition-colors ${
+                pathname === '/login'
+                  ? 'text-primary-600'
+                  : 'text-secondary-500'
+              }`}
             >
-              <div className="py-4 space-y-1">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`block px-4 py-3 font-medium transition-colors ${
-                      pathname === link.href
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-secondary-700 hover:text-primary-600 hover:bg-secondary-50'
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </motion.div>
+              <User className={`w-5 h-5 ${pathname === '/login' ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px] mt-1 font-medium">Login</span>
+            </Link>
           )}
-        </AnimatePresence>
+        </div>
+        
+        {/* Safe area for iPhone notch */}
+        <div className="h-safe-area-inset-bottom bg-white" />
       </nav>
 
-      {/* Overlay for user menu */}
-      {isUserMenuOpen && (
-        <div
-          className="fixed inset-0 z-[-1]"
-          onClick={() => setIsUserMenuOpen(false)}
-        />
-      )}
-    </header>
+      {/* Spacer for bottom nav on mobile */}
+      <div className="lg:hidden h-16" />
+    </>
   )
 }

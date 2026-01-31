@@ -92,7 +92,7 @@ export default function Footer() {
     },
   ].filter(link => link.show)
   return (
-    <footer className="bg-secondary-950 text-white">
+    <footer className="bg-secondary-950 text-white pb-20 lg:pb-0">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">

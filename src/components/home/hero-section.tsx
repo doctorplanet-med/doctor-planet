@@ -103,7 +103,7 @@ export default function HeroSection() {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length)
 
   return (
-    <section className="bg-secondary-50 pt-[80px]">
+    <section className="bg-secondary-50 pt-[64px] sm:pt-[80px]">
       {/* Main Hero Banner */}
       <div className="relative">
         <div className="max-w-7xl mx-auto px-4 py-6">

@@ -117,6 +117,20 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* Safe area for iPhone notch/home indicator */
+  .h-safe-area-inset-bottom {
+    height: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  /* Mobile bottom nav spacing */
+  .pb-mobile-nav {
+    @apply pb-20 lg:pb-0;
+  }
 }
 
 /* Page transitions */
