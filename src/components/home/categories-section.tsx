@@ -1,9 +1,10 @@
 'use client'
 
+import { useRef, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Category {
   id: string
@@ -26,15 +27,43 @@ const categoryEmojis: Record<string, string> = {
   'medical-equipment': '🩺',
 }
 
-const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
-  'medical-clothes': { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
-  'medical-shoes': { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' },
-  'medical-equipment': { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' },
+const categoryColors: Record<string, { bg: string; text: string; gradient: string }> = {
+  'medical-clothes': { bg: 'bg-blue-500', text: 'text-white', gradient: 'from-blue-500 to-blue-600' },
+  'medical-shoes': { bg: 'bg-emerald-500', text: 'text-white', gradient: 'from-emerald-500 to-emerald-600' },
+  'medical-equipment': { bg: 'bg-purple-500', text: 'text-white', gradient: 'from-purple-500 to-purple-600' },
 }
 
 export default function CategoriesSection({ categories }: CategoriesSectionProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+    }
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const ref = scrollRef.current
+    if (ref) {
+      ref.addEventListener('scroll', checkScroll)
+      return () => ref.removeEventListener('scroll', checkScroll)
+    }
+  }, [])
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = direction === 'left' ? -200 : 200
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
+
   return (
-    <section className="py-8 sm:py-16 lg:py-20 bg-white">
+    <section className="py-6 sm:py-16 lg:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -42,59 +71,84 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-6 sm:mb-12"
+          className="flex items-center justify-between mb-4 sm:mb-12"
         >
-          <div className="flex items-center justify-center gap-2 text-primary-600 font-medium text-xs sm:text-sm uppercase tracking-wider mb-1 sm:mb-2">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Browse by Category
+          <div>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-primary-600 font-medium text-[10px] sm:text-sm uppercase tracking-wider mb-0.5 sm:mb-2">
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+              Browse by Category
+            </div>
+            <h2 className="text-base sm:text-3xl lg:text-4xl font-bold text-secondary-950">Shop Our Collections</h2>
           </div>
-          <h2 className="text-xl sm:text-3xl lg:text-4xl font-bold text-secondary-950 mb-2 sm:mb-4">Shop Our Collections</h2>
-          <p className="text-secondary-600 text-sm sm:text-base max-w-lg mx-auto">
-            Find exactly what you need for your medical practice
-          </p>
+          
+          {/* Desktop: View All */}
+          <Link
+            href="/products"
+            className="hidden sm:flex items-center gap-2 text-primary-600 font-medium hover:text-primary-700 transition-colors"
+          >
+            View All
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </motion.div>
 
-        {/* Mobile: Card Style Categories */}
-        <div className="sm:hidden space-y-3">
-          {categories.map((category, index) => {
-            const colors = categoryColors[category.slug] || { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' }
-            const emoji = categoryEmojis[category.slug] || '📦'
-            
-            return (
-              <motion.div
-                key={category.id}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-              >
-                <Link href={`/products?category=${category.slug}`}>
-                  <div className={`relative overflow-hidden rounded-2xl ${colors.bg} border ${colors.border} p-4`}>
-                    <div className="flex items-center gap-4">
-                      {/* Emoji Icon */}
-                      <div className={`w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center text-2xl`}>
-                        {emoji}
-                      </div>
+        {/* Mobile: Horizontal Scroll - 3 items visible */}
+        <div className="sm:hidden relative">
+          <div 
+            ref={scrollRef}
+            className="flex gap-2.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-2"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {categories.map((category, index) => {
+              const colors = categoryColors[category.slug] || { bg: 'bg-gray-500', text: 'text-white', gradient: 'from-gray-500 to-gray-600' }
+              const emoji = categoryEmojis[category.slug] || '📦'
+              
+              return (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="flex-shrink-0 w-[calc(33.333%-7px)] snap-start"
+                >
+                  <Link href={`/products?category=${category.slug}`}>
+                    <div className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${colors.gradient} p-3 h-[100px] flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow`}>
+                      {/* Decorative circles */}
+                      <div className="absolute -right-3 -top-3 w-12 h-12 rounded-full bg-white/10" />
+                      <div className="absolute -right-1 -bottom-1 w-8 h-8 rounded-full bg-white/10" />
+                      
+                      {/* Emoji */}
+                      <span className="text-2xl">{emoji}</span>
                       
                       {/* Content */}
-                      <div className="flex-1">
-                        <h3 className={`font-bold text-base ${colors.text}`}>{category.name}</h3>
-                        <p className="text-secondary-500 text-xs mt-0.5">{category._count.products} Products</p>
-                      </div>
-                      
-                      {/* Arrow */}
-                      <div className={`w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center ${colors.text}`}>
-                        <ArrowRight className="w-4 h-4" />
+                      <div>
+                        <h3 className="font-bold text-white text-xs leading-tight">{category.name}</h3>
+                        <p className="text-white/70 text-[9px] mt-0.5">{category._count.products} Items</p>
                       </div>
                     </div>
-                    
-                    {/* Background decoration */}
-                    <div className="absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-white/50 opacity-50" />
-                  </div>
-                </Link>
-              </motion.div>
-            )
-          })}
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </div>
+          
+          {/* Scroll Buttons */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scroll('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/95 shadow-md rounded-full flex items-center justify-center z-10 -ml-1"
+            >
+              <ChevronLeft className="w-4 h-4 text-secondary-700" />
+            </button>
+          )}
+          {canScrollRight && (
+            <button
+              onClick={() => scroll('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 bg-white/95 shadow-md rounded-full flex items-center justify-center z-10 -mr-1"
+            >
+              <ChevronRight className="w-4 h-4 text-secondary-700" />
+            </button>
+          )}
         </div>
 
         {/* Desktop: Image Cards */}

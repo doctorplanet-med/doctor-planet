@@ -91,11 +91,83 @@ export default function Footer() {
       show: !!settings?.whatsappNumber 
     },
   ].filter(link => link.show)
+
   return (
     <footer className="bg-secondary-950 text-white pb-20 lg:pb-0">
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        {/* Mobile: Compact Footer */}
+        <div className="sm:hidden">
+          {/* Brand */}
+          <div className="flex items-center justify-center mb-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="relative w-8 h-8">
+                <Image
+                  src="/logos/logo.png"
+                  alt="Doctor Planet"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <span className="font-heading font-bold text-base">
+                <span className="text-primary-500">doctor</span>
+                <span className="text-white">planet</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Contact Info - Compact */}
+          <div className="flex flex-wrap justify-center gap-3 text-xs text-secondary-400 mb-4">
+            <a href={`mailto:${settings?.contactEmail || 'info@doctorplanet.com'}`} className="flex items-center gap-1">
+              <Mail className="w-3 h-3" />
+              <span>{settings?.contactEmail || 'info@doctorplanet.com'}</span>
+            </a>
+            <a href={`tel:${settings?.contactPhone || '+923001234567'}`} className="flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              <span>{settings?.contactPhone || '+92 300 1234567'}</span>
+            </a>
+          </div>
+
+          {/* Quick Links - 2 Column Grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-center mb-4">
+            {[...footerLinks.shop.slice(0, 2), ...footerLinks.support.slice(0, 2)].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-xs text-secondary-400 hover:text-primary-400 transition-colors py-1"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Social Links */}
+          {socialLinks.length > 0 && (
+            <div className="flex justify-center gap-3 mb-4">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-8 h-8 rounded-full bg-secondary-800 flex items-center justify-center text-secondary-400 ${social.color} hover:text-white transition-colors`}
+                  aria-label={social.label}
+                >
+                  <social.icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          )}
+
+          {/* Copyright */}
+          <p className="text-secondary-500 text-[10px] text-center flex items-center justify-center gap-1">
+            © {new Date().getFullYear()} Doctor Planet. Made with
+            <Heart className="w-3 h-3 text-primary-500 fill-current" />
+          </p>
+        </div>
+
+        {/* Desktop: Full Footer */}
+        <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-3 mb-6">
@@ -207,8 +279,8 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-secondary-800">
+      {/* Bottom Bar - Desktop Only */}
+      <div className="hidden sm:block border-t border-secondary-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-secondary-400 text-sm flex items-center">

@@ -104,18 +104,18 @@ export default function HeroSection() {
 
   return (
     <section className="bg-secondary-50 pt-[64px] sm:pt-[80px]">
-      {/* Promo Banner - Mobile */}
-      <div className="sm:hidden bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-medium">
-          <Sparkles className="w-3.5 h-3.5" />
+      {/* Promo Banner - Mobile - No gap */}
+      <div className="sm:hidden bg-gradient-to-r from-primary-600 to-primary-700 text-white -mt-px">
+        <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 text-[11px] font-medium">
+          <Sparkles className="w-3 h-3" />
           <span>Free Shipping on orders above PKR {settings.freeShippingMinimum}</span>
-          <Sparkles className="w-3.5 h-3.5" />
+          <Sparkles className="w-3 h-3" />
         </div>
       </div>
 
       {/* Main Hero */}
       <div className="relative">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-2 pb-3 sm:py-6">
           <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Main Banner Slider */}
             <div className="lg:col-span-3 relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl">
