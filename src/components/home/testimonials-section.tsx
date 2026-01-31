@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Star, Quote, User } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Star, Quote, User, Sparkles } from 'lucide-react'
 
 interface Testimonial {
   id: string
@@ -19,9 +19,9 @@ const defaultTestimonials: Testimonial[] = [
   {
     id: '1',
     name: 'Dr. Sarah Mitchell',
-    role: 'Emergency Medicine Physician',
+    role: 'Emergency Medicine',
     image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200',
-    content: 'Doctor Planet has been my go-to for medical apparel. The scrubs are incredibly comfortable for 12-hour shifts, and the quality is unmatched. Highly recommend!',
+    content: 'Doctor Planet has been my go-to for medical apparel. The scrubs are incredibly comfortable!',
     rating: 5,
   },
   {
@@ -29,7 +29,7 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Nurse James Chen',
     role: 'ICU Nurse',
     image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200',
-    content: 'Finally found shoes that don\'t hurt my feet after long shifts! The nursing clogs from Doctor Planet are a game-changer. Plus, the delivery was super fast.',
+    content: 'Finally found shoes that don\'t hurt my feet after long shifts! Game-changer.',
     rating: 5,
   },
   {
@@ -37,7 +37,7 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Dr. Maria Rodriguez',
     role: 'Pediatrician',
     image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200',
-    content: 'The stethoscope I purchased has excellent acoustic quality. My patients love the colorful scrubs too - makes the clinic less intimidating for kids!',
+    content: 'Excellent quality stethoscope. My patients love the colorful scrubs too!',
     rating: 5,
   },
 ]
@@ -51,20 +51,17 @@ export default function TestimonialsSection() {
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        // Add cache-busting parameter
         const res = await fetch(`/api/testimonials?t=${Date.now()}`, {
           cache: 'no-store'
         })
         const data = await res.json()
         
-        // Check if data is an array and has items
         if (Array.isArray(data) && data.length > 0) {
           setTestimonials(data)
-          setCurrentIndex(0) // Reset to first testimonial
+          setCurrentIndex(0)
         }
       } catch (error) {
         console.error('Failed to fetch testimonials:', error)
-        // Keep default testimonials on error
       }
     }
     
@@ -102,35 +99,112 @@ export default function TestimonialsSection() {
   const current = testimonials[currentIndex]
 
   return (
-    <section className="py-20 bg-secondary-950 relative overflow-hidden">
+    <section className="py-8 sm:py-16 lg:py-20 bg-gradient-to-br from-secondary-900 via-secondary-950 to-secondary-900 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <Quote className="absolute top-20 left-20 w-64 h-64 text-white" />
-        <Quote className="absolute bottom-20 right-20 w-64 h-64 text-white rotate-180" />
+        <Quote className="absolute top-10 left-10 sm:top-20 sm:left-20 w-32 h-32 sm:w-64 sm:h-64 text-white" />
+        <Quote className="absolute bottom-10 right-10 sm:bottom-20 sm:right-20 w-32 h-32 sm:w-64 sm:h-64 text-white rotate-180" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-6 sm:mb-12"
         >
-          <span className="text-primary-400 font-medium text-sm uppercase tracking-wider">
+          <div className="flex items-center justify-center gap-2 text-primary-400 font-medium text-xs sm:text-sm uppercase tracking-wider mb-1 sm:mb-2">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Testimonials
-          </span>
-          <h2 className="text-3xl md:text-4xl font-heading font-bold text-white mt-2 mb-4">
+          </div>
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-heading font-bold text-white mb-2 sm:mb-4">
             What Our Customers Say
           </h2>
-          <p className="text-secondary-400 max-w-2xl mx-auto">
-            Join thousands of satisfied healthcare professionals who trust Doctor Planet
+          <p className="text-secondary-400 text-sm sm:text-base max-w-lg mx-auto">
+            Join thousands of satisfied healthcare professionals
           </p>
         </motion.div>
 
-        {/* Testimonial Carousel */}
-        <div className="relative max-w-4xl mx-auto">
+        {/* Mobile: Card Carousel */}
+        <div className="sm:hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-5"
+            >
+              {/* Stars */}
+              <div className="flex gap-0.5 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < current.rating
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-secondary-600'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Content */}
+              <p className="text-white/90 text-sm leading-relaxed mb-4">
+                "{current.content}"
+              </p>
+
+              {/* Author */}
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary-500/50">
+                  {current.image ? (
+                    <Image
+                      src={current.image}
+                      alt={current.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary-600 flex items-center justify-center">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-white text-sm">
+                    {current.name}
+                  </h4>
+                  <p className="text-secondary-400 text-xs">
+                    {current.role}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Mobile Dots */}
+          {testimonials.length > 1 && (
+            <div className="flex justify-center gap-1.5 mt-4">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToTestimonial(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-primary-500 w-5'
+                      : 'bg-secondary-600 w-1.5'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: Full Carousel */}
+        <div className="hidden sm:block relative max-w-4xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -202,24 +276,24 @@ export default function TestimonialsSection() {
               </button>
             </>
           )}
-        </div>
 
-        {/* Dots */}
-        {testimonials.length > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
-            {testimonials.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToTestimonial(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? 'bg-primary-500 w-8'
-                    : 'bg-secondary-600 hover:bg-secondary-500'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+          {/* Dots */}
+          {testimonials.length > 1 && (
+            <div className="flex justify-center gap-2 mt-8">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToTestimonial(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-primary-500 w-8'
+                      : 'bg-secondary-600 hover:bg-secondary-500'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   )

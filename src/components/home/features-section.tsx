@@ -8,7 +8,8 @@ import {
   RefreshCw, 
   Headphones, 
   Award,
-  Clock
+  Clock,
+  Sparkles
 } from 'lucide-react'
 
 export default function FeaturesSection() {
@@ -33,56 +34,90 @@ export default function FeaturesSection() {
     {
       icon: Truck,
       title: 'Free Shipping',
-      description: `Free delivery on orders over PKR ${freeShippingMin}. Fast and reliable shipping nationwide.`,
+      description: `Free delivery on orders over PKR ${freeShippingMin}`,
+      color: 'bg-blue-50 text-blue-600',
     },
     {
       icon: Shield,
       title: 'Quality Guarantee',
-      description: 'All products meet medical-grade quality standards with manufacturer warranty.',
+      description: 'Medical-grade quality standards',
+      color: 'bg-green-50 text-green-600',
     },
     {
       icon: RefreshCw,
       title: 'Easy Returns',
-      description: '30-day hassle-free returns. Not satisfied? Get a full refund.',
+      description: '30-day hassle-free returns',
+      color: 'bg-purple-50 text-purple-600',
     },
     {
       icon: Headphones,
       title: '24/7 Support',
-      description: 'Our dedicated team is here to help you anytime, day or night.',
+      description: 'Dedicated team to help you',
+      color: 'bg-orange-50 text-orange-600',
     },
     {
       icon: Award,
       title: 'Certified Products',
-      description: 'All medical equipment is FDA approved and certified for safety.',
+      description: 'FDA approved and certified',
+      color: 'bg-pink-50 text-pink-600',
     },
     {
       icon: Clock,
       title: 'Fast Processing',
-      description: 'Orders processed within 24 hours for quick delivery to your doorstep.',
+      description: 'Orders processed in 24 hours',
+      color: 'bg-teal-50 text-teal-600',
     },
   ]
+
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-8 sm:py-16 lg:py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-6 sm:mb-16"
         >
-          <span className="text-primary-600 font-medium text-sm uppercase tracking-wider">
+          <div className="flex items-center justify-center gap-2 text-primary-600 font-medium text-xs sm:text-sm uppercase tracking-wider mb-1 sm:mb-2">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Why Choose Us
-          </span>
-          <h2 className="section-title mt-2">The Doctor Planet Difference</h2>
-          <p className="section-subtitle">
-            We're committed to providing the best experience for healthcare professionals
+          </div>
+          <h2 className="text-xl sm:text-3xl lg:text-4xl font-bold text-secondary-950 mb-2 sm:mb-4">
+            The Doctor Planet Difference
+          </h2>
+          <p className="text-secondary-600 text-sm sm:text-base max-w-lg mx-auto">
+            Committed to providing the best for healthcare professionals
           </p>
         </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Mobile: 2-column compact grid */}
+        <div className="sm:hidden grid grid-cols-2 gap-3">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className={`p-4 rounded-2xl ${feature.color.split(' ')[0]} border border-secondary-100`}
+            >
+              <div className={`w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center mb-3 ${feature.color.split(' ')[1]}`}>
+                <feature.icon className="w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-sm text-secondary-900 mb-1">
+                {feature.title}
+              </h3>
+              <p className="text-secondary-500 text-xs leading-relaxed">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop: 3-column grid */}
+        <div className="hidden sm:grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
