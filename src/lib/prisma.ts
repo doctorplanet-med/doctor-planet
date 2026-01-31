@@ -1,24 +1,23 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-function createPrismaClient(): PrismaClient {
+// Create Prisma client - handles both local SQLite and Turso
+async function createPrismaClient(): Promise<PrismaClient> {
   // Check if we're using Turso (production)
   if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
-    // Create Turso/libSQL client
+    // Dynamic import to avoid webpack bundling issues
+    const { PrismaLibSQL } = await import('@prisma/adapter-libsql')
+    const { createClient } = await import('@libsql/client')
+    
     const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
     })
     
-    // Create Prisma adapter
     const adapter = new PrismaLibSQL(libsql)
-    
-    // Return Prisma client with Turso adapter
     return new PrismaClient({ adapter })
   }
   
@@ -26,8 +25,42 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient()
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+// For synchronous access, we create a simple client
+// The Turso adapter will be used when TURSO env vars are set
+function getPrismaClient(): PrismaClient {
+  if (globalForPrisma.prisma) {
+    return globalForPrisma.prisma
+  }
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+  // Check if Turso is configured
+  if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+    // We need to use require for synchronous loading on server
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaLibSQL } = require('@prisma/adapter-libsql')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createClient } = require('@libsql/client')
+    
+    const libsql = createClient({
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    })
+    
+    const adapter = new PrismaLibSQL(libsql)
+    const client = new PrismaClient({ adapter })
+    
+    if (process.env.NODE_ENV !== 'production') {
+      globalForPrisma.prisma = client
+    }
+    return client
+  }
+  
+  // Local SQLite
+  const client = new PrismaClient()
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.prisma = client
+  }
+  return client
+}
 
+export const prisma = getPrismaClient()
 export default prisma
