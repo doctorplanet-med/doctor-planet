@@ -105,12 +105,11 @@ export default function HeroSection() {
 
   return (
     <section className="bg-secondary-50">
-      {/* Mobile: Free Shipping Banner - Directly under navbar with NO gap */}
-      <div className="sm:hidden pt-14 bg-gradient-to-r from-primary-600 to-primary-700">
-        <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 text-[11px] font-medium text-white">
-          <Sparkles className="w-3 h-3" />
-          <span>Free Shipping on orders above PKR {settings.freeShippingMinimum}</span>
-          <Sparkles className="w-3 h-3" />
+      {/* Mobile: Free Shipping Banner - Subtle design */}
+      <div className="sm:hidden pt-14 bg-secondary-800">
+        <div className="flex items-center justify-center gap-1.5 py-1 px-3 text-[10px] font-medium text-secondary-200">
+          <Truck className="w-3 h-3" />
+          <span>Free Shipping on PKR {settings.freeShippingMinimum}+ orders</span>
         </div>
       </div>
 

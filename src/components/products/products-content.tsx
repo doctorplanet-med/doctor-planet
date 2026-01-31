@@ -112,12 +112,12 @@ export default function ProductsContent({
 
   return (
     <div className="min-h-screen pt-14 sm:pt-20 pb-16 lg:pb-0 bg-secondary-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-6">
         {/* Header - Compact on Mobile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-3 sm:mb-8"
+          className="mb-2 sm:mb-6"
         >
           <h1 className="text-lg sm:text-3xl md:text-4xl font-heading font-bold text-secondary-900">
             {currentCategoryName}

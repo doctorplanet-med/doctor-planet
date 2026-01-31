@@ -14,7 +14,7 @@ import {
   ChevronDown,
   Home,
   Grid3X3,
-  Search
+  Heart
 } from 'lucide-react'
 import { useCartStore } from '@/store/cart-store'
 
@@ -235,7 +235,7 @@ export default function Navbar() {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-secondary-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-secondary-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="flex items-center justify-around h-14 px-1">
           {/* Home */}
           <Link
@@ -259,13 +259,15 @@ export default function Navbar() {
             <span className="text-[9px] mt-0.5 font-medium">Shop</span>
           </Link>
 
-          {/* Search */}
+          {/* Wishlist */}
           <Link
-            href="/products?search="
-            className="flex flex-col items-center justify-center flex-1 py-1.5 text-secondary-500"
+            href="/wishlist"
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-colors ${
+              pathname === '/wishlist' ? 'text-primary-600' : 'text-secondary-500'
+            }`}
           >
-            <Search className="w-5 h-5" />
-            <span className="text-[9px] mt-0.5 font-medium">Search</span>
+            <Heart className={`w-5 h-5 ${pathname === '/wishlist' ? 'stroke-[2.5]' : ''}`} />
+            <span className="text-[9px] mt-0.5 font-medium">Wishlist</span>
           </Link>
 
           {/* Cart */}
