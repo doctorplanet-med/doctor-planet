@@ -70,10 +70,15 @@ model User {
   isProfileComplete Boolean @default(false)
   isActive      Boolean   @default(true) // For salesmen accounts
   
+  // Password reset
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  
   accounts      Account[]
   sessions      Session[]
   orders        Order[]
   cart          CartItem[]
+  wishlist      WishlistItem[]
   posSales      POSSale[] // POS sales made by this salesman
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -121,6 +126,7 @@ model Product {
   isActive    Boolean     @default(true)
   orderItems  OrderItem[]
   cartItems   CartItem[]
+  wishlistItems WishlistItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -138,6 +144,17 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, productId, size, color])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
 }
 
 model Order {
