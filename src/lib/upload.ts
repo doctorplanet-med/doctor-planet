@@ -1,11 +1,8 @@
-import { storage } from './firebase'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-
 /**
- * Upload a file to Firebase Storage
+ * Upload a file to Cloudinary via the server API
  * @param file - The file to upload
- * @param folder - The folder path in storage (e.g., 'products', 'testimonials')
- * @returns The download URL of the uploaded file
+ * @param folder - The folder path (e.g., 'products', 'testimonials')
+ * @returns The URL of the uploaded file
  */
 export async function uploadToFirebase(file: File, folder: string = 'products'): Promise<string> {
   // Validate file type
@@ -14,37 +11,43 @@ export async function uploadToFirebase(file: File, folder: string = 'products'):
     throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.')
   }
 
-  // Validate file size (max 5MB)
-  const maxSize = 5 * 1024 * 1024 // 5MB
+  // Validate file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024 // 10MB
   if (file.size > maxSize) {
-    throw new Error('File too large. Maximum size is 5MB.')
+    throw new Error('File too large. Maximum size is 10MB.')
   }
 
-  // Generate unique filename
-  const timestamp = Date.now()
-  const randomString = Math.random().toString(36).substring(2, 8)
-  const extension = file.name.split('.').pop()
-  const filename = `${folder}/${timestamp}-${randomString}.${extension}`
+  // Create form data
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('folder', folder)
 
-  // Create storage reference
-  const storageRef = ref(storage, filename)
+  // Upload via server API
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData,
+  })
 
-  // Upload file
-  const snapshot = await uploadBytes(storageRef, file)
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to upload image')
+  }
 
-  // Get download URL
-  const downloadURL = await getDownloadURL(snapshot.ref)
-
-  return downloadURL
+  const data = await response.json()
+  return data.url
 }
 
 /**
- * Upload multiple files to Firebase Storage
+ * Upload multiple files
  * @param files - Array of files to upload
- * @param folder - The folder path in storage
- * @returns Array of download URLs
+ * @param folder - The folder path
+ * @returns Array of URLs
  */
 export async function uploadMultipleToFirebase(files: File[], folder: string = 'products'): Promise<string[]> {
   const uploadPromises = files.map(file => uploadToFirebase(file, folder))
   return Promise.all(uploadPromises)
 }
+
+// Alias for clarity
+export const uploadImage = uploadToFirebase
+export const uploadMultipleImages = uploadMultipleToFirebase
