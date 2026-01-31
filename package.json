@@ -1,0 +1,50 @@
+{
+  "name": "doctor-planet",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.0.0",
+    "@libsql/client": "^0.17.0",
+    "@prisma/adapter-libsql": "^7.3.0",
+    "@prisma/client": "^5.10.0",
+    "bcryptjs": "^2.4.3",
+    "firebase": "^10.14.1",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.330.0",
+    "next": "14.2.5",
+    "next-auth": "^4.24.0",
+    "nodemailer": "^7.0.13",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.2.0",
+    "react-barcode": "^1.6.1",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "resend": "^6.9.1",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.11.0",
+    "@types/nodemailer": "^7.0.9",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8.4.35",
+    "prisma": "^5.10.0",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

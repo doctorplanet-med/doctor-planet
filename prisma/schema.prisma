@@ -1,0 +1,350 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// NOTE: For Turso (production), set these env vars:
+// DATABASE_URL = "file:./dev.db" (for local) or ignored for Turso
+// TURSO_DATABASE_URL = "libsql://your-db-name.turso.io"
+// TURSO_AUTH_TOKEN = "your-auth-token"
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("USER") // USER, ADMIN, or SALESMAN
+  
+  // Profile fields (required for checkout)
+  phone         String?   // Phone with country code e.g., +1234567890
+  address       String?   // Street address
+  city          String?
+  state         String?
+  postalCode    String?
+  country       String?
+  
+  // Professional fields for medical store
+  profession    String?   // e.g., Doctor, Nurse, Pharmacist, Student, Other
+  workplace     String?   // Hospital/Clinic name
+  
+  // Salesman specific fields
+  cnic          String?   // National ID card number
+  gender        String?   // Male, Female, Other
+  granterName   String?   // Granter/Guardian name (optional)
+  granterPhone  String?   // Granter/Guardian phone (optional)
+  
+  isProfileComplete Boolean @default(false)
+  isActive      Boolean   @default(true) // For salesmen accounts
+  
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  cart          CartItem[]
+  posSales      POSSale[] // POS sales made by this salesman
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  barcode     String?     @unique  // Unique barcode for POS scanning
+  sku         String?     // Stock Keeping Unit (optional internal code)
+  company     String?     // Brand/Company name (mainly for equipment)
+  description String
+  costPrice   Float       @default(0)  // Buying price (what seller pays)
+  price       Float       // Sale price (what customer pays)
+  salePrice   Float?      // Discounted sale price (optional)
+  images      String      // JSON array of image URLs
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  stock       Int         @default(0)  // Total stock (auto-calculated from variants)
+  sizes       String?     // JSON array for clothes/shoes sizes
+  colors      String?     // JSON array of available colors
+  colorImages String?     // JSON object mapping color names to image URLs e.g. {"Black": "/img1.jpg", "White": "/img2.jpg"}
+  colorSizeStock String?  // JSON object for stock per color-size e.g. {"Black": {"S": 10, "M": 15}, "White": {"S": 5}}
+  featured    Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  size      String?
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId, size, color])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  subtotal        Float
+  shippingFee     Float       @default(0)
+  total           Float
+  status          String      @default("PENDING") // PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  shippingAddress String      // JSON object
+  paymentMethod   String      @default("COD") // Cash on Delivery only
+  paymentStatus   String      @default("PENDING") // PENDING, PAID (collected on delivery)
+  notes           String?     // Customer notes for delivery
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  size      String?
+  color     String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // ORDER_PLACED, ORDER_CANCELLED, LOW_STOCK, etc.
+  title     String
+  message   String
+  data      String?  // JSON data (orderId, productId, etc.)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  name        String
+  role        String   // e.g., "Software Engineer", "Designer"
+  bio         String   // Description about the person
+  image       String?  // Profile image URL
+  isFounder   Boolean  @default(false)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  email       String?
+  phone       String?
+  linkedin    String?
+  instagram   String?
+  facebook    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  slug        String   @unique // e.g., "about", "contact", "faq"
+  title       String
+  content     String   // JSON content for the page
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String   // e.g., "Emergency Medicine Physician"
+  image     String?  // Profile image URL
+  content   String   // Review text
+  rating    Int      @default(5) // 1-5 stars
+  isActive  Boolean  @default(true)
+  order     Int      @default(0) // Display order
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// POS (Point of Sale) for in-store sales
+model POSSale {
+  id              String        @id @default(cuid())
+  receiptNumber   String        @unique
+  salesmanId      String
+  salesman        User          @relation(fields: [salesmanId], references: [id])
+  items           POSSaleItem[]
+  subtotal        Float
+  discount        Float         @default(0)
+  discountType    String?       // PERCENTAGE or FIXED
+  total           Float
+  paymentMethod   String        @default("CASH") // CASH, CARD, MIXED
+  amountReceived  Float?        // Cash received from customer
+  changeGiven     Float?        // Change returned
+  customerName    String?       // Optional customer info for POS
+  customerPhone   String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+}
+
+model POSSaleItem {
+  id          String   @id @default(cuid())
+  saleId      String
+  sale        POSSale  @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String   // Store product name at time of sale
+  quantity    Int
+  price       Float    // Price at time of sale
+  size        String?
+  color       String?
+}
+
+// POS Bill/Receipt Settings
+model BillSettings {
+  id                  String   @id @default("main")
+  
+  // Store Info
+  storeName           String   @default("Doctor Planet")
+  storeAddress        String   @default("Medical Plaza, Healthcare City")
+  storePhone          String   @default("+92 300 1234567")
+  storeEmail          String   @default("info@doctorplanet.com")
+  
+  // Bill Header
+  headerText          String?  // Optional header message
+  logoUrl             String?  // Logo for bill
+  
+  // Bill Footer
+  footerText          String   @default("Thank you for shopping with us!")
+  returnPolicy        String   @default("Returns accepted within 7 days with receipt")
+  
+  // Display Options
+  showLogo            Boolean  @default(true)
+  showStoreAddress    Boolean  @default(true)
+  showStorePhone      Boolean  @default(true)
+  showReturnPolicy    Boolean  @default(true)
+  showBarcode         Boolean  @default(false)
+  
+  // Thermal Printer Settings
+  paperWidth          String   @default("80mm") // 58mm, 80mm, A4
+  fontSize            String   @default("normal") // small, normal, large
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                  String   @id @default("main")
+  
+  // Branding
+  siteName            String   @default("Doctor Planet")
+  siteTagline         String   @default("Professional Medical Boutique")
+  
+  // Hero Section
+  heroTitle           String   @default("Professional Medical Apparel")
+  heroSubtitle        String   @default("Premium quality scrubs and lab coats for healthcare heroes")
+  heroBannerImage     String?
+  
+  // Colors (stored as hex)
+  primaryColor        String   @default("#A52A2A")
+  secondaryColor      String   @default("#1a1a1a")
+  accentColor         String   @default("#C41E3A")
+  
+  // Contact Info
+  contactEmail        String   @default("info@doctorplanet.com")
+  contactPhone        String   @default("+1 (234) 567-890")
+  contactAddress      String   @default("123 Medical Plaza, Healthcare City")
+  
+  // Social Links
+  facebookUrl         String?
+  instagramUrl        String?
+  whatsappNumber      String?
+  
+  // Shipping
+  freeShippingMinimum Float    @default(5000)
+  shippingFee         Float    @default(500)
+  
+  // Announcements
+  announcementBar     String?  // Top banner text
+  announcementActive  Boolean  @default(false)
+  
+  // Footer
+  footerText          String   @default("Your trusted partner for premium medical apparel and equipment.")
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
