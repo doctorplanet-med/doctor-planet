@@ -93,7 +93,7 @@ export default function WishlistPage() {
       id: item.product.id,
       name: item.product.name,
       price: item.product.price,
-      salePrice: item.product.salePrice,
+      salePrice: item.product.salePrice ?? undefined,
       image: images[0] || '/placeholder.jpg',
       quantity: 1,
     })
