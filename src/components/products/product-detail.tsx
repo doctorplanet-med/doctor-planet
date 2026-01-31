@@ -140,8 +140,8 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
       salePrice: product.salePrice || undefined,
       image: images[0],
       quantity,
-      size: selectedSize,
-      color: selectedColor,
+      size: selectedSize || undefined,
+      color: selectedColor || undefined,
     })
     toast.success(`${product.name} added to cart!`)
     setCartOpen(true)
