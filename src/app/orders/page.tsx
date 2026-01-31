@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import OrdersList from '@/components/orders/orders-list'
 
+export const dynamic = 'force-dynamic'
+
 async function getOrders(userId: string) {
   return await prisma.order.findMany({
     where: { userId },

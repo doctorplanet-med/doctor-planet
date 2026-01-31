@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminCustomersList from '@/components/admin/admin-customers-list'
 
+export const dynamic = 'force-dynamic'
+
 async function getCustomers() {
   return await prisma.user.findMany({
     where: { role: 'USER' },

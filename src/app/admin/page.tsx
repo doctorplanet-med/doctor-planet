@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminDashboard from '@/components/admin/admin-dashboard'
 
+export const dynamic = 'force-dynamic'
+
 async function getDashboardStats() {
   // Get today's date at midnight
   const todayStart = new Date()

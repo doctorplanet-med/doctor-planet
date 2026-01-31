@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminSettings from '@/components/admin/admin-settings'
 
+export const dynamic = 'force-dynamic'
+
 async function getSettings() {
   let settings = await prisma.siteSettings.findUnique({
     where: { id: 'main' },

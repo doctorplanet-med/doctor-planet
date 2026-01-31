@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import prisma from '@/lib/prisma'
 import ProductsContent from '@/components/products/products-content'
 
+export const dynamic = 'force-dynamic'
+
 interface ProductsPageProps {
   searchParams: { category?: string; featured?: string; search?: string }
 }

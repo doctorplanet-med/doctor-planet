@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminCategoriesList from '@/components/admin/admin-categories-list'
 
+export const dynamic = 'force-dynamic'
+
 async function getCategories() {
   return await prisma.category.findMany({
     include: {

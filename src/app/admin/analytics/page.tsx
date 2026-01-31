@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminAnalytics from '@/components/admin/admin-analytics'
 
+export const dynamic = 'force-dynamic'
+
 async function getAnalyticsData() {
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)

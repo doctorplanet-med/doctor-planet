@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminOrdersList from '@/components/admin/admin-orders-list'
 
+export const dynamic = 'force-dynamic'
+
 async function getOrders() {
   return await prisma.order.findMany({
     include: {

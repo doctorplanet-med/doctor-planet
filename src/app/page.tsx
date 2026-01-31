@@ -6,6 +6,9 @@ import TestimonialsSection from '@/components/home/testimonials-section'
 import NewsletterSection from '@/components/home/newsletter-section'
 import prisma from '@/lib/prisma'
 
+// Force dynamic rendering - don't try to fetch data at build time
+export const dynamic = 'force-dynamic'
+
 async function getCategories() {
   return await prisma.category.findMany({
     include: {

@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import ProductDetail from '@/components/products/product-detail'
 
+export const dynamic = 'force-dynamic'
+
 interface ProductPageProps {
   params: { slug: string }
 }

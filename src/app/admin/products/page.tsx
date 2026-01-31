@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import AdminProductsList from '@/components/admin/admin-products-list'
 
+export const dynamic = 'force-dynamic'
+
 async function getProducts() {
   return await prisma.product.findMany({
     include: {
