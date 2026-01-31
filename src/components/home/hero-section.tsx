@@ -109,8 +109,8 @@ export default function HeroSection() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid lg:grid-cols-4 gap-6">
             {/* Main Banner Slider */}
-            <div className="lg:col-span-3 relative rounded-2xl overflow-hidden shadow-xl">
-              <div className="relative h-[400px] md:h-[480px]">
+            <div className="lg:col-span-3 relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl">
+              <div className="relative h-[280px] sm:h-[350px] md:h-[480px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentSlide}
@@ -133,34 +133,34 @@ export default function HeroSection() {
 
                     {/* Content */}
                     <div className="relative h-full flex items-center">
-                      <div className="grid md:grid-cols-2 gap-8 items-center px-8 md:px-12 w-full">
+                      <div className="grid md:grid-cols-2 gap-4 sm:gap-8 items-center px-4 sm:px-8 md:px-12 w-full">
                         {/* Text Content */}
                         <motion.div
                           initial={{ opacity: 0, x: -30 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <span className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/20 backdrop-blur-sm text-white px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium mb-2 sm:mb-4">
+                            <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
                             {bannerSlides[currentSlide].badge}
                           </span>
                           
-                          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                          <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-4 leading-tight">
                             {bannerSlides[currentSlide].title}
                           </h1>
                           
-                          <p className="text-white/90 text-lg mb-6 max-w-md">
+                          <p className="text-white/90 text-sm sm:text-lg mb-3 sm:mb-6 max-w-md line-clamp-2 sm:line-clamp-none">
                             {bannerSlides[currentSlide].subtitle}
                           </p>
 
-                          <div className="flex flex-wrap items-center gap-4">
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                             <Link
                               href={bannerSlides[currentSlide].link}
-                              className="inline-flex items-center gap-2 bg-white text-secondary-900 px-6 py-3 rounded-xl font-semibold hover:bg-secondary-100 transition-colors shadow-lg"
+                              className="inline-flex items-center gap-1.5 sm:gap-2 bg-white text-secondary-900 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base hover:bg-secondary-100 transition-colors shadow-lg"
                             >
-                              <ShoppingBag className="w-5 h-5" />
+                              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                               {bannerSlides[currentSlide].cta}
-                              <ArrowRight className="w-5 h-5" />
+                              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                             </Link>
                           </div>
                         </motion.div>
@@ -265,25 +265,26 @@ export default function HeroSection() {
       </div>
 
       {/* Quick Category Links */}
-      <div className="max-w-7xl mx-auto px-4 pb-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 pb-3 sm:pb-4">
+        <div className="grid grid-cols-4 gap-2 sm:gap-4">
           {quickCategories.map((cat, index) => (
             <Link
               key={index}
               href={cat.href}
-              className="group relative h-24 rounded-xl overflow-hidden shadow-md"
+              className="group relative h-16 sm:h-24 rounded-lg sm:rounded-xl overflow-hidden shadow-md"
             >
               <Image
                 src={cat.image}
                 alt={cat.name}
                 fill
+                sizes="25vw"
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                <h3 className="text-white font-semibold flex items-center gap-2">
+              <div className="absolute bottom-0 left-0 right-0 p-1.5 sm:p-3">
+                <h3 className="text-white font-semibold text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2">
                   {cat.name}
-                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:block" />
                 </h3>
               </div>
             </Link>
@@ -293,22 +294,22 @@ export default function HeroSection() {
 
       {/* Feature Strip */}
       <div className="bg-white border-y border-secondary-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             {promoFeatures.map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary-50 transition-colors"
+                className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-secondary-50 transition-colors"
               >
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="w-6 h-6 text-primary-600" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-secondary-900">{feature.text}</p>
-                  <p className="text-sm text-secondary-500">{feature.subtext}</p>
+                  <p className="font-semibold text-secondary-900 text-xs sm:text-base">{feature.text}</p>
+                  <p className="text-[10px] sm:text-sm text-secondary-500 hidden sm:block">{feature.subtext}</p>
                 </div>
               </motion.div>
             ))}

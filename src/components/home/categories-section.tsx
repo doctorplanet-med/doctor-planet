@@ -48,7 +48,7 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
         </motion.div>
 
         {/* Categories Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {categories.map((category, index) => (
             <motion.div
               key={category.id}
@@ -58,12 +58,13 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <Link href={`/products?category=${category.slug}`}>
-                <div className="group relative overflow-hidden rounded-3xl h-[400px]">
+                <div className="group relative overflow-hidden rounded-2xl sm:rounded-3xl h-[200px] sm:h-[300px] md:h-[400px]">
                   {/* Background Image */}
                   <Image
                     src={category.image || '/images/placeholder.jpg'}
                     alt={category.name}
                     fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
 
@@ -71,35 +72,35 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
                   {/* Content */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-8">
+                  <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 md:p-8">
                     <motion.span
-                      className="text-4xl mb-4"
+                      className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-4"
                       whileHover={{ scale: 1.2, rotate: 5 }}
                     >
                       {categoryIcons[category.slug] || '📦'}
                     </motion.span>
-                    <h3 className="text-2xl font-heading font-bold text-white mb-2">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-heading font-bold text-white mb-1 sm:mb-2">
                       {category.name}
                     </h3>
-                    <p className="text-white/80 text-sm mb-4 line-clamp-2">
+                    <p className="hidden sm:block text-white/80 text-sm mb-4 line-clamp-2">
                       {category.description}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-primary-400 font-medium">
+                      <span className="text-primary-400 font-medium text-sm sm:text-base">
                         {category._count.products} Products
                       </span>
                       <motion.span
-                        className="flex items-center text-white group-hover:text-primary-400 transition-colors"
+                        className="flex items-center text-white group-hover:text-primary-400 transition-colors text-sm sm:text-base"
                         whileHover={{ x: 5 }}
                       >
                         Shop Now
-                        <ArrowRight className="w-5 h-5 ml-2" />
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
                       </motion.span>
                     </div>
                   </div>
 
                   {/* Hover Border Effect */}
-                  <div className="absolute inset-0 border-4 border-transparent group-hover:border-primary-500 rounded-3xl transition-colors duration-300" />
+                  <div className="absolute inset-0 border-2 sm:border-4 border-transparent group-hover:border-primary-500 rounded-2xl sm:rounded-3xl transition-colors duration-300" />
                 </div>
               </Link>
             </motion.div>
