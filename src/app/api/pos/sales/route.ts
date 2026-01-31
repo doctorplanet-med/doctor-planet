@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Fetch POS sales (admin sees all, salesman sees own)
 export async function GET(request: NextRequest) {
   try {

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { sendOrderConfirmationEmail } from '@/lib/email'
 
+export const dynamic = 'force-dynamic'
+
 // Generate order number
 function generateOrderNumber() {
   const timestamp = Date.now().toString(36).toUpperCase()

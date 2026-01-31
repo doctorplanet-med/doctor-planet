@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // Generate a unique barcode
 async function generateBarcode(): Promise<string> {
   const prefix = 'DP' // Doctor Planet
