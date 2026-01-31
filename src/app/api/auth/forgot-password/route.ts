@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import crypto from 'crypto'
-import { sendPasswordResetEmail } from '@/lib/email'
+import { sendVerificationCodeEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
+
+// Generate 6-digit verification code
+function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,36 +25,34 @@ export async function POST(request: NextRequest) {
     // Always return success to prevent email enumeration
     if (!user) {
       return NextResponse.json({ 
-        message: 'If an account with that email exists, we sent a password reset link.' 
+        message: 'If an account with that email exists, we sent a verification code.' 
       })
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex')
-    const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hour from now
+    // Generate 6-digit verification code
+    const verificationCode = generateVerificationCode()
+    // Code expires in 2 minutes
+    const codeExpiry = new Date(Date.now() + 2 * 60 * 1000)
 
-    // Save token to user
+    // Save code to user (using resetToken field)
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
-        resetTokenExpiry,
+        resetToken: verificationCode,
+        resetTokenExpiry: codeExpiry,
       },
     })
 
-    // Create reset URL
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const resetUrl = `${appUrl}/reset-password?token=${resetToken}`
-
-    // Send email using Nodemailer
-    await sendPasswordResetEmail(
+    // Send verification code email
+    await sendVerificationCodeEmail(
       email,
       user.name || 'there',
-      resetUrl
+      verificationCode
     )
 
     return NextResponse.json({ 
-      message: 'If an account with that email exists, we sent a password reset link.' 
+      message: 'If an account with that email exists, we sent a verification code.',
+      success: true
     })
   } catch (error) {
     console.error('Forgot password error:', error)

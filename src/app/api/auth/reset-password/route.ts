@@ -6,20 +6,21 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password } = await request.json()
+    const { email, code, password } = await request.json()
 
-    if (!token || !password) {
-      return NextResponse.json({ error: 'Token and password are required' }, { status: 400 })
+    if (!email || !code || !password) {
+      return NextResponse.json({ error: 'Email, code, and password are required' }, { status: 400 })
     }
 
     if (password.length < 8) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
     }
 
-    // Find user with valid token
+    // Find user with valid code
     const user = await prisma.user.findFirst({
       where: {
-        resetToken: token,
+        email: email.toLowerCase(),
+        resetToken: code,
         resetTokenExpiry: {
           gt: new Date(),
         },
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 })
     }
 
     // Hash the new password

@@ -477,14 +477,14 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData): Promise<
   return sendOrderStatusEmail('ORDER_PLACED', data)
 }
 
-// Send password reset email
-export async function sendPasswordResetEmail(
+// Send verification code email for password reset
+export async function sendVerificationCodeEmail(
   email: string,
   name: string,
-  resetUrl: string
+  code: string
 ): Promise<boolean> {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.log('Gmail credentials not configured, skipping password reset email')
+    console.log('Gmail credentials not configured, skipping verification code email')
     return false
   }
 
@@ -494,7 +494,7 @@ export async function sendPasswordResetEmail(
     const mailOptions = {
       from: `"Doctor Planet" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: 'Reset Your Password - Doctor Planet',
+      subject: 'Your Verification Code - Doctor Planet',
       html: `
         <!DOCTYPE html>
         <html>
@@ -506,6 +506,88 @@ export async function sendPasswordResetEmail(
             .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
             .header h1 { color: white; margin: 0; font-size: 28px; }
             .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
+            .code-box { background: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center; margin: 20px 0; }
+            .code { font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #8B0000; font-family: monospace; }
+            .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
+            .warning { background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🏥 Doctor Planet</h1>
+            </div>
+            <div class="content">
+              <h2 style="text-align: center; color: #333;">Password Reset Code</h2>
+              
+              <p style="text-align: center;">Hi ${name || 'there'},</p>
+              
+              <p style="text-align: center;">Use the following verification code to reset your password:</p>
+              
+              <div class="code-box">
+                <div class="code">${code}</div>
+              </div>
+              
+              <div class="warning">
+                ⏰ <strong>This code will expire in 2 minutes.</strong><br>
+                If you didn't request this, you can safely ignore this email.
+              </div>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    }
+
+    const result = await transporter.sendMail(mailOptions)
+    console.log('Verification code email sent:', result.messageId)
+    return true
+  } catch (error) {
+    console.error('Failed to send verification code email:', error)
+    return false
+  }
+}
+
+// Send welcome email to new salesman with credentials
+export async function sendSalesmanWelcomeEmail(
+  email: string,
+  name: string,
+  password: string
+): Promise<boolean> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log('Gmail credentials not configured, skipping salesman welcome email')
+    return false
+  }
+
+  try {
+    const transporter = createTransporter()
+    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`
+
+    const mailOptions = {
+      from: `"Doctor Planet" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: 'Welcome to Doctor Planet - Your Salesman Account',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .header p { color: rgba(255,255,255,0.9); margin: 10px 0 0; }
+            .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
+            .welcome-badge { background: #10B981; color: white; padding: 12px 24px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
+            .credentials { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+            .credential-row { padding: 10px 0; border-bottom: 1px solid #e0e0e0; display: flex; }
+            .credential-row:last-child { border-bottom: none; }
+            .credential-label { font-weight: bold; color: #666; width: 100px; }
+            .credential-value { color: #333; font-family: monospace; background: #fff; padding: 5px 10px; border-radius: 4px; flex: 1; }
             .btn { display: inline-block; background: #8B0000; color: white !important; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
             .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
             .warning { background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; }
@@ -515,26 +597,42 @@ export async function sendPasswordResetEmail(
           <div class="container">
             <div class="header">
               <h1>🏥 Doctor Planet</h1>
+              <p>Professional Medical Boutique</p>
             </div>
             <div class="content">
-              <h2 style="text-align: center; color: #333;">Password Reset Request</h2>
-              
-              <p>Hi ${name || 'there'},</p>
-              
-              <p>We received a request to reset your password for your Doctor Planet account. Click the button below to create a new password:</p>
-              
               <div style="text-align: center;">
-                <a href="${resetUrl}" class="btn">Reset My Password</a>
+                <div class="welcome-badge">🎉 Welcome to the Team!</div>
+              </div>
+              
+              <h2>Hello ${name}!</h2>
+              <p>You have been added as a <strong>Salesman</strong> at Doctor Planet. Below are your login credentials:</p>
+              
+              <div class="credentials">
+                <h3 style="margin-top: 0; color: #8B0000;">Your Login Credentials</h3>
+                <div class="credential-row">
+                  <span class="credential-label">Name:</span>
+                  <span class="credential-value">${name}</span>
+                </div>
+                <div class="credential-row">
+                  <span class="credential-label">Email:</span>
+                  <span class="credential-value">${email}</span>
+                </div>
+                <div class="credential-row">
+                  <span class="credential-label">Password:</span>
+                  <span class="credential-value">${password}</span>
+                </div>
               </div>
               
               <div class="warning">
-                ⏰ <strong>This link will expire in 1 hour.</strong><br>
-                If you didn't request this password reset, you can safely ignore this email.
+                🔐 <strong>Important:</strong> Please change your password after your first login for security.
               </div>
               
-              <p style="color: #666; font-size: 14px;">
-                If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="${resetUrl}" style="color: #8B0000; word-break: break-all;">${resetUrl}</a>
+              <div style="text-align: center;">
+                <a href="${loginUrl}" class="btn">Login Now</a>
+              </div>
+              
+              <p style="text-align: center; color: #666;">
+                If you have any questions, contact your administrator.
               </p>
             </div>
             <div class="footer">
@@ -547,10 +645,10 @@ export async function sendPasswordResetEmail(
     }
 
     const result = await transporter.sendMail(mailOptions)
-    console.log('Password reset email sent:', result.messageId)
+    console.log('Salesman welcome email sent:', result.messageId)
     return true
   } catch (error) {
-    console.error('Failed to send password reset email:', error)
+    console.error('Failed to send salesman welcome email:', error)
     return false
   }
 }

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { sendSalesmanWelcomeEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -123,6 +124,9 @@ export async function POST(request: NextRequest) {
         createdAt: true,
       }
     })
+
+    // Send welcome email with credentials
+    await sendSalesmanWelcomeEmail(data.email, data.name, data.password)
 
     return NextResponse.json(salesman)
   } catch (error) {
