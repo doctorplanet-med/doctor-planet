@@ -10,19 +10,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: [
-      'undici',
-      '@libsql/client',
-      '@prisma/adapter-libsql',
-      'libsql',
-    ],
-  },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Exclude libsql native modules from webpack bundling
-      config.externals = [...(config.externals || []), '@libsql/client', 'libsql']
-    }
-    return config
+    serverComponentsExternalPackages: ['undici'],
   },
 }
 

@@ -2,19 +2,16 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// NOTE: For Turso (production), set these env vars:
-// DATABASE_URL = "file:./dev.db" (for local) or ignored for Turso
-// TURSO_DATABASE_URL = "libsql://your-db-name.turso.io"
-// TURSO_AUTH_TOKEN = "your-auth-token"
+// For LOCAL development, use: DATABASE_URL="file:./dev.db" with provider="sqlite"
+// For PRODUCTION (Vercel), use Neon PostgreSQL URL
 
 model Account {
   id                String  @id @default(cuid())
