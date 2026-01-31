@@ -90,7 +90,7 @@ export default function WishlistPage() {
   const addToCart = (item: WishlistItem) => {
     const images = JSON.parse(item.product.images)
     addItem({
-      id: item.product.id,
+      productId: item.product.id,
       name: item.product.name,
       price: item.product.price,
       salePrice: item.product.salePrice ?? undefined,
