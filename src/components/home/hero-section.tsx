@@ -104,21 +104,10 @@ export default function HeroSection() {
   ]
 
   return (
-    <section className="bg-secondary-50">
-      {/* Mobile: Free Shipping Banner - Subtle design */}
-      <div className="sm:hidden pt-14 bg-secondary-800">
-        <div className="flex items-center justify-center gap-1.5 py-1 px-3 text-[10px] font-medium text-secondary-200">
-          <Truck className="w-3 h-3" />
-          <span>Free Shipping on PKR {settings.freeShippingMinimum}+ orders</span>
-        </div>
-      </div>
-
-      {/* Desktop: Spacing for navbar */}
-      <div className="hidden sm:block h-20" />
-
+    <section className="bg-secondary-50 pt-14 sm:pt-20">
       {/* Main Hero */}
       <div className="relative">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-2 pb-3 sm:py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-1 pb-3 sm:py-6">
           <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Main Banner Slider */}
             <div className="lg:col-span-3 relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl">
