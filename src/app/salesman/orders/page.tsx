@@ -358,7 +358,7 @@ export default function SalesmanOrdersPage() {
                         <div key={item.id} className="flex gap-4 p-3 bg-secondary-50 rounded-lg">
                           <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white flex-shrink-0">
                             <Image
-                              src={images[0] || '/placeholder.png'}
+                              src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
                               alt={item.product.name}
                               fill
                               className="object-cover"

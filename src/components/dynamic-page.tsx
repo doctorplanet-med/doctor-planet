@@ -84,7 +84,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-0 sm:pt-20 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     )
@@ -92,7 +92,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
 
   if (!isPublished) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-0 sm:pt-20 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-secondary-900 mb-4">Coming Soon</h1>
           <p className="text-secondary-600 mb-8">This page is currently being updated.</p>
@@ -112,7 +112,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
   }
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-0 sm:pt-20">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-50 to-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -137,7 +137,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
               transition={{ delay: 0.2 }}
               className="mt-10 relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden shadow-xl max-w-4xl mx-auto"
             >
-              <Image src={content.heroImage} alt={content.heroTitle || ''} fill className="object-cover" />
+              <Image src={content.heroImage} alt={content.heroTitle || ''} fill sizes="(max-width: 768px) 100vw, 896px" className="object-cover" />
             </motion.div>
           )}
         </div>
@@ -243,7 +243,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
                     <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-secondary-100 hover:shadow-lg transition-shadow">
                       {item.image && (
                         <div className="relative h-40 rounded-xl overflow-hidden mb-4">
-                          <Image src={item.image} alt={item.title} fill className="object-cover" />
+                          <Image src={item.image} alt={item.title} fill sizes="(max-width: 768px) 100vw, 300px" className="object-cover" />
                         </div>
                       )}
                       <h3 className="text-xl font-semibold text-secondary-900 mb-3">{item.title}</h3>
@@ -279,7 +279,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
               {/* Image Section */}
               {section.type === 'image' && section.image && (
                 <div className="relative h-[300px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
-                  <Image src={section.image} alt={section.title || ''} fill className="object-cover" />
+                  <Image src={section.image} alt={section.title || ''} fill sizes="(max-width: 768px) 100vw, 1024px" className="object-cover" />
                 </div>
               )}
             </motion.div>

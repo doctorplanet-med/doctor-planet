@@ -12,6 +12,8 @@ import { signOut } from 'next-auth/react'
 import Image from 'next/image'
 import SalesmanNavbar from '@/components/salesman/salesman-navbar'
 
+import { MoreHorizontal } from 'lucide-react'
+
 const menuItems = [
   { href: '/salesman', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/salesman/pos', label: 'POS', icon: Store },
@@ -20,6 +22,13 @@ const menuItems = [
   { href: '/salesman/barcodes', label: 'Barcodes', icon: Barcode },
   { href: '/salesman/orders', label: 'Online Orders', icon: ShoppingCart },
   { href: '/salesman/profile', label: 'My Profile', icon: User },
+]
+
+const mobileNavItems = [
+  { href: '/salesman', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/salesman/pos', label: 'POS', icon: Store },
+  { href: '/salesman/sales-history', label: 'History', icon: History },
+  { href: '/salesman/orders', label: 'Orders', icon: ShoppingCart },
 ]
 
 export default function SalesmanLayout({
@@ -139,11 +148,41 @@ export default function SalesmanLayout({
       )}
 
       {/* Main Content */}
-      <main className="pt-16 lg:pl-64 min-h-screen">
-        <div className="p-6">
+      <main className="pt-16 pb-20 lg:pb-0 lg:pl-64 min-h-screen">
+        <div className="p-4 sm:p-6">
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-secondary-900 border-t border-secondary-800 shadow-lg">
+        <div className="flex items-center justify-around h-16">
+          {mobileNavItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                  isActive 
+                    ? 'text-primary-500' 
+                    : 'text-secondary-400 hover:text-secondary-200'
+                }`}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? 'text-primary-500' : ''}`} />
+                <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+              </Link>
+            )
+          })}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex flex-col items-center justify-center flex-1 h-full text-secondary-400 hover:text-secondary-200 transition-colors"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+            <span className="text-[10px] mt-1 font-medium">More</span>
+          </button>
+        </div>
+      </nav>
     </div>
   )
 }

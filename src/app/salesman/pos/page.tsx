@@ -86,6 +86,9 @@ export default function SalesmanPOSPage() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
 
+  // Mobile cart
+  const [showMobileCart, setShowMobileCart] = useState(false)
+
   useEffect(() => {
     fetchProducts()
     fetchBillSettings()
@@ -461,7 +464,17 @@ export default function SalesmanPOSPage() {
   }
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-120px)]">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-auto lg:h-[calc(100vh-120px)]">
+      {/* Mobile Cart Toggle Button */}
+      <button
+        onClick={() => setShowMobileCart(true)}
+        className="lg:hidden fixed bottom-4 right-4 z-40 flex items-center gap-2 bg-primary-600 text-white px-4 py-3 rounded-full shadow-lg shadow-primary-600/30"
+      >
+        <ShoppingCart className="w-5 h-5" />
+        <span className="font-bold">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
+        <span className="font-bold">{formatCurrency(subtotal)}</span>
+      </button>
+
       {/* Products Section */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Professional Search Bar */}
@@ -471,8 +484,8 @@ export default function SalesmanPOSPage() {
             <div className="flex gap-3">
               {/* Main Search Input */}
               <div className="relative flex-1">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  <Search className="w-5 h-5 text-primary-600" />
+                <div className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
                 </div>
                 <input
                   ref={searchInputRef}
@@ -485,8 +498,8 @@ export default function SalesmanPOSPage() {
                   }}
                   onFocus={() => setShowSuggestions(true)}
                   onKeyDown={handleSearchKeyDown}
-                  placeholder="Search products or scan barcode..."
-                  className="w-full pl-12 pr-12 py-4 text-lg border-2 border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
+                  placeholder="Search or scan barcode..."
+                  className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-4 text-base sm:text-lg border-2 border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
                   autoFocus
                 />
                 {searchTerm && (
@@ -520,15 +533,15 @@ export default function SalesmanPOSPage() {
                     }
                   }
                 }}
-                className="flex items-center gap-2 px-5 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium whitespace-nowrap"
+                className="flex items-center gap-2 px-3 sm:px-5 py-3 sm:py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium whitespace-nowrap"
               >
-                <Barcode className="w-5 h-5" />
+                <Barcode className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Scan</span>
               </button>
             </div>
 
-            {/* Barcode Hint */}
-            <div className="mt-2 flex items-center gap-2 text-xs text-secondary-500">
+            {/* Barcode Hint - Hidden on mobile */}
+            <div className="hidden sm:flex mt-2 items-center gap-2 text-xs text-secondary-500">
               <Barcode className="w-3 h-3" />
               <span>Tip: Use a barcode scanner directly in the search box, or click "Scan" to enter manually</span>
             </div>
@@ -567,7 +580,7 @@ export default function SalesmanPOSPage() {
                             {/* Product Image */}
                             <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-secondary-100 flex-shrink-0">
                               <Image
-                                src={images[0] || '/placeholder.png'}
+                                src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
                                 alt={product.name}
                                 fill
                                 className="object-cover"
@@ -680,26 +693,26 @@ export default function SalesmanPOSPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="px-4 pb-4 flex gap-4">
-            <div className="flex items-center gap-2 text-sm text-secondary-600">
-              <Package className="w-4 h-4" />
+          <div className="px-4 pb-4 flex flex-wrap gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-secondary-600">
+              <Package className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{products.length} Products</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-secondary-600">
-              <Tag className="w-4 h-4" />
+            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-secondary-600">
+              <Tag className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{products.filter(p => p.salePrice).length} On Sale</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-orange-600">
-              <AlertCircle className="w-4 h-4" />
+            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-orange-600">
+              <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{products.filter(p => p.stock <= 5 && p.stock > 0).length} Low Stock</span>
             </div>
           </div>
         </div>
 
         {/* Recent/Popular Products Grid */}
-        <div className="flex-1 overflow-y-auto bg-white rounded-xl border border-secondary-200 p-4">
-          <h3 className="text-sm font-medium text-secondary-500 mb-4">Quick Add - All Products</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="flex-1 overflow-y-auto bg-white rounded-xl border border-secondary-200 p-2 sm:p-4 pb-20 lg:pb-4">
+          <h3 className="text-xs sm:text-sm font-medium text-secondary-500 mb-3 sm:mb-4">Quick Add - All Products</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
             {products.filter(p => p.stock > 0).slice(0, 20).map((product) => {
               const images = JSON.parse(product.images)
               const price = product.salePrice || product.price
@@ -715,7 +728,7 @@ export default function SalesmanPOSPage() {
                 >
                   <div className="relative aspect-square mb-2 rounded-lg overflow-hidden bg-white">
                     <Image
-                      src={images[0] || '/placeholder.png'}
+                      src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
                       alt={product.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform"
@@ -756,8 +769,8 @@ export default function SalesmanPOSPage() {
         </div>
       </div>
 
-      {/* Cart Section */}
-      <div className="w-96 flex flex-col bg-white rounded-xl border border-secondary-200 shadow-sm">
+      {/* Cart Section - Desktop */}
+      <div className="hidden lg:flex w-96 flex-col bg-white rounded-xl border border-secondary-200 shadow-sm">
         {/* Cart Header */}
         <div className="p-4 border-b border-secondary-200 bg-secondary-50 rounded-t-xl">
           <div className="flex items-center justify-between">
@@ -806,7 +819,7 @@ export default function SalesmanPOSPage() {
                   >
                     <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-white flex-shrink-0">
                       <Image
-                        src={images[0] || '/placeholder.png'}
+                        src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
                         alt={item.product.name}
                         fill
                         className="object-cover"
@@ -893,6 +906,153 @@ export default function SalesmanPOSPage() {
         </div>
       </div>
 
+      {/* Mobile Cart Slideover */}
+      <AnimatePresence>
+        {showMobileCart && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 bg-black/50 z-50"
+            onClick={() => setShowMobileCart(false)}
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Mobile Cart Header */}
+              <div className="p-4 border-b border-secondary-200 bg-secondary-50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary-600 rounded-lg">
+                    <ShoppingCart className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-secondary-900">Current Sale</h2>
+                    <p className="text-xs text-secondary-500">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowMobileCart(false)}
+                  className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Mobile Cart Items */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {cart.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ShoppingCart className="w-10 h-10 text-secondary-300" />
+                    </div>
+                    <p className="text-secondary-500 font-medium">No items in cart</p>
+                    <p className="text-sm text-secondary-400 mt-1">Search or click products to add</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {cart.map((item, index) => {
+                      const images = JSON.parse(item.product.images)
+                      return (
+                        <div 
+                          key={`mobile-${item.productId}-${item.size}-${item.color}`}
+                          className="flex gap-3 bg-secondary-50 p-3 rounded-xl"
+                        >
+                          <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-white flex-shrink-0">
+                            <Image
+                              src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
+                              alt={item.product.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-secondary-900 text-sm line-clamp-1">
+                              {item.product.name}
+                            </p>
+                            {(item.color || item.size) && (
+                              <p className="text-xs text-secondary-500">
+                                {item.color}{item.color && item.size && ' / '}{item.size}
+                              </p>
+                            )}
+                            <p className="font-bold text-primary-600 text-sm mt-1">
+                              {formatCurrency(item.price * item.quantity)}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end justify-between">
+                            <button
+                              onClick={() => removeFromCart(index)}
+                              className="p-1 text-red-400 hover:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <div className="flex items-center gap-1 bg-white rounded-lg p-1">
+                              <button
+                                onClick={() => updateQuantity(index, item.quantity - 1)}
+                                className="w-7 h-7 flex items-center justify-center bg-secondary-100 rounded-md"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
+                              <button
+                                onClick={() => updateQuantity(index, item.quantity + 1)}
+                                className="w-7 h-7 flex items-center justify-center bg-secondary-100 rounded-md"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Cart Footer */}
+              <div className="p-4 border-t border-secondary-200 bg-secondary-50 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-secondary-600">Subtotal</span>
+                    <span className="font-medium">{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-xl font-bold">
+                    <span>Total</span>
+                    <span className="text-primary-600">{formatCurrency(subtotal)}</span>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  {cart.length > 0 && (
+                    <button 
+                      onClick={clearCart} 
+                      className="px-4 py-3 text-sm text-red-600 border border-red-200 hover:bg-red-50 rounded-xl transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowMobileCart(false)
+                      setShowCheckout(true)
+                    }}
+                    disabled={cart.length === 0}
+                    className="flex-1 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 disabled:bg-secondary-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Checkout
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Variant Selection Modal */}
       <AnimatePresence>
         {selectingVariant && (
@@ -915,7 +1075,7 @@ export default function SalesmanPOSPage() {
                 <div className="flex gap-4">
                   <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white">
                     <Image
-                      src={JSON.parse(selectingVariant.images)[0] || '/placeholder.png'}
+                      src={JSON.parse(selectingVariant.images)[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
                       alt={selectingVariant.name}
                       fill
                       className="object-cover"

@@ -49,10 +49,29 @@ export default function NewsletterSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden"
+          className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-primary-100"
         >
-          {/* Background Pattern */}
+          {/* Animated Background Elements */}
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary-100/50 to-transparent" />
+          
+          {/* Floating decorative elements */}
+          <motion.div 
+            className="absolute top-10 right-10 w-20 h-20 bg-primary-200/30 rounded-full blur-xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div 
+            className="absolute bottom-10 right-1/4 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl"
+            animate={{ scale: [1, 1.1, 1], x: [0, 20, 0] }}
+            transition={{ duration: 6, repeat: Infinity }}
+          />
+          
+          {/* Medical cross pattern */}
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 opacity-5 hidden md:block">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" className="text-primary-600">
+              <path d="M19 3H14V0H10V3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM17 13H13V17H11V13H7V11H11V7H13V11H17V13Z" />
+            </svg>
+          </div>
           
           <div className="relative px-5 py-8 sm:px-8 sm:py-12 md:px-16 md:py-20">
             <div className="max-w-2xl">

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft,
@@ -16,9 +17,12 @@ import {
   Truck,
   Shield,
   RefreshCw,
+  Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useSession } from 'next-auth/react'
 import { useCartStore } from '@/store/cart-store'
+import { useWishlistStore } from '@/store/wishlist-store'
 import ProductCard from './product-card'
 
 interface Product {
@@ -62,10 +66,70 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState(colors[0] || null)
   const [quantity, setQuantity] = useState(1)
-  const [isLiked, setIsLiked] = useState(false)
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const [imageAnimationKey, setImageAnimationKey] = useState(0)
 
   const { addItem, setCartOpen } = useCartStore()
+  const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
+  const { data: session } = useSession()
+  const router = useRouter()
+  
+  const isLiked = isInWishlist(product.id)
+
+  // Toggle wishlist
+  const handleToggleWishlist = async () => {
+    if (!session) {
+      toast.error('Please login to add to wishlist')
+      router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
+      return
+    }
+
+    // Optimistically update UI
+    const wasLiked = isLiked
+    if (wasLiked) {
+      removeFromWishlist(product.id)
+    } else {
+      addToWishlist(product.id)
+    }
+
+    setIsWishlistLoading(true)
+    try {
+      const response = await fetch('/api/wishlist/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Sync with server response
+        if (data.inWishlist) {
+          addToWishlist(product.id)
+        } else {
+          removeFromWishlist(product.id)
+        }
+        toast.success(data.inWishlist ? 'Added to wishlist' : 'Removed from wishlist')
+      } else {
+        // Revert on error
+        if (wasLiked) {
+          addToWishlist(product.id)
+        } else {
+          removeFromWishlist(product.id)
+        }
+        toast.error('Failed to update wishlist')
+      }
+    } catch (error) {
+      // Revert on error
+      if (wasLiked) {
+        addToWishlist(product.id)
+      } else {
+        removeFromWishlist(product.id)
+      }
+      toast.error('Something went wrong')
+    } finally {
+      setIsWishlistLoading(false)
+    }
+  }
 
   // Get stock for current color-size selection
   const getCurrentStock = () => {
@@ -162,7 +226,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   }
 
   return (
-    <div className="min-h-screen pt-24 bg-white">
+    <div className="min-h-screen pt-0 sm:pt-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <motion.nav
@@ -257,15 +321,17 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    setIsLiked(!isLiked)
-                    toast.success(isLiked ? 'Removed from wishlist' : 'Added to wishlist')
-                  }}
+                  onClick={handleToggleWishlist}
+                  disabled={isWishlistLoading}
                   className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-colors ${
                     isLiked ? 'bg-primary-600 text-white' : 'bg-white text-secondary-700'
-                  }`}
+                  } ${isWishlistLoading ? 'opacity-70' : ''}`}
                 >
-                  <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
+                  {isWishlistLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
+                  )}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.1 }}

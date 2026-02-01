@@ -100,10 +100,37 @@ export default function TestimonialsSection() {
 
   return (
     <section className="py-8 sm:py-16 lg:py-20 bg-gradient-to-br from-secondary-900 via-secondary-950 to-secondary-900 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <Quote className="absolute top-10 left-10 sm:top-20 sm:left-20 w-32 h-32 sm:w-64 sm:h-64 text-white" />
-        <Quote className="absolute bottom-10 right-10 sm:bottom-20 sm:right-20 w-32 h-32 sm:w-64 sm:h-64 text-white rotate-180" />
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        {/* Floating Orbs */}
+        <motion.div 
+          className="absolute top-20 left-10 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, 50, 0], 
+            y: [0, 30, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, -30, 0], 
+            y: [0, -50, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Quote icons */}
+        <Quote className="absolute top-10 left-10 sm:top-20 sm:left-20 w-32 h-32 sm:w-64 sm:h-64 text-white opacity-5" />
+        <Quote className="absolute bottom-10 right-10 sm:bottom-20 sm:right-20 w-32 h-32 sm:w-64 sm:h-64 text-white opacity-5 rotate-180" />
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
@@ -165,6 +192,7 @@ export default function TestimonialsSection() {
                       src={current.image}
                       alt={current.name}
                       fill
+                      sizes="40px"
                       className="object-cover"
                     />
                   ) : (
@@ -241,6 +269,7 @@ export default function TestimonialsSection() {
                       src={current.image}
                       alt={current.name}
                       fill
+                      sizes="64px"
                       className="object-cover"
                     />
                   ) : (

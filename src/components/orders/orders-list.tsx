@@ -42,7 +42,7 @@ const statusColors: Record<string, string> = {
 export default function OrdersList({ orders }: OrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="min-h-screen pt-24 bg-secondary-50">
+      <div className="min-h-screen pt-0 sm:pt-20 bg-secondary-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="w-24 h-24 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <ShoppingBag className="w-12 h-12 text-secondary-400" />
@@ -62,7 +62,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
   }
 
   return (
-    <div className="min-h-screen pt-24 bg-secondary-50">
+    <div className="min-h-screen pt-0 sm:pt-20 bg-secondary-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

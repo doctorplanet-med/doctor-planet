@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -9,8 +9,13 @@ import {
   X, 
   ChevronDown,
   Grid3X3,
-  List
+  List,
+  Tag,
+  ArrowRight,
+  Package
 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import ProductCard from './product-card'
 
 interface Product {
@@ -34,6 +39,25 @@ interface Category {
   _count: {
     products: number
   }
+}
+
+interface Deal {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  image: string | null
+  dealPrice: number
+  originalPrice: number
+  items: {
+    productId: string
+    quantity: number
+    product?: {
+      id: string
+      name: string
+      images: string
+    }
+  }[]
 }
 
 interface ProductsContentProps {
@@ -62,6 +86,23 @@ export default function ProductsContent({
   const [sortBy, setSortBy] = useState('newest')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [deals, setDeals] = useState<Deal[]>([])
+
+  // Fetch deals
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const res = await fetch('/api/deals')
+        const data = await res.json()
+        if (res.ok && Array.isArray(data)) {
+          setDeals(data.slice(0, 2)) // Show max 2 deals on products page
+        }
+      } catch (error) {
+        console.error('Failed to load deals')
+      }
+    }
+    fetchDeals()
+  }, [])
 
   const handleCategoryChange = (categorySlug: string | null) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -111,7 +152,7 @@ export default function ProductsContent({
     : 'All Products'
 
   return (
-    <div className="min-h-screen pt-14 sm:pt-20 pb-16 lg:pb-0 bg-secondary-50">
+    <div className="min-h-screen pt-0 sm:pt-20 pb-16 lg:pb-0 bg-secondary-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 pb-2 sm:py-6">
         {/* Header - Compact on Mobile */}
         <motion.div
@@ -305,6 +346,91 @@ export default function ProductsContent({
 
           {/* Products Grid */}
           <div className="flex-1">
+            {/* Deals Section */}
+            {deals.length > 0 && !currentCategory && !searchQuery && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-primary-600" />
+                    <h2 className="text-lg font-bold text-secondary-900">Hot Deals</h2>
+                  </div>
+                  <Link
+                    href="/deals"
+                    className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                  >
+                    View All
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {deals.map((deal) => {
+                    const savings = deal.originalPrice - deal.dealPrice
+                    const savingsPercent = Math.round((savings / deal.originalPrice) * 100)
+                    return (
+                      <Link key={deal.id} href={`/deals/${deal.slug}`}>
+                        <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200 hover:shadow-lg transition-all group">
+                          <div className="flex gap-4">
+                            {/* Product Images */}
+                            <div className="flex -space-x-3">
+                              {deal.items.slice(0, 3).map((item, i) => {
+                                const images = item.product?.images ? JSON.parse(item.product.images) : []
+                                return (
+                                  <div
+                                    key={i}
+                                    className="relative w-14 h-14 rounded-lg overflow-hidden bg-white border-2 border-white shadow-sm"
+                                    style={{ zIndex: 3 - i }}
+                                  >
+                                    {images[0] ? (
+                                      <Image
+                                        src={images[0]}
+                                        alt={item.product?.name || 'Product'}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-secondary-100">
+                                        <Package className="w-5 h-5 text-secondary-300" />
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                              {deal.items.length > 3 && (
+                                <div className="w-14 h-14 rounded-lg bg-primary-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                                  +{deal.items.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            {/* Deal Info */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-secondary-900 group-hover:text-primary-600 transition-colors truncate">
+                                {deal.name}
+                              </h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-lg font-bold text-primary-600">
+                                  PKR {deal.dealPrice.toLocaleString()}
+                                </span>
+                                <span className="text-sm text-secondary-400 line-through">
+                                  PKR {deal.originalPrice.toLocaleString()}
+                                </span>
+                              </div>
+                              <span className="inline-block mt-1 text-xs font-bold text-white bg-primary-600 px-2 py-0.5 rounded-full">
+                                Save {savingsPercent}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+
             {filteredAndSortedProducts.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}

@@ -68,6 +68,7 @@ export default function Navbar() {
                   src="/logos/logo.png"
                   alt="Doctor Planet"
                   fill
+                  sizes="48px"
                   className="object-contain"
                 />
               </motion.div>

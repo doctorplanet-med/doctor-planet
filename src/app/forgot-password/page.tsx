@@ -206,7 +206,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen pt-14 sm:pt-20 pb-16 flex items-center justify-center bg-secondary-50 px-4">
+    <div className="min-h-screen pt-0 sm:pt-20 pb-16 flex items-center justify-center bg-secondary-50 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -220,6 +220,7 @@ export default function ForgotPasswordPage() {
                 src="/logos/logo.png"
                 alt="Doctor Planet"
                 fill
+                sizes="48px"
                 className="object-contain"
               />
             </div>

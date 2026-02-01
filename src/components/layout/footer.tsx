@@ -106,6 +106,7 @@ export default function Footer() {
                   src="/logos/logo.png"
                   alt="Doctor Planet"
                   fill
+                  sizes="32px"
                   className="object-contain"
                 />
               </div>
@@ -176,6 +177,7 @@ export default function Footer() {
                   src="/logos/logo.png"
                   alt="Doctor Planet"
                   fill
+                  sizes="48px"
                   className="object-contain"
                 />
               </div>

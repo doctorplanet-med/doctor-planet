@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Heart, ShoppingCart, Eye } from 'lucide-react'
+import { Heart, ShoppingCart, Eye, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useSession } from 'next-auth/react'
 import { useCartStore } from '@/store/cart-store'
+import { useWishlistStore } from '@/store/wishlist-store'
 
 interface Product {
   id: string
@@ -29,8 +32,13 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const { addItem, setCartOpen } = useCartStore()
+  const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
+  const { data: session } = useSession()
+  const router = useRouter()
+  
+  const isLiked = isInWishlist(product.id)
 
   const images = JSON.parse(product.images)
   const mainImage = images[0]
@@ -100,19 +108,75 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             {/* Wishlist Button - Always visible on mobile, hover on desktop */}
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                setIsLiked(!isLiked)
-                toast.success(isLiked ? 'Removed from wishlist' : 'Added to wishlist')
+                
+                // Check if user is logged in
+                if (!session) {
+                  toast.error('Please login to add to wishlist')
+                  router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
+                  return
+                }
+                
+                // Optimistically update UI
+                const wasLiked = isLiked
+                if (wasLiked) {
+                  removeFromWishlist(product.id)
+                } else {
+                  addToWishlist(product.id)
+                }
+                
+                setIsWishlistLoading(true)
+                try {
+                  const response = await fetch('/api/wishlist/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: product.id }),
+                  })
+                  
+                  if (response.ok) {
+                    const data = await response.json()
+                    // Sync with server response
+                    if (data.inWishlist) {
+                      addToWishlist(product.id)
+                    } else {
+                      removeFromWishlist(product.id)
+                    }
+                    toast.success(data.inWishlist ? 'Added to wishlist' : 'Removed from wishlist')
+                  } else {
+                    // Revert on error
+                    if (wasLiked) {
+                      addToWishlist(product.id)
+                    } else {
+                      removeFromWishlist(product.id)
+                    }
+                    toast.error('Failed to update wishlist')
+                  }
+                } catch (error) {
+                  // Revert on error
+                  if (wasLiked) {
+                    addToWishlist(product.id)
+                  } else {
+                    removeFromWishlist(product.id)
+                  }
+                  toast.error('Something went wrong')
+                } finally {
+                  setIsWishlistLoading(false)
+                }
               }}
+              disabled={isWishlistLoading}
               className={`absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-md transition-all ${
                 isLiked
                   ? 'bg-primary-600 text-white'
                   : 'bg-white/90 text-secondary-700 sm:opacity-0 sm:group-hover:opacity-100'
-              }`}
+              } ${isWishlistLoading ? 'opacity-70' : ''}`}
             >
-              <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked ? 'fill-current' : ''}`} />
+              {isWishlistLoading ? (
+                <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+              ) : (
+                <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked ? 'fill-current' : ''}`} />
+              )}
             </motion.button>
 
             {/* Quick View - Hidden on mobile */}

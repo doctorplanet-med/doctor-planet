@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import ProductDetail from '@/components/products/product-detail'
 
-export const dynamic = 'force-dynamic'
+// Revalidate every 60 seconds for better performance
+export const revalidate = 60
 
 interface ProductPageProps {
   params: { slug: string }

@@ -222,6 +222,7 @@ export default function LoginPage() {
                   src="/logos/logo.png"
                   alt="Doctor Planet"
                   fill
+                  sizes="80px"
                   className="object-contain"
                 />
               </div>
@@ -274,6 +275,7 @@ export default function LoginPage() {
                   src="/logos/logo.png"
                   alt="Doctor Planet"
                   fill
+                  sizes="48px"
                   className="object-contain"
                 />
               </div>

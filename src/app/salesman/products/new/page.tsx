@@ -329,7 +329,7 @@ export default function SalesmanAddProductPage() {
                 {images.map((image, index) => (
                   <div key={index} className="relative group">
                     <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary-100">
-                      <Image src={image} alt={`Product ${index + 1}`} fill className="object-cover" />
+                      <Image src={image} alt={`Product ${index + 1}`} fill sizes="150px" className="object-cover" />
                     </div>
                     <button
                       type="button"

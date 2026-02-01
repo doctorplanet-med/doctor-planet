@@ -3,7 +3,9 @@ import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import AuthProvider from '@/components/providers/auth-provider'
+import WishlistProvider from '@/components/providers/wishlist-provider'
 import LayoutWrapper from '@/components/layout/layout-wrapper'
+import CustomCursor from '@/components/ui/custom-cursor'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -17,6 +19,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: 'Doctor Planet - Professional Medical Boutique',
   description: 'Your one-stop shop for premium medical clothes, shoes, and equipment. Quality products for healthcare professionals.',
   keywords: 'medical scrubs, lab coats, nursing shoes, medical equipment, healthcare uniforms',
@@ -41,10 +44,12 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
-          <Toaster 
+          <WishlistProvider>
+            <CustomCursor />
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+            <Toaster 
             position="bottom-right"
             toastOptions={{
               duration: 3000,
@@ -60,6 +65,7 @@ export default function RootLayout({
               },
             }}
           />
+          </WishlistProvider>
         </AuthProvider>
       </body>
     </html>

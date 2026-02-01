@@ -2,7 +2,8 @@ import { Suspense } from 'react'
 import prisma from '@/lib/prisma'
 import ProductsContent from '@/components/products/products-content'
 
-export const dynamic = 'force-dynamic'
+// Revalidate every 30 seconds for better performance
+export const revalidate = 30
 
 interface ProductsPageProps {
   searchParams: { category?: string; featured?: string; search?: string }
@@ -70,7 +71,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
 function ProductsLoadingSkeleton() {
   return (
-    <div className="min-h-screen pt-24 bg-secondary-50">
+    <div className="min-h-screen pt-0 sm:pt-20 bg-secondary-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
           <div className="h-10 bg-secondary-200 rounded w-1/3 mb-8" />

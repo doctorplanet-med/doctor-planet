@@ -350,7 +350,7 @@ export default function AdminTeamPage() {
                   <div className="flex items-center gap-4">
                     {formData.image ? (
                       <div className="relative w-20 h-20 rounded-full overflow-hidden">
-                        <Image src={formData.image} alt="Preview" fill className="object-cover" />
+                        <Image src={formData.image} alt="Preview" fill sizes="80px" className="object-cover" />
                       </div>
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-secondary-100 flex items-center justify-center">

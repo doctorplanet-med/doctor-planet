@@ -22,11 +22,13 @@ import {
   Receipt,
   X,
   Barcode,
+  Tag,
 } from 'lucide-react'
 
 const menuItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/deals', label: 'Deals', icon: Tag },
   { href: '/admin/barcodes', label: 'Barcodes', icon: Barcode },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/admin/pos', label: 'POS Sales', icon: Store },

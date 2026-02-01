@@ -68,7 +68,7 @@ export default function ContactPage() {
     : '#'
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-0 sm:pt-20">
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary-50 to-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

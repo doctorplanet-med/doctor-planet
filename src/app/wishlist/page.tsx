@@ -15,6 +15,7 @@ import {
   ArrowRight
 } from 'lucide-react'
 import { useCartStore } from '@/store/cart-store'
+import { useWishlistStore } from '@/store/wishlist-store'
 import toast from 'react-hot-toast'
 
 interface WishlistItem {
@@ -40,6 +41,7 @@ export default function WishlistPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const { addItem } = useCartStore()
+  const { removeItem: removeFromWishlistStore } = useWishlistStore()
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -69,7 +71,7 @@ export default function WishlistPage() {
     }
   }, [session])
 
-  const removeFromWishlist = async (itemId: string) => {
+  const removeFromWishlist = async (itemId: string, productId: string) => {
     setRemovingId(itemId)
     try {
       const response = await fetch(`/api/wishlist/${itemId}`, {
@@ -78,6 +80,7 @@ export default function WishlistPage() {
 
       if (response.ok) {
         setItems(items.filter(item => item.id !== itemId))
+        removeFromWishlistStore(productId) // Update global store
         toast.success('Removed from wishlist')
       }
     } catch (error) {
@@ -94,7 +97,7 @@ export default function WishlistPage() {
       name: item.product.name,
       price: item.product.price,
       salePrice: item.product.salePrice ?? undefined,
-      image: images[0] || '/placeholder.jpg',
+      image: images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
       quantity: 1,
     })
     toast.success('Added to cart!')
@@ -111,7 +114,7 @@ export default function WishlistPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen pt-14 sm:pt-20 pb-20 flex items-center justify-center bg-secondary-50">
+      <div className="min-h-screen pt-0 sm:pt-20 pb-20 flex items-center justify-center bg-secondary-50">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
       </div>
     )
@@ -122,7 +125,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen pt-14 sm:pt-20 pb-20 bg-secondary-50">
+    <div className="min-h-screen pt-0 sm:pt-20 pb-20 bg-secondary-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
         <motion.div
@@ -194,7 +197,7 @@ export default function WishlistPage() {
                     <Link href={`/products/${item.product.slug}`}>
                       <div className="relative aspect-square overflow-hidden">
                         <Image
-                          src={images[0] || '/placeholder.jpg'}
+                          src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400'}
                           alt={item.product.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -258,7 +261,7 @@ export default function WishlistPage() {
                           {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                         </button>
                         <button
-                          onClick={() => removeFromWishlist(item.id)}
+                          onClick={() => removeFromWishlist(item.id, item.product.id)}
                           disabled={removingId === item.id}
                           className="p-2 rounded-lg border border-secondary-200 text-secondary-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
                         >

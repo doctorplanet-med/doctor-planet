@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -11,6 +11,8 @@ import {
   X,
   Loader2,
   ImageIcon,
+  Upload,
+  Link as LinkIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -31,7 +33,10 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
   const [categories, setCategories] = useState(initialCategories)
   const [showModal, setShowModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [imageInputType, setImageInputType] = useState<'upload' | 'url'>('upload')
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -42,6 +47,7 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
   const resetForm = () => {
     setFormData({ name: '', slug: '', description: '', image: '' })
     setEditingCategory(null)
+    setImageInputType('upload')
   }
 
   const openModal = (category?: Category) => {
@@ -53,10 +59,71 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
         description: category.description || '',
         image: category.image || '',
       })
+      // If category has an image URL, show URL input type
+      if (category.image) {
+        setImageInputType('url')
+      }
     } else {
       resetForm()
     }
     setShowModal(true)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.')
+      return
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 10MB.')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+      formDataUpload.append('folder', 'categories')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Upload failed')
+      }
+
+      const { url } = await response.json()
+      setFormData(prev => ({ ...prev, image: url }))
+      toast.success('Image uploaded!')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload image')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) {
+      const input = fileInputRef.current
+      if (input) {
+        const dataTransfer = new DataTransfer()
+        dataTransfer.items.add(file)
+        input.files = dataTransfer.files
+        handleImageUpload({ target: input } as any)
+      }
+    }
   }
 
   const generateSlug = (name: string) => {
@@ -144,6 +211,7 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
                   src={category.image}
                   alt={category.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, 300px"
                   className="object-cover"
                 />
               ) : (
@@ -269,18 +337,115 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
 
                 <div>
                   <label className="block text-sm font-medium text-secondary-700 mb-2">
-                    Image URL
+                    Category Image
                   </label>
-                  <div className="relative">
-                    <input
-                      type="url"
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
-                      className="input-field pl-12"
-                    />
-                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                  
+                  {/* Image Type Toggle */}
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setImageInputType('upload')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                        imageInputType === 'upload'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-secondary-200 text-secondary-600 hover:bg-secondary-50'
+                      }`}
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageInputType('url')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                        imageInputType === 'url'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-secondary-200 text-secondary-600 hover:bg-secondary-50'
+                      }`}
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                      URL
+                    </button>
                   </div>
+
+                  {imageInputType === 'upload' ? (
+                    <div
+                      onDrop={handleDrop}
+                      onDragOver={(e) => e.preventDefault()}
+                      className="border-2 border-dashed border-secondary-300 rounded-xl p-4 text-center hover:border-primary-400 transition-colors cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      {isUploading ? (
+                        <div className="py-4">
+                          <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-2" />
+                          <p className="text-sm text-secondary-500">Uploading...</p>
+                        </div>
+                      ) : formData.image ? (
+                        <div className="relative">
+                          <div className="relative w-full h-32 rounded-lg overflow-hidden mb-2">
+                            <Image
+                              src={formData.image}
+                              alt="Preview"
+                              fill
+                              sizes="400px"
+                              className="object-cover"
+                            />
+                          </div>
+                          <p className="text-xs text-secondary-500">Click or drag to replace</p>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setFormData(prev => ({ ...prev, image: '' }))
+                            }}
+                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="py-4">
+                          <Upload className="w-8 h-8 text-secondary-400 mx-auto mb-2" />
+                          <p className="text-sm text-secondary-600 font-medium">Click or drag image here</p>
+                          <p className="text-xs text-secondary-400 mt-1">PNG, JPG, WebP up to 10MB</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={formData.image}
+                          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                          placeholder="https://example.com/image.jpg"
+                          className="input-field pl-12"
+                        />
+                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                      </div>
+                      {formData.image && (
+                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-secondary-200">
+                          <Image
+                            src={formData.image}
+                            alt="Preview"
+                            fill
+                            sizes="400px"
+                            className="object-cover"
+                            onError={() => {
+                              // Handle invalid image URL
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-4">

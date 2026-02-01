@@ -2,16 +2,17 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
-// For LOCAL development, use: DATABASE_URL="file:./dev.db" with provider="sqlite"
-// For PRODUCTION (Vercel), use Neon PostgreSQL URL
+// Using Turso (SQLite) for both development and production
+// In production, the libsql adapter connects to Turso cloud
 
 model Account {
   id                String  @id @default(cuid())
@@ -319,6 +320,33 @@ model BillSettings {
   
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// Deals - Bundle multiple products with special price
+model Deal {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?    // Deal banner image
+  dealPrice   Float      // Special bundle price
+  originalPrice Float    // Sum of original product prices (auto-calculated)
+  items       DealItem[]
+  isActive    Boolean    @default(true)
+  startDate   DateTime?  // Optional start date
+  endDate     DateTime?  // Optional end date
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model DealItem {
+  id        String  @id @default(cuid())
+  dealId    String
+  deal      Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  productId String
+  quantity  Int     @default(1)
+  
+  @@unique([dealId, productId])
 }
 
 model SiteSettings {
