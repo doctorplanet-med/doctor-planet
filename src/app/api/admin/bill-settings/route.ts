@@ -59,6 +59,13 @@ export async function PUT(request: NextRequest) {
         showBarcode: data.showBarcode,
         paperWidth: data.paperWidth,
         fontSize: data.fontSize,
+        // Tax Settings
+        taxEnabled: data.taxEnabled,
+        taxName: data.taxName,
+        taxRate: data.taxRate,
+        taxIncludedInPrice: data.taxIncludedInPrice,
+        showTaxBreakdown: data.showTaxBreakdown,
+        taxNumber: data.taxNumber,
       },
       create: {
         id: 'main',

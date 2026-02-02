@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { 
   Receipt, Store, Phone, Mail, MapPin, FileText, 
   Save, Eye, Printer, Image as ImageIcon, Settings,
-  Type, Ruler, ToggleLeft, ToggleRight
+  Type, Ruler, ToggleLeft, ToggleRight, Percent, Calculator
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -25,6 +25,13 @@ interface BillSettings {
   showBarcode: boolean
   paperWidth: string
   fontSize: string
+  // Tax Settings
+  taxEnabled: boolean
+  taxName: string
+  taxRate: number
+  taxIncludedInPrice: boolean
+  showTaxBreakdown: boolean
+  taxNumber: string
 }
 
 export default function AdminBillSettingsPage() {
@@ -44,6 +51,13 @@ export default function AdminBillSettingsPage() {
     showBarcode: false,
     paperWidth: '80mm',
     fontSize: 'normal',
+    // Tax Settings
+    taxEnabled: false,
+    taxName: 'GST',
+    taxRate: 0,
+    taxIncludedInPrice: false,
+    showTaxBreakdown: true,
+    taxNumber: '',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -74,6 +88,13 @@ export default function AdminBillSettingsPage() {
           showBarcode: data.showBarcode ?? false,
           paperWidth: data.paperWidth || '80mm',
           fontSize: data.fontSize || 'normal',
+          // Tax Settings
+          taxEnabled: data.taxEnabled ?? false,
+          taxName: data.taxName || 'GST',
+          taxRate: data.taxRate ?? 0,
+          taxIncludedInPrice: data.taxIncludedInPrice ?? false,
+          showTaxBreakdown: data.showTaxBreakdown ?? true,
+          taxNumber: data.taxNumber || '',
         })
       }
     } catch (error) {
@@ -330,6 +351,126 @@ export default function AdminBillSettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* Tax Settings */}
+        <div className="bg-white rounded-xl border border-secondary-200 p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold text-secondary-900 mb-6 flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-primary-600" />
+            Tax Settings
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Left Column - Tax Configuration */}
+            <div className="space-y-4">
+              <Toggle
+                value={settings.taxEnabled}
+                onChange={(v) => setSettings(prev => ({ ...prev, taxEnabled: v }))}
+                label="Enable Tax on Bills"
+              />
+              
+              {settings.taxEnabled && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-2">Tax Name</label>
+                    <input
+                      type="text"
+                      value={settings.taxName}
+                      onChange={(e) => setSettings(prev => ({ ...prev, taxName: e.target.value }))}
+                      placeholder="GST, VAT, Sales Tax, etc."
+                      className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-2">Tax Rate (%)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={settings.taxRate}
+                        onChange={(e) => setSettings(prev => ({ ...prev, taxRate: parseFloat(e.target.value) || 0 }))}
+                        placeholder="17"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        className="w-full px-4 py-2 pr-12 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary-400">
+                        <Percent className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-700 mb-2">Tax Registration Number (Optional)</label>
+                    <input
+                      type="text"
+                      value={settings.taxNumber}
+                      onChange={(e) => setSettings(prev => ({ ...prev, taxNumber: e.target.value }))}
+                      placeholder="e.g., NTN-1234567-8"
+                      className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {/* Right Column - Tax Options */}
+            {settings.taxEnabled && (
+              <div className="space-y-4">
+                <Toggle
+                  value={settings.taxIncludedInPrice}
+                  onChange={(v) => setSettings(prev => ({ ...prev, taxIncludedInPrice: v }))}
+                  label="Prices Already Include Tax"
+                />
+                <p className="text-xs text-secondary-500 -mt-2 ml-0">
+                  {settings.taxIncludedInPrice 
+                    ? "Tax will be calculated from the inclusive price and shown separately" 
+                    : "Tax will be added on top of the product prices"}
+                </p>
+                
+                <Toggle
+                  value={settings.showTaxBreakdown}
+                  onChange={(v) => setSettings(prev => ({ ...prev, showTaxBreakdown: v }))}
+                  label="Show Tax Breakdown on Bill"
+                />
+                
+                {/* Tax Preview */}
+                <div className="mt-4 p-4 bg-secondary-50 rounded-lg">
+                  <p className="text-sm font-medium text-secondary-700 mb-2">Tax Preview</p>
+                  <div className="text-sm text-secondary-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>PKR 1,000</span>
+                    </div>
+                    {settings.taxIncludedInPrice ? (
+                      <>
+                        <div className="flex justify-between text-secondary-500">
+                          <span>({settings.taxName} {settings.taxRate}% included):</span>
+                          <span>PKR {Math.round(1000 - (1000 / (1 + settings.taxRate / 100)))}</span>
+                        </div>
+                        <div className="flex justify-between font-bold border-t border-secondary-200 pt-1">
+                          <span>Total:</span>
+                          <span>PKR 1,000</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span>{settings.taxName} ({settings.taxRate}%):</span>
+                          <span>PKR {Math.round(1000 * settings.taxRate / 100)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold border-t border-secondary-200 pt-1">
+                          <span>Total:</span>
+                          <span>PKR {Math.round(1000 * (1 + settings.taxRate / 100))}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Preview Modal */}
@@ -362,6 +503,9 @@ export default function AdminBillSettingsPage() {
                 )}
                 {settings.showStorePhone && (
                   <p className="text-secondary-600">{settings.storePhone}</p>
+                )}
+                {settings.taxEnabled && settings.taxNumber && (
+                  <p className="text-secondary-500 text-xs">{settings.taxName} #: {settings.taxNumber}</p>
                 )}
                 {settings.headerText && (
                   <p className="mt-2 text-secondary-700">{settings.headerText}</p>
@@ -412,13 +556,25 @@ export default function AdminBillSettingsPage() {
                   <span>Discount:</span>
                   <span>-PKR 500</span>
                 </div>
+                {settings.taxEnabled && settings.showTaxBreakdown && (
+                  <div className="flex justify-between">
+                    <span>{settings.taxName} ({settings.taxRate}%):</span>
+                    <span>PKR {settings.taxIncludedInPrice 
+                      ? Math.round(5000 - (5000 / (1 + settings.taxRate / 100)))
+                      : Math.round(5000 * settings.taxRate / 100)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold text-lg mt-2">
                   <span>TOTAL:</span>
-                  <span>PKR 5,000</span>
+                  <span>PKR {settings.taxIncludedInPrice 
+                    ? '5,000' 
+                    : (5000 + Math.round(5000 * settings.taxRate / 100)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between mt-2">
                   <span>Cash:</span>
-                  <span>PKR 5,500</span>
+                  <span>PKR {settings.taxIncludedInPrice 
+                    ? '5,500' 
+                    : (5500 + Math.round(5000 * settings.taxRate / 100)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between font-bold">
                   <span>Change:</span>

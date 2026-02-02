@@ -318,6 +318,14 @@ model BillSettings {
   paperWidth          String   @default("80mm") // 58mm, 80mm, A4
   fontSize            String   @default("normal") // small, normal, large
   
+  // Tax Settings
+  taxEnabled          Boolean  @default(false)
+  taxName             String   @default("GST") // Tax name (GST, VAT, Sales Tax, etc.)
+  taxRate             Float    @default(0) // Tax percentage (e.g., 17 for 17%)
+  taxIncludedInPrice  Boolean  @default(false) // If true, prices already include tax
+  showTaxBreakdown    Boolean  @default(true) // Show tax breakdown on bill
+  taxNumber           String?  // Business tax registration number (optional)
+  
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }

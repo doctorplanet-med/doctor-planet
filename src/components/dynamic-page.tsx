@@ -84,7 +84,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-0 sm:pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-0 sm:pt-20 pb-20 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
       </div>
     )
@@ -92,7 +92,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
 
   if (!isPublished) {
     return (
-      <div className="min-h-screen pt-0 sm:pt-20 flex items-center justify-center">
+      <div className="min-h-screen pt-0 sm:pt-20 pb-20 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-secondary-900 mb-4">Coming Soon</h1>
           <p className="text-secondary-600 mb-8">This page is currently being updated.</p>
@@ -112,7 +112,7 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
   }
 
   return (
-    <div className="min-h-screen pt-0 sm:pt-20">
+    <div className="min-h-screen pt-0 sm:pt-20 pb-20">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-50 to-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

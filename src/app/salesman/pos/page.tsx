@@ -36,6 +36,23 @@ interface CartItem {
   color: string | null
   price: number
   costPrice: number
+  dealId?: string // Optional deal reference
+}
+
+interface Deal {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  image: string | null
+  dealPrice: number
+  originalPrice: number
+  items: {
+    productId: string
+    quantity: number
+    product: Product
+  }[]
+  isActive: boolean
 }
 
 interface BillSettings {
@@ -54,10 +71,18 @@ interface BillSettings {
   showBarcode: boolean
   paperWidth: string
   fontSize: string
+  // Tax Settings
+  taxEnabled?: boolean
+  taxName?: string
+  taxRate?: number
+  taxIncludedInPrice?: boolean
+  showTaxBreakdown?: boolean
+  taxNumber?: string
 }
 
 export default function SalesmanPOSPage() {
   const [products, setProducts] = useState<Product[]>([])
+  const [deals, setDeals] = useState<Deal[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
@@ -67,6 +92,7 @@ export default function SalesmanPOSPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
   const [billSettings, setBillSettings] = useState<BillSettings | null>(null)
+  const [activeTab, setActiveTab] = useState<'products' | 'deals'>('products')
   const searchInputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const billRef = useRef<HTMLDivElement>(null)
@@ -85,12 +111,14 @@ export default function SalesmanPOSPage() {
   const [selectingVariant, setSelectingVariant] = useState<Product | null>(null)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [currentDealContext, setCurrentDealContext] = useState<Deal | null>(null) // Track if adding from a deal
 
   // Mobile cart
   const [showMobileCart, setShowMobileCart] = useState(false)
 
   useEffect(() => {
     fetchProducts()
+    fetchDeals()
     fetchBillSettings()
   }, [])
 
@@ -120,6 +148,80 @@ export default function SalesmanPOSPage() {
       toast.error('Failed to load products')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchDeals = async () => {
+    try {
+      const res = await fetch('/api/deals')
+      if (res.ok) {
+        const data = await res.json()
+        setDeals(data)
+      }
+    } catch (error) {
+      console.error('Failed to load deals')
+    }
+  }
+
+  const addDealToCart = (deal: Deal) => {
+    // Calculate the discount ratio for the deal
+    const discountRatio = deal.dealPrice / deal.originalPrice
+    
+    // Track products that need variant selection
+    const productsNeedingVariants: Product[] = []
+    
+    // Add each product in the deal to cart with proportional pricing
+    deal.items.forEach(item => {
+      const product = item.product
+      
+      // Calculate proportional deal price for this product
+      const originalProductTotal = product.price * item.quantity
+      const dealProductPrice = Math.round(originalProductTotal * discountRatio)
+      
+      // Check if product needs variant selection
+      const sizes = product.sizes ? JSON.parse(product.sizes) : []
+      const colors = product.colors ? JSON.parse(product.colors) : []
+      
+      if (sizes.length > 0 || colors.length > 0) {
+        // Need to select variant - queue it
+        productsNeedingVariants.push(product)
+      } else {
+        // Add directly without variants with deal pricing
+        setCart(prev => {
+          const existingIndex = prev.findIndex(
+            i => i.productId === product.id && !i.size && !i.color && i.dealId === deal.id
+          )
+          
+          if (existingIndex > -1) {
+            const updated = [...prev]
+            updated[existingIndex].quantity += 1
+            return updated
+          }
+          
+          return [...prev, {
+            productId: product.id,
+            product: {
+              ...product,
+              name: `${product.name} (${deal.name})`, // Show deal name
+            },
+            quantity: 1, // 1 deal bundle
+            size: null,
+            color: null,
+            price: dealProductPrice, // Deal discounted price
+            costPrice: product.costPrice || 0, // Default to 0 if not set
+            dealId: deal.id,
+          }]
+        })
+      }
+    })
+    
+    // If there are products needing variant selection, show the first one
+    if (productsNeedingVariants.length > 0) {
+      setCurrentDealContext(deal) // Set deal context for variant selection
+      setSelectingVariant(productsNeedingVariants[0])
+      toast(`Select size/color for ${productsNeedingVariants[0].name}`, { icon: '📦' })
+    } else {
+      toast.success(`Deal "${deal.name}" added to cart!`)
     }
   }
 
@@ -236,7 +338,18 @@ export default function SalesmanPOSPage() {
   const discountAmount = discountType === 'PERCENTAGE' 
     ? (subtotal * discount) / 100 
     : discount
-  const total = Math.max(0, subtotal - discountAmount)
+  const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount)
+  
+  // Calculate tax based on bill settings
+  const taxRate = billSettings?.taxEnabled ? (billSettings.taxRate || 0) : 0
+  const taxAmount = billSettings?.taxIncludedInPrice
+    ? Math.round(subtotalAfterDiscount - (subtotalAfterDiscount / (1 + taxRate / 100))) // Tax included in price
+    : Math.round(subtotalAfterDiscount * taxRate / 100) // Tax added on top
+  
+  const total = billSettings?.taxIncludedInPrice
+    ? subtotalAfterDiscount // Price already includes tax
+    : subtotalAfterDiscount + taxAmount // Add tax to subtotal
+  
   const change = typeof amountReceived === 'number' ? amountReceived - total : 0
 
   const handleSearchKeyDown = async (e: React.KeyboardEvent) => {
@@ -317,10 +430,25 @@ export default function SalesmanPOSPage() {
   }
 
   const addItemToCart = (product: Product, size: string | null, color: string | null) => {
-    const price = product.salePrice || product.price
+    let price = product.salePrice || product.price
     const costPrice = product.costPrice || 0
+    let productName = product.name
+    let dealId: string | undefined = undefined
+    
+    // If adding from a deal, calculate proportional deal price
+    if (currentDealContext) {
+      const deal = currentDealContext
+      const discountRatio = deal.dealPrice / deal.originalPrice
+      const dealItem = deal.items.find(i => i.productId === product.id)
+      const itemQuantity = dealItem?.quantity || 1
+      const originalProductTotal = product.price * itemQuantity
+      price = Math.round(originalProductTotal * discountRatio)
+      productName = `${product.name} (${deal.name})`
+      dealId = deal.id
+    }
+    
     const existingIndex = cart.findIndex(
-      item => item.productId === product.id && item.size === size && item.color === color
+      item => item.productId === product.id && item.size === size && item.color === color && item.dealId === dealId
     )
 
     // Check available stock for this variant
@@ -344,19 +472,24 @@ export default function SalesmanPOSPage() {
       }
       setCart([...cart, {
         productId: product.id,
-        product,
+        product: {
+          ...product,
+          name: productName,
+        },
         quantity: 1,
         size,
         color,
         price,
         costPrice,
+        dealId,
       }])
-      toast.success(`Added ${product.name}`)
+      toast.success(`Added ${productName}`)
     }
 
     setSelectingVariant(null)
     setSelectedSize(null)
     setSelectedColor(null)
+    setCurrentDealContext(null) // Clear deal context after adding
   }
 
   const updateQuantity = (index: number, quantity: number) => {
@@ -709,9 +842,37 @@ export default function SalesmanPOSPage() {
           </div>
         </div>
 
-        {/* Recent/Popular Products Grid */}
+        {/* Tabs: Products / Deals */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === 'products'
+                ? 'bg-primary-600 text-white'
+                : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            Products
+          </button>
+          <button
+            onClick={() => setActiveTab('deals')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeTab === 'deals'
+                ? 'bg-primary-600 text-white'
+                : 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            Deals ({deals.length})
+          </button>
+        </div>
+
+        {/* Products Grid or Deals Grid */}
         <div className="flex-1 overflow-y-auto bg-white rounded-xl border border-secondary-200 p-2 sm:p-4 pb-20 lg:pb-4">
-          <h3 className="text-xs sm:text-sm font-medium text-secondary-500 mb-3 sm:mb-4">Quick Add - All Products</h3>
+          {activeTab === 'products' ? (
+            <>
+              <h3 className="text-xs sm:text-sm font-medium text-secondary-500 mb-3 sm:mb-4">Quick Add - All Products</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
             {products.filter(p => p.stock > 0).slice(0, 20).map((product) => {
               const images = JSON.parse(product.images)
@@ -765,7 +926,84 @@ export default function SalesmanPOSPage() {
                 </motion.button>
               )
             })}
-          </div>
+              </div>
+            </>
+          ) : (
+            /* Deals Grid */
+            <>
+              <h3 className="text-xs sm:text-sm font-medium text-secondary-500 mb-3 sm:mb-4">Quick Add - Bundle Deals</h3>
+              {deals.length === 0 ? (
+                <div className="text-center py-12">
+                  <Tag className="w-12 h-12 text-secondary-300 mx-auto mb-3" />
+                  <p className="text-secondary-500">No deals available</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {deals.map((deal) => {
+                    const savings = deal.originalPrice - deal.dealPrice
+                    const savingsPercent = Math.round((savings / deal.originalPrice) * 100)
+                    
+                    return (
+                      <motion.button
+                        key={deal.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => addDealToCart(deal)}
+                        className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 text-left hover:shadow-md transition-all border border-primary-200"
+                      >
+                        {/* Deal Products Preview */}
+                        <div className="flex -space-x-2 mb-3">
+                          {deal.items.slice(0, 4).map((item, i) => {
+                            const images = item.product?.images ? JSON.parse(item.product.images) : []
+                            return (
+                              <div
+                                key={i}
+                                className="relative w-10 h-10 rounded-lg overflow-hidden bg-white border-2 border-white shadow-sm"
+                                style={{ zIndex: 4 - i }}
+                              >
+                                {images[0] ? (
+                                  <Image
+                                    src={images[0]}
+                                    alt={item.product?.name || 'Product'}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-secondary-100">
+                                    <Package className="w-4 h-4 text-secondary-300" />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                          {deal.items.length > 4 && (
+                            <div className="w-10 h-10 rounded-lg bg-primary-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                              +{deal.items.length - 4}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Deal Info */}
+                        <h4 className="font-bold text-secondary-900 text-sm mb-1 line-clamp-1">{deal.name}</h4>
+                        <p className="text-xs text-secondary-500 mb-2">{deal.items.length} products</p>
+                        
+                        {/* Pricing */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold text-primary-600">{formatCurrency(deal.dealPrice)}</span>
+                            <span className="text-xs text-secondary-400 line-through ml-2">{formatCurrency(deal.originalPrice)}</span>
+                          </div>
+                          <span className="text-xs font-bold text-white bg-primary-600 px-2 py-1 rounded-full">
+                            -{savingsPercent}%
+                          </span>
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -838,9 +1076,9 @@ export default function SalesmanPOSPage() {
                         <p className="font-bold text-primary-600 text-sm">
                           {formatCurrency(item.price * item.quantity)}
                         </p>
-                        {item.costPrice > 0 && (
+                        {(item.costPrice || 0) > 0 && (
                           <p className="text-xs text-green-600">
-                            (+{formatCurrency((item.price - item.costPrice) * item.quantity)})
+                            (+{formatCurrency((item.price - (item.costPrice || 0)) * item.quantity)})
                           </p>
                         )}
                       </div>
@@ -886,13 +1124,19 @@ export default function SalesmanPOSPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-green-600">Est. Profit</span>
                 <span className="font-medium text-green-600">
-                  +{formatCurrency(cart.reduce((sum, item) => sum + ((item.price - item.costPrice) * item.quantity), 0))}
+                  +{formatCurrency(cart.reduce((sum, item) => sum + ((item.price - (item.costPrice || 0)) * item.quantity), 0))}
                 </span>
+              </div>
+            )}
+            {billSettings?.taxEnabled && taxAmount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-secondary-600">{billSettings.taxName || 'Tax'} ({billSettings.taxRate}%)</span>
+                <span className="font-medium">{formatCurrency(taxAmount)}</span>
               </div>
             )}
             <div className="flex justify-between text-2xl font-bold">
               <span>Total</span>
-              <span className="text-primary-600">{formatCurrency(subtotal)}</span>
+              <span className="text-primary-600">{formatCurrency(total)}</span>
             </div>
           </div>
 
@@ -1022,9 +1266,15 @@ export default function SalesmanPOSPage() {
                     <span className="text-secondary-600">Subtotal</span>
                     <span className="font-medium">{formatCurrency(subtotal)}</span>
                   </div>
+                  {billSettings?.taxEnabled && taxAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-secondary-600">{billSettings.taxName || 'Tax'} ({billSettings.taxRate}%)</span>
+                      <span className="font-medium">{formatCurrency(taxAmount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
-                    <span className="text-primary-600">{formatCurrency(subtotal)}</span>
+                    <span className="text-primary-600">{formatCurrency(total)}</span>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -1061,7 +1311,7 @@ export default function SalesmanPOSPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectingVariant(null)}
+            onClick={() => { setSelectingVariant(null); setCurrentDealContext(null); }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -1167,7 +1417,7 @@ export default function SalesmanPOSPage() {
 
               <div className="p-6 bg-secondary-50 flex gap-3">
                 <button
-                  onClick={() => setSelectingVariant(null)}
+                  onClick={() => { setSelectingVariant(null); setCurrentDealContext(null); }}
                   className="flex-1 py-3 border border-secondary-300 rounded-xl font-medium hover:bg-white transition-colors"
                 >
                   Cancel
@@ -1343,6 +1593,12 @@ export default function SalesmanPOSPage() {
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
                       <span>-{formatCurrency(discountAmount)}</span>
+                    </div>
+                  )}
+                  {billSettings?.taxEnabled && taxAmount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-600">{billSettings.taxName || 'Tax'} ({billSettings.taxRate}%)</span>
+                      <span className="font-medium">{formatCurrency(taxAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-2xl font-bold pt-3 border-t border-secondary-200">

@@ -11,6 +11,8 @@ export interface CartItem {
   quantity: number
   size?: string
   color?: string
+  dealId?: string // For deal bundles - all items in a deal share the same dealId
+  dealName?: string // Name of the deal for display
 }
 
 interface CartStore {
@@ -18,6 +20,7 @@ interface CartStore {
   isOpen: boolean
   addItem: (item: Omit<CartItem, 'id'>) => void
   removeItem: (id: string) => void
+  removeDeal: (dealId: string) => void // Remove all items from a deal
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   toggleCart: () => void
@@ -34,11 +37,19 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) => {
         const items = get().items
+        // For deal items, don't merge - each deal addition is separate
+        if (item.dealId) {
+          const id = `${item.productId}-${item.size || 'none'}-${item.color || 'none'}-${item.dealId}-${Date.now()}`
+          set({ items: [...items, { ...item, id }] })
+          return
+        }
+        
         const existingItem = items.find(
           (i) =>
             i.productId === item.productId &&
             i.size === item.size &&
-            i.color === item.color
+            i.color === item.color &&
+            !i.dealId // Don't merge with deal items
         )
 
         if (existingItem) {
@@ -56,7 +67,19 @@ export const useCartStore = create<CartStore>()(
       },
 
       removeItem: (id) => {
-        set({ items: get().items.filter((i) => i.id !== id) })
+        const items = get().items
+        const itemToRemove = items.find((i) => i.id === id)
+        
+        // If item is part of a deal, remove ALL items from that deal
+        if (itemToRemove?.dealId) {
+          set({ items: items.filter((i) => i.dealId !== itemToRemove.dealId) })
+        } else {
+          set({ items: items.filter((i) => i.id !== id) })
+        }
+      },
+
+      removeDeal: (dealId) => {
+        set({ items: get().items.filter((i) => i.dealId !== dealId) })
       },
 
       updateQuantity: (id, quantity) => {
@@ -64,9 +87,21 @@ export const useCartStore = create<CartStore>()(
           get().removeItem(id)
           return
         }
-        set({
-          items: get().items.map((i) => (i.id === id ? { ...i, quantity } : i)),
-        })
+        const items = get().items
+        const item = items.find((i) => i.id === id)
+        
+        // If item is part of a deal, update ALL items from that deal
+        if (item?.dealId) {
+          set({
+            items: items.map((i) => 
+              i.dealId === item.dealId ? { ...i, quantity } : i
+            ),
+          })
+        } else {
+          set({
+            items: items.map((i) => (i.id === id ? { ...i, quantity } : i)),
+          })
+        }
       },
 
       clearCart: () => set({ items: [] }),

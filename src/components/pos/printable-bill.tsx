@@ -18,6 +18,13 @@ interface BillSettings {
   showBarcode: boolean
   paperWidth: string
   fontSize: string
+  // Tax Settings
+  taxEnabled?: boolean
+  taxName?: string
+  taxRate?: number
+  taxIncludedInPrice?: boolean
+  showTaxBreakdown?: boolean
+  taxNumber?: string
 }
 
 interface SaleItem {
@@ -34,6 +41,7 @@ interface SaleData {
   subtotal: number
   discount: number
   discountType?: string | null
+  taxAmount?: number
   total: number
   paymentMethod: string
   amountReceived?: number | null
@@ -83,6 +91,9 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
           )}
           {settings.showStorePhone && settings.storePhone && (
             <p className="text-gray-600">Tel: {settings.storePhone}</p>
+          )}
+          {settings.taxEnabled && settings.taxNumber && (
+            <p className="text-gray-600 text-[9px]">{settings.taxName || 'Tax'} #: {settings.taxNumber}</p>
           )}
           {settings.headerText && (
             <p className="mt-1 font-medium">{settings.headerText}</p>
@@ -157,6 +168,13 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
             <div className="flex justify-between text-green-700">
               <span>Discount{sale.discountType === 'PERCENTAGE' ? ' (%)' : ''}:</span>
               <span>-{formatCurrency(sale.discount)}</span>
+            </div>
+          )}
+          {/* Tax Display */}
+          {settings.taxEnabled && settings.showTaxBreakdown && (
+            <div className="flex justify-between">
+              <span>{settings.taxName || 'Tax'} ({settings.taxRate || 0}%):</span>
+              <span>{formatCurrency(sale.taxAmount || 0)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-base pt-1 border-t border-gray-300">
