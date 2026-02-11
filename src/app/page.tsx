@@ -95,7 +95,7 @@ async function getActiveDeals() {
     return true
   }).slice(0, 8)
   if (filtered.length === 0) return []
-  const productIds = [...new Set(filtered.flatMap((d) => d.items.map((i) => i.productId)))]
+  const productIds = Array.from(new Set(filtered.flatMap((d) => d.items.map((i) => i.productId))))
   const products = await prisma.product.findMany({
     where: { id: { in: productIds } },
     select: {
@@ -111,6 +111,8 @@ async function getActiveDeals() {
   const productMap = Object.fromEntries(products.map((p) => [p.id, p]))
   return filtered.map((deal) => ({
     ...deal,
+    startDate: deal.startDate ? deal.startDate.toISOString() : null,
+    endDate: deal.endDate ? deal.endDate.toISOString() : null,
     items: deal.items.map((item) => ({
       ...item,
       product: productMap[item.productId] ?? null,

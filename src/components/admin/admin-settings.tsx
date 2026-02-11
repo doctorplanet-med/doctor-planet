@@ -80,7 +80,7 @@ const DEFAULT_GRADIENT_COLORS = ['#4c1d95', '#6d28d9', '#a78bfa']
 function getGradientColors(str: string): string[] {
   if (!str?.trim()) return []
   const hexes = str.match(/#(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})\b/g)
-  return hexes ? [...new Set(hexes)] : []
+  return hexes ? Array.from(new Set(hexes)) : []
 }
 
 /** Build Tailwind gradient class from hex array (2 or 3 colors) */

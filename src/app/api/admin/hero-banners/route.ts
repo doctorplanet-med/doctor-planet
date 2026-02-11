@@ -36,21 +36,26 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  let data: Record<string, unknown> = {}
+  let title = 'Banner'
+  let subtitle = ''
+  let imagesJson = '{}'
   try {
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const data = await request.json()
-    const title = typeof data.title === 'string' ? data.title.trim() : 'Banner'
-    const subtitle = typeof data.subtitle === 'string' ? data.subtitle.trim() : ''
-    const imagesJson =
+    data = (await request.json()) as Record<string, unknown>
+    title = typeof data.title === 'string' ? data.title.trim() : 'Banner'
+    subtitle = typeof data.subtitle === 'string' ? data.subtitle.trim() : ''
+    const imagesObj = data.images && typeof data.images === 'object' ? (data.images as Record<string, unknown>) : {}
+    imagesJson =
       typeof data.images === 'string'
         ? data.images
         : JSON.stringify({
-            mobile: data.mobileImage ?? data.images?.mobile ?? '',
-            tablet: data.tabletImage ?? data.images?.tablet ?? undefined,
-            desktop: data.desktopImage ?? data.images?.desktop ?? '',
+            mobile: data.mobileImage ?? imagesObj.mobile ?? '',
+            tablet: data.tabletImage ?? imagesObj.tablet ?? undefined,
+            desktop: data.desktopImage ?? imagesObj.desktop ?? '',
           })
 
     let order = 0
@@ -75,8 +80,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate) : null
-    const endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate) : null
+    const startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate as string | number) : null
+    const endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate as string | number) : null
     if (startDate && isNaN(startDate.getTime())) throw new Error('Invalid startDate')
     if (endDate && isNaN(endDate.getTime())) throw new Error('Invalid endDate')
 
@@ -84,10 +89,10 @@ export async function POST(request: NextRequest) {
       data: {
         title: title || 'Banner',
         subtitle,
-        ctaText: data.ctaText ?? 'Shop Now',
-        ctaLink: data.ctaLink ?? '/products',
-        backgroundGradient: data.backgroundGradient ?? null,
-        backgroundColor: data.backgroundColor ?? null,
+        ctaText: typeof data.ctaText === 'string' ? data.ctaText : 'Shop Now',
+        ctaLink: typeof data.ctaLink === 'string' ? data.ctaLink : '/products',
+        backgroundGradient: typeof data.backgroundGradient === 'string' ? data.backgroundGradient : null,
+        backgroundColor: typeof data.backgroundColor === 'string' ? data.backgroundColor : null,
         images: imagesJson,
         order,
         startDate,
@@ -102,16 +107,16 @@ export async function POST(request: NextRequest) {
         await ensureHeroBannerTable()
         const maxOrder = await prisma.heroBanner.aggregate({ _max: { order: true } })
         const order = (maxOrder._max.order ?? -1) + 1
-        const startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate) : null
-        const endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate) : null
+        const startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate as string | number) : null
+        const endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate as string | number) : null
         const banner = await prisma.heroBanner.create({
           data: {
             title: title || 'Banner',
             subtitle,
-            ctaText: data.ctaText ?? 'Shop Now',
-            ctaLink: data.ctaLink ?? '/products',
-            backgroundGradient: data.backgroundGradient ?? null,
-            backgroundColor: data.backgroundColor ?? null,
+            ctaText: typeof data.ctaText === 'string' ? data.ctaText : 'Shop Now',
+            ctaLink: typeof data.ctaLink === 'string' ? data.ctaLink : '/products',
+            backgroundGradient: typeof data.backgroundGradient === 'string' ? data.backgroundGradient : null,
+            backgroundColor: typeof data.backgroundColor === 'string' ? data.backgroundColor : null,
             images: imagesJson,
             order,
             startDate,
