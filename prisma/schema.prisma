@@ -81,6 +81,7 @@ model User {
   cart          CartItem[]
   wishlist      WishlistItem[]
   posSales      POSSale[] // POS sales made by this salesman
+  expenses      Expense[]  // Expenses added by admin or salesman
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -123,6 +124,7 @@ model Product {
   colors      String?     // JSON array of available colors
   colorImages String?     // JSON object mapping color names to image URLs e.g. {"Black": "/img1.jpg", "White": "/img2.jpg"}
   colorSizeStock String?  // JSON object for stock per color-size e.g. {"Black": {"S": 10, "M": 15}, "White": {"S": 5}}
+  sizeChartImage String?  // Optional URL to size chart image (shown on product page for some products)
   featured    Boolean     @default(false)
   isActive    Boolean     @default(true)
   orderItems  OrderItem[]
@@ -289,6 +291,20 @@ model POSSaleItem {
   color       String?
 }
 
+// Expenses - added by admin or salesman, optional image
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String   // Admin or salesman who added it
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float    // Expense amount
+  description String   // What the expense was for
+  category    String?  // Optional e.g. Rent, Utilities, Supplies
+  expenseDate DateTime @default(now()) // Date of the expense
+  image       String?  // Optional receipt/image URL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 // POS Bill/Receipt Settings
 model BillSettings {
   id                  String   @id @default("main")
@@ -357,6 +373,35 @@ model DealItem {
   @@unique([dealId, productId])
 }
 
+// Home page hero carousel banners (admin-managed)
+model HeroBanner {
+  id                  String    @id @default(cuid())
+  title               String
+  subtitle            String
+  ctaText             String
+  ctaLink             String
+  backgroundGradient  String?   // Tailwind classes e.g. "from-[#1a1a2e] via-[#16213e] to-[#0f3460]"
+  backgroundColor     String?   // Tailwind class e.g. "bg-[#0f3460]"
+  images              String    // JSON: { mobile, tablet?, desktop }
+  order               Int       @default(0)
+  startDate           DateTime? // Optional: show banner only after this date
+  endDate             DateTime? // Optional: show banner only until this date
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// Promo banners (3rd section after Categories): multiple images, PNG/JPG/GIF, admin-managed
+model PromoBanner {
+  id        String   @id @default(cuid())
+  imageUrl  String   // URL to image (PNG, JPG, GIF)
+  linkUrl   String   @default("/")
+  alt       String   @default("Promo")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model SiteSettings {
   id                  String   @id @default("main")
   
@@ -364,7 +409,7 @@ model SiteSettings {
   siteName            String   @default("Doctor Planet")
   siteTagline         String   @default("Professional Medical Boutique")
   
-  // Hero Section
+  // Hero Section (legacy single hero - kept for backwards compatibility)
   heroTitle           String   @default("Professional Medical Apparel")
   heroSubtitle        String   @default("Premium quality scrubs and lab coats for healthcare heroes")
   heroBannerImage     String?
@@ -394,6 +439,9 @@ model SiteSettings {
   
   // Footer
   footerText          String   @default("Your trusted partner for premium medical apparel and equipment.")
+  
+  // Hero: default banner IDs hidden by admin (JSON array of strings)
+  hiddenDefaultHeroBannerIds  String?
   
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

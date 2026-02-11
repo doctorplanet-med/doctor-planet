@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { ensureSiteSettingsHiddenDefaultColumn } from '@/lib/db-ensure'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,15 +11,31 @@ export async function GET() {
     let settings = await prisma.siteSettings.findUnique({
       where: { id: 'main' },
     })
-
     if (!settings) {
       settings = await prisma.siteSettings.create({
         data: { id: 'main' },
       })
     }
-
     return NextResponse.json(settings)
   } catch (error) {
+    const msg = (error instanceof Error ? error.message : String(error)) || ''
+    if (msg.includes('hiddenDefaultHeroBannerIds') || msg.includes('no such column')) {
+      try {
+        await ensureSiteSettingsHiddenDefaultColumn()
+        let settings = await prisma.siteSettings.findUnique({
+          where: { id: 'main' },
+        })
+        if (!settings) {
+          settings = await prisma.siteSettings.create({
+            data: { id: 'main' },
+          })
+        }
+        return NextResponse.json(settings)
+      } catch (e) {
+        console.error('Error fetching settings:', e)
+        return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
+      }
+    }
     console.error('Error fetching settings:', error)
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
   }
@@ -56,6 +73,7 @@ export async function PUT(request: NextRequest) {
         announcementBar: body.announcementBar,
         announcementActive: body.announcementActive,
         footerText: body.footerText,
+        hiddenDefaultHeroBannerIds: body.hiddenDefaultHeroBannerIds,
       },
       create: {
         id: 'main',

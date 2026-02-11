@@ -6,7 +6,7 @@ import ProductsContent from '@/components/products/products-content'
 export const revalidate = 30
 
 interface ProductsPageProps {
-  searchParams: { category?: string; featured?: string; search?: string }
+  searchParams: { category?: string; featured?: string; search?: string; sale?: string }
 }
 
 async function getProducts(searchParams: ProductsPageProps['searchParams']) {
@@ -18,6 +18,10 @@ async function getProducts(searchParams: ProductsPageProps['searchParams']) {
 
   if (searchParams.featured === 'true') {
     where.featured = true
+  }
+
+  if (searchParams.sale === 'true') {
+    where.salePrice = { not: null }
   }
 
   if (searchParams.search) {

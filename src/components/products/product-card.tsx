@@ -4,8 +4,8 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Heart, ShoppingCart, Eye, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Heart, ShoppingCart, Sparkles, Zap, TrendingUp, Loader2, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSession } from 'next-auth/react'
 import { useCartStore } from '@/store/cart-store'
@@ -30,9 +30,19 @@ interface ProductCardProps {
   index?: number
 }
 
+function parseImages(imagesJson: string): string[] {
+  try {
+    const parsed = JSON.parse(imagesJson)
+    return Array.isArray(parsed) ? parsed : [parsed].filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
+  const [imageIndex, setImageIndex] = useState(0)
   const { addItem, setCartOpen } = useCartStore()
   const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
   const { data: session } = useSession()
@@ -40,8 +50,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   
   const isLiked = isInWishlist(product.id)
 
-  const images = JSON.parse(product.images)
-  const mainImage = images[0]
+  const images = parseImages(product.images)
+  const mainImage = images[imageIndex] ?? images[0] ?? ''
   const discount = product.salePrice
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0
@@ -59,192 +69,318 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       quantity: 1,
     })
 
-    toast.success(`${product.name} added to cart!`)
+    toast.success(`${product.name} added to cart!`, {
+      icon: '🛒',
+    })
     setCartOpen(true)
+  }
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!session) {
+      toast.error('Please login to add to wishlist')
+      router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
+      return
+    }
+    
+    const wasLiked = isLiked
+    if (wasLiked) {
+      removeFromWishlist(product.id)
+    } else {
+      addToWishlist(product.id)
+    }
+    
+    setIsWishlistLoading(true)
+    try {
+      const response = await fetch('/api/wishlist/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id }),
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.inWishlist) {
+          addToWishlist(product.id)
+          toast.success('Added to wishlist', { icon: '❤️' })
+        } else {
+          removeFromWishlist(product.id)
+          toast.success('Removed from wishlist')
+        }
+      } else {
+        if (wasLiked) {
+          addToWishlist(product.id)
+        } else {
+          removeFromWishlist(product.id)
+        }
+        toast.error('Failed to update wishlist')
+      }
+    } catch (error) {
+      if (wasLiked) {
+        addToWishlist(product.id)
+      } else {
+        removeFromWishlist(product.id)
+      }
+      toast.error('Something went wrong')
+    } finally {
+      setIsWishlistLoading(false)
+    }
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="group"
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        duration: 0.5, 
+        delay: index * 0.08,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }}
+      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+      className="group relative"
     >
       <Link href={`/products/${product.slug}`}>
-        <div
-          className="card-hover relative bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+        <motion.div
+          className="relative bg-gradient-to-br from-white to-secondary-50/30 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Image Container - Smaller aspect ratio on mobile */}
-          <div className="relative aspect-[4/5] sm:aspect-square overflow-hidden bg-secondary-100">
-            <Image
-              src={mainImage}
-              alt={product.name}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+          {/* Animated Border Gradient */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: 'linear-gradient(135deg, rgba(165, 42, 42, 0.15) 0%, rgba(165, 42, 42, 0.05) 100%)',
+              padding: '2px',
+            }}
+          />
+
+          {/* Image Container */}
+          <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary-100 to-secondary-50">
+            {/* Animated Background Glow */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-tr from-primary-500/20 via-transparent to-primary-300/20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovered ? 1 : 0 }}
+              transition={{ duration: 0.5 }}
             />
 
-            {/* Badges - Smaller on mobile */}
-            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2">
+            {/* Main Image */}
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                scale: isHovered ? 1.1 : 1,
+              }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            >
+              {mainImage ? (
+                <Image
+                  src={mainImage}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover"
+                  priority={index < 4}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-secondary-200 to-secondary-100 flex items-center justify-center">
+                  <Sparkles className="w-12 h-12 text-secondary-300" />
+                </div>
+              )}
+            </motion.div>
+
+            {/* Image Dots Navigation */}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                {images.slice(0, 4).map((_, i) => (
+                  <motion.button
+                    key={i}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setImageIndex(i)
+                    }}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      i === imageIndex 
+                        ? 'bg-white w-6' 
+                        : 'bg-white/50 hover:bg-white/70'
+                    }`}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Badges - Top Left */}
+            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-col gap-1.5 z-10">
               {discount > 0 && (
-                <span className="bg-primary-600 text-white text-[10px] sm:text-xs font-semibold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full">
-                  -{discount}%
-                </span>
+                <motion.div
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.2, type: 'spring' }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 bg-red-500 blur-md opacity-50" />
+                  <div className="relative bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] sm:text-xs font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-xl flex items-center gap-1">
+                    <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
+                    -{discount}%
+                  </div>
+                </motion.div>
               )}
               {product.stock < 10 && product.stock > 0 && (
-                <span className="bg-amber-500 text-white text-[10px] sm:text-xs font-semibold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full">
-                  Low Stock
-                </span>
+                <motion.div
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, type: 'spring' }}
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1"
+                >
+                  <TrendingUp className="w-2.5 h-2.5" />
+                  {product.stock} Left
+                </motion.div>
               )}
               {product.stock === 0 && (
-                <span className="bg-secondary-700 text-white text-[10px] sm:text-xs font-semibold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full">
+                <span className="bg-gradient-to-r from-secondary-700 to-secondary-600 text-white text-[9px] sm:text-xs font-bold px-2 py-1 sm:px-2.5 sm:py-1 rounded-full shadow-lg">
                   Sold Out
                 </span>
               )}
             </div>
 
-            {/* Wishlist Button - Always visible on mobile, hover on desktop */}
+            {/* Wishlist Button - Top Right */}
             <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={async (e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                
-                // Check if user is logged in
-                if (!session) {
-                  toast.error('Please login to add to wishlist')
-                  router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname))
-                  return
-                }
-                
-                // Optimistically update UI
-                const wasLiked = isLiked
-                if (wasLiked) {
-                  removeFromWishlist(product.id)
-                } else {
-                  addToWishlist(product.id)
-                }
-                
-                setIsWishlistLoading(true)
-                try {
-                  const response = await fetch('/api/wishlist/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId: product.id }),
-                  })
-                  
-                  if (response.ok) {
-                    const data = await response.json()
-                    // Sync with server response
-                    if (data.inWishlist) {
-                      addToWishlist(product.id)
-                    } else {
-                      removeFromWishlist(product.id)
-                    }
-                    toast.success(data.inWishlist ? 'Added to wishlist' : 'Removed from wishlist')
-                  } else {
-                    // Revert on error
-                    if (wasLiked) {
-                      addToWishlist(product.id)
-                    } else {
-                      removeFromWishlist(product.id)
-                    }
-                    toast.error('Failed to update wishlist')
-                  }
-                } catch (error) {
-                  // Revert on error
-                  if (wasLiked) {
-                    addToWishlist(product.id)
-                  } else {
-                    removeFromWishlist(product.id)
-                  }
-                  toast.error('Something went wrong')
-                } finally {
-                  setIsWishlistLoading(false)
-                }
-              }}
+              onClick={handleWishlistToggle}
               disabled={isWishlistLoading}
-              className={`absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-md transition-all ${
+              className={`absolute top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-xl backdrop-blur-md transition-all z-20 ${
                 isLiked
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white/90 text-secondary-700 sm:opacity-0 sm:group-hover:opacity-100'
-              } ${isWishlistLoading ? 'opacity-70' : ''}`}
+                  ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white scale-100'
+                  : 'bg-white/90 text-secondary-600 hover:bg-white hover:scale-110'
+              }`}
+              whileHover={{ scale: isLiked ? 1.05 : 1.15, rotate: isLiked ? 0 : 12 }}
+              whileTap={{ scale: 0.9 }}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
             >
               {isWishlistLoading ? (
-                <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
               ) : (
-                <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLiked ? 'fill-current' : ''}`} />
+                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? 'fill-current' : ''}`} />
               )}
             </motion.button>
 
-            {/* Quick View - Hidden on mobile */}
-            <motion.button
+            {/* Hover Overlay - Desktop */}
+            <motion.div
+              className="hidden sm:block absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10"
               initial={{ opacity: 0 }}
               animate={{ opacity: isHovered ? 1 : 0 }}
-              whileTap={{ scale: 0.9 }}
-              className="hidden sm:flex absolute top-14 right-3 w-9 h-9 rounded-full bg-white/90 text-secondary-700 items-center justify-center shadow-md hover:bg-primary-600 hover:text-white transition-colors"
-            >
-              <Eye className="w-4 h-4" />
-            </motion.button>
+              transition={{ duration: 0.3 }}
+            />
 
-            {/* Add to Cart Button - Desktop hover */}
+            {/* Quick Add to Cart - Desktop Hover */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ 
                 opacity: isHovered ? 1 : 0, 
                 y: isHovered ? 0 : 20 
               }}
-              className="hidden sm:block absolute bottom-3 left-3 right-3"
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="hidden sm:block absolute bottom-4 left-4 right-4 z-20"
             >
-              <button
+              <motion.button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl group/btn"
               >
-                <ShoppingCart className="w-4 h-4" />
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              </button>
+                <ShoppingCart className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
+                {product.stock === 0 ? 'Out of Stock' : 'Quick Add'}
+                <motion.div
+                  className="absolute inset-0 bg-white/20 rounded-xl"
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileHover={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.button>
             </motion.div>
           </div>
 
-          {/* Content - Compact on mobile */}
-          <div className="p-2.5 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-primary-600 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">
-              {product.category.name}
-            </p>
-            <h3 className="text-xs sm:text-sm font-semibold text-secondary-900 group-hover:text-primary-600 transition-colors line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">
-              {product.name}
-            </h3>
-            <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
-              {product.salePrice ? (
-                <>
-                  <span className="text-sm sm:text-base font-bold text-primary-600">
-                    PKR {product.salePrice.toFixed(0)}
-                  </span>
-                  <span className="text-[10px] sm:text-xs text-secondary-400 line-through">
-                    PKR {product.price.toFixed(0)}
-                  </span>
-                </>
-              ) : (
-                <span className="text-sm sm:text-base font-bold text-secondary-900">
-                  PKR {product.price.toFixed(0)}
-                </span>
-              )}
-            </div>
+          {/* Content */}
+          <div className="relative p-3 sm:p-5 bg-white">
+            {/* Shine Effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30"
+              initial={{ x: '-100%' }}
+              animate={{ x: isHovered ? '200%' : '-100%' }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+            />
 
-            {/* Mobile Add to Cart Button */}
-            <button
-              onClick={handleAddToCart}
-              disabled={product.stock === 0}
-              className="sm:hidden w-full mt-2 bg-primary-600 hover:bg-primary-700 text-white text-xs py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ShoppingCart className="w-3.5 h-3.5" />
-              {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-            </button>
+            <div className="relative">
+              {/* Category */}
+              <motion.div
+                className="flex items-center gap-1.5 mb-1.5 sm:mb-2"
+                whileHover={{ x: 3 }}
+              >
+                <div className="w-1 h-1 rounded-full bg-primary-500" />
+                <p className="text-[9px] sm:text-xs text-primary-600 font-bold uppercase tracking-wider">
+                  {product.category.name}
+                </p>
+              </motion.div>
+
+              {/* Product Name */}
+              <h3 className="text-xs sm:text-base font-bold text-secondary-900 group-hover:text-primary-600 transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight mb-2 sm:mb-3">
+                {product.name}
+              </h3>
+
+              {/* Price */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-baseline gap-2">
+                  {product.salePrice ? (
+                    <>
+                      <motion.span 
+                        className="text-sm sm:text-xl font-black text-primary-600"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring' }}
+                      >
+                        PKR {product.salePrice.toLocaleString()}
+                      </motion.span>
+                      <span className="text-[10px] sm:text-sm text-secondary-400 line-through font-medium">
+                        {product.price.toLocaleString()}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm sm:text-xl font-black text-secondary-900">
+                      PKR {product.price.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Rating Placeholder */}
+                <div className="hidden sm:flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i} 
+                      className={`w-3 h-3 ${i < 4 ? 'fill-amber-400 text-amber-400' : 'text-secondary-200'}`} 
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Mobile Add to Cart Button */}
+              <motion.button
+                onClick={handleAddToCart}
+                disabled={product.stock === 0}
+                whileTap={{ scale: 0.95 }}
+                className="sm:hidden w-full mt-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+              >
+                <ShoppingCart className="w-3.5 h-3.5" />
+                {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
+              </motion.button>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </Link>
     </motion.div>
   )

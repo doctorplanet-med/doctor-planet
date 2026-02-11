@@ -5,6 +5,7 @@ import AnnouncementBar from './announcement-bar'
 import Navbar from './navbar'
 import Footer from './footer'
 import CartSidebar from '@/components/cart/cart-sidebar'
+import WhatsAppFloat from './whatsapp-float'
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -20,15 +21,17 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   }
 
   // For regular pages, show navbar, footer, etc.
+  const isHomePage = pathname === '/'
   return (
     <>
       <AnnouncementBar />
-      <Navbar />
+      <Navbar transparentOnHero={isHomePage} />
       <main className="flex-grow">
         {children}
       </main>
       <Footer />
       <CartSidebar />
+      <WhatsAppFloat />
     </>
   )
 }

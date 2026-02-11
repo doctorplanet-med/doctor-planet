@@ -83,18 +83,18 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ delay: 0.2, type: "spring" }}
-            className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 px-4 py-2 rounded-full text-sm font-semibold mb-4"
+            className="inline-flex items-center gap-1.5 sm:gap-2 bg-primary-50 text-primary-600 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-2 sm:mb-4"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
             Shop by Category
           </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-secondary-900 mb-4">
+          <h2 className="text-xl sm:text-4xl lg:text-5xl font-bold text-secondary-900 mb-2 sm:mb-4">
             Explore Our{' '}
             <span className="text-gradient-animate">Collections</span>
           </h2>
           
-          <p className="text-secondary-600 text-lg max-w-2xl mx-auto">
+          <p className="text-secondary-600 text-sm sm:text-lg max-w-2xl mx-auto">
             Discover premium medical apparel designed for comfort, durability, and professional excellence.
           </p>
         </motion.div>
@@ -289,10 +289,10 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
         >
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 bg-secondary-900 text-white px-8 py-4 rounded-full font-bold hover:bg-secondary-800 transition-all hover:shadow-xl hover:scale-105 group"
+            className="inline-flex items-center gap-1.5 sm:gap-2 bg-secondary-900 text-white px-4 py-2.5 sm:px-8 sm:py-4 rounded-full text-sm sm:text-base font-bold hover:bg-secondary-800 transition-all hover:shadow-xl hover:scale-105 group"
           >
             Browse All Products
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
       </div>

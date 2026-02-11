@@ -85,14 +85,14 @@ export default function DealsSection() {
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">
-            <Flame className="w-4 h-4" />
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 bg-primary-100 text-primary-700 rounded-full text-xs sm:text-sm font-medium mb-2 sm:mb-4">
+            <Flame className="w-3 h-3 sm:w-4 sm:h-4" />
             Hot Deals
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-secondary-900 mb-2">
+          <h2 className="text-lg sm:text-3xl font-bold text-secondary-900 mb-1 sm:mb-2">
             Bundle & Save
           </h2>
-          <p className="text-secondary-600 max-w-md mx-auto">
+          <p className="text-secondary-600 text-sm sm:text-base max-w-md mx-auto">
             Get more for less with our special combo deals
           </p>
         </motion.div>
@@ -229,10 +229,10 @@ export default function DealsSection() {
           >
             <Link
               href="/deals"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-primary-600 text-white rounded-full text-sm font-medium hover:bg-primary-700 transition-colors"
             >
               View All Deals
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Link>
           </motion.div>
         )}

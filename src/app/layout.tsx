@@ -5,7 +5,6 @@ import { Toaster } from 'react-hot-toast'
 import AuthProvider from '@/components/providers/auth-provider'
 import WishlistProvider from '@/components/providers/wishlist-provider'
 import LayoutWrapper from '@/components/layout/layout-wrapper'
-import CustomCursor from '@/components/ui/custom-cursor'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -45,7 +44,6 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <WishlistProvider>
-            <CustomCursor />
             <LayoutWrapper>
               {children}
             </LayoutWrapper>

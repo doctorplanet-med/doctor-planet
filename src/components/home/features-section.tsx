@@ -97,7 +97,7 @@ export default function FeaturesSection() {
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Why Choose Us
           </div>
-          <h2 className="text-xl sm:text-3xl lg:text-4xl font-bold text-secondary-950 mb-2 sm:mb-4">
+          <h2 className="text-lg sm:text-3xl lg:text-4xl font-bold text-secondary-950 mb-2 sm:mb-4">
             The Doctor Planet Difference
           </h2>
           <p className="text-secondary-600 text-sm sm:text-base max-w-lg mx-auto">

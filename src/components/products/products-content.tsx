@@ -152,43 +152,98 @@ export default function ProductsContent({
     : 'All Products'
 
   return (
-    <div className="min-h-screen pt-0 sm:pt-20 pb-16 lg:pb-0 bg-secondary-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2 pb-2 sm:py-6">
-        {/* Header - Compact on Mobile */}
+    <div className="min-h-screen pt-0 sm:pt-20 pb-16 lg:pb-0 bg-gradient-to-br from-secondary-50 via-white to-secondary-50">
+      {/* Animated Background Pattern */}
+      <div className="fixed inset-0 opacity-30 pointer-events-none">
+        <div className="absolute top-20 right-20 w-72 h-72 bg-primary-200 rounded-full blur-3xl opacity-20 animate-pulse" />
+        <div className="absolute bottom-40 left-20 w-96 h-96 bg-primary-300 rounded-full blur-3xl opacity-10 animate-pulse delay-1000" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-4 sm:py-8">
+        {/* Header with Modern Design */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-2 sm:mb-6"
+          transition={{ duration: 0.6 }}
+          className="mb-4 sm:mb-8"
         >
-          <h1 className="text-base sm:text-3xl md:text-4xl font-heading font-bold text-secondary-900">
-            {currentCategoryName}
-          </h1>
-          <p className="text-secondary-600 text-[11px] sm:text-base mt-0.5 sm:mt-2">
-            {filteredAndSortedProducts.length} products found
-          </p>
+          <div className="flex items-center gap-3 mb-2 sm:mb-3">
+            <motion.div
+              className="w-1 h-8 sm:h-12 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            />
+            <h1 className="text-xl sm:text-4xl md:text-5xl font-heading font-black text-transparent bg-clip-text bg-gradient-to-r from-secondary-900 via-primary-700 to-secondary-900">
+              {currentCategoryName}
+            </h1>
+          </div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex items-center gap-2 ml-4 sm:ml-6"
+          >
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-secondary-600">
+              <motion.span
+                className="font-bold text-primary-600"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {filteredAndSortedProducts.length}
+              </motion.span>
+              products available
+            </div>
+            <div className="w-px h-4 bg-secondary-300" />
+            <div className="flex gap-0.5">
+              {[...Array(3)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-primary-500"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                />
+              ))}
+            </div>
+          </motion.div>
         </motion.div>
 
-        {/* Filters Bar - Compact on Mobile */}
+        {/* Filters Bar - Modern Glass Morphism */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-2.5 sm:p-4 mb-4 sm:mb-8"
+          transition={{ delay: 0.2 }}
+          className="relative bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-xl border border-white/50 p-3 sm:p-5 mb-4 sm:mb-8 overflow-hidden"
         >
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center justify-between">
-            {/* Search - Compact on Mobile */}
+          {/* Gradient Border Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/10 rounded-2xl sm:rounded-3xl" />
+          
+          <div className="relative flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
+            {/* Search with Icon Animation */}
             <form onSubmit={handleSearch} className="flex-1 w-full sm:max-w-md">
-              <div className="relative">
+              <div className="relative group">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-primary-600/20 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity blur"
+                  animate={{ scale: [1, 1.02, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full px-3 py-2 sm:py-2.5 pl-9 sm:pl-12 pr-8 text-sm border border-secondary-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="relative w-full px-4 py-2.5 sm:py-3 pl-11 sm:pl-14 pr-10 text-sm sm:text-base border-2 border-secondary-200 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white/90 backdrop-blur-sm font-medium"
                 />
-                <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-secondary-400" />
+                <motion.div
+                  animate={{ rotate: search ? 0 : [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-primary-500" />
+                </motion.div>
                 {search && (
-                  <button
+                  <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
                     type="button"
                     onClick={() => {
                       setSearch('')
@@ -196,62 +251,86 @@ export default function ProductsContent({
                       params.delete('search')
                       router.push(`/products?${params.toString()}`)
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-secondary-100 transition-colors"
                   >
                     <X className="w-4 h-4 text-secondary-400 hover:text-secondary-600" />
-                  </button>
+                  </motion.button>
                 )}
               </div>
             </form>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              {/* Filter Toggle (Mobile) */}
-              <button
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              {/* Filter Toggle (Mobile) with Badge */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="sm:hidden flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-secondary-700 bg-secondary-100 rounded-lg"
+                className="sm:hidden flex-1 relative flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className="w-4 h-4" />
                 Filters
-              </button>
-
-              {/* Sort - Compact on Mobile */}
-              <div className="relative flex-1 sm:flex-none">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 sm:py-2.5 pr-8 text-xs sm:text-sm border border-secondary-200 rounded-lg sm:rounded-xl appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                <motion.div
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-lg"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+                  {categories.length}
+                </motion.div>
+              </motion.button>
+
+              {/* Sort with Gradient */}
+              <div className="relative flex-1 sm:flex-none">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className="relative"
+                >
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full px-4 py-2.5 sm:py-3 pr-10 text-xs sm:text-sm font-semibold border-2 border-secondary-200 rounded-xl sm:rounded-2xl appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white/90 backdrop-blur-sm"
+                  >
+                    {sortOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <motion.div
+                    animate={{ y: [0, 3, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-500 pointer-events-none" />
+                  </motion.div>
+                </motion.div>
               </div>
 
-              {/* View Mode - Desktop Only */}
-              <div className="hidden sm:flex items-center border border-secondary-200 rounded-lg overflow-hidden">
-                <button
+              {/* View Mode - Desktop with Gradient Background */}
+              <div className="hidden sm:flex items-center bg-white border-2 border-secondary-200 rounded-xl overflow-hidden shadow-sm">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 ${
+                  className={`p-3 transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-primary-600 text-white'
+                      ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
                       : 'bg-white text-secondary-600 hover:bg-secondary-50'
                   }`}
                 >
                   <Grid3X3 className="w-5 h-5" />
-                </button>
-                <button
+                </motion.button>
+                <div className="w-px h-6 bg-secondary-200" />
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${
+                  className={`p-3 transition-all ${
                     viewMode === 'list'
-                      ? 'bg-primary-600 text-white'
+                      ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
                       : 'bg-white text-secondary-600 hover:bg-secondary-50'
                   }`}
                 >
                   <List className="w-5 h-5" />
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
@@ -299,48 +378,96 @@ export default function ProductsContent({
         </motion.div>
 
         <div className="flex gap-8">
-          {/* Desktop Sidebar */}
+          {/* Desktop Sidebar - Modern Glass Design */}
           <motion.aside
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="hidden lg:block w-64 flex-shrink-0"
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="hidden lg:block w-72 flex-shrink-0"
           >
-            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-28">
-              <h3 className="font-heading font-semibold text-lg text-secondary-900 mb-4">
-                Categories
-              </h3>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    onClick={() => handleCategoryChange(null)}
-                    className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                      !currentCategory
-                        ? 'bg-primary-100 text-primary-700 font-medium'
-                        : 'text-secondary-600 hover:bg-secondary-50'
-                    }`}
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 p-6 sticky top-28 overflow-hidden">
+              {/* Decorative Elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-400/20 to-transparent rounded-full blur-2xl" />
+              
+              <div className="relative">
+                <motion.div
+                  className="flex items-center gap-3 mb-6"
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full" />
+                  <h3 className="font-heading font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-secondary-900 to-primary-700">
+                    Categories
+                  </h3>
+                </motion.div>
+                
+                <ul className="space-y-2">
+                  <motion.li
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
                   >
-                    All Products
-                  </button>
-                </li>
-                {categories.map((category) => (
-                  <li key={category.id}>
-                    <button
-                      onClick={() => handleCategoryChange(category.slug)}
-                      className={`w-full text-left px-4 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                        currentCategory === category.slug
-                          ? 'bg-primary-100 text-primary-700 font-medium'
-                          : 'text-secondary-600 hover:bg-secondary-50'
+                    <motion.button
+                      whileHover={{ x: 5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleCategoryChange(null)}
+                      className={`w-full text-left px-5 py-3 rounded-xl sm:rounded-2xl transition-all relative overflow-hidden group ${
+                        !currentCategory
+                          ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
+                          : 'text-secondary-700 hover:bg-secondary-50'
                       }`}
                     >
-                      {category.name}
-                      <span className="text-sm text-secondary-400">
-                        {category._count.products}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      {!currentCategory && (
+                        <motion.div
+                          className="absolute inset-0 bg-white/20"
+                          animate={{ x: ['-100%', '200%'] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        />
+                      )}
+                      <span className="relative font-bold">All Products</span>
+                    </motion.button>
+                  </motion.li>
+                  {categories.map((category, i) => (
+                    <motion.li
+                      key={category.id}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.5 + (i * 0.1) }}
+                    >
+                      <motion.button
+                        whileHover={{ x: 5, scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleCategoryChange(category.slug)}
+                        className={`w-full text-left px-5 py-3 rounded-xl sm:rounded-2xl transition-all flex items-center justify-between relative overflow-hidden group ${
+                          currentCategory === category.slug
+                            ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
+                            : 'text-secondary-700 hover:bg-secondary-50'
+                        }`}
+                      >
+                        {currentCategory === category.slug && (
+                          <motion.div
+                            className="absolute inset-0 bg-white/20"
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                          />
+                        )}
+                        <span className="relative font-bold">{category.name}</span>
+                        <motion.span
+                          className={`relative text-sm font-semibold px-2.5 py-1 rounded-full ${
+                            currentCategory === category.slug
+                              ? 'bg-white/20 text-white'
+                              : 'bg-secondary-100 text-secondary-600'
+                          }`}
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          {category._count.products}
+                        </motion.span>
+                      </motion.button>
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </motion.aside>
 

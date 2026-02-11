@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -75,6 +75,7 @@ interface ProfileData {
 
 export default function ProfilePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: session, status, update } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
@@ -180,6 +181,11 @@ export default function ProfilePage() {
         setShowEditForm(false)
         // Update session
         await update({ name: formData.name })
+        // Redirect to checkout if came from there
+        const redirectUrl = searchParams.get('redirect')
+        if (redirectUrl) {
+          router.push(redirectUrl)
+        }
       } else {
         setError(data.error || 'Failed to update profile')
       }

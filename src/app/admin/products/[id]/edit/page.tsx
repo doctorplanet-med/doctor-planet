@@ -41,6 +41,7 @@ interface Product {
   colors: string | null
   colorImages: string | null
   colorSizeStock: string | null
+  sizeChartImage?: string | null
   barcode: string | null
   sku: string | null
   company: string | null
@@ -78,6 +79,8 @@ export default function EditProductPage() {
   const [colors, setColors] = useState<string[]>([])
   const [colorImages, setColorImages] = useState<Record<string, string>>({})
   const [colorSizeStock, setColorSizeStock] = useState<Record<string, Record<string, number>>>({})
+  const [sizeChartImage, setSizeChartImage] = useState<string>('')
+  const [isUploadingSizeChart, setIsUploadingSizeChart] = useState(false)
   const [newSize, setNewSize] = useState('')
   const [newColor, setNewColor] = useState('')
 
@@ -131,6 +134,7 @@ export default function EditProductPage() {
           try {
             setColorSizeStock(product.colorSizeStock ? JSON.parse(product.colorSizeStock) : {})
           } catch { setColorSizeStock({}) }
+          setSizeChartImage((product as Product & { sizeChartImage?: string | null }).sizeChartImage || '')
         } else {
           toast.error('Product not found')
           router.push('/admin/products')
@@ -334,6 +338,7 @@ export default function EditProductPage() {
           colors: colors.length > 0 ? JSON.stringify(colors) : null,
           colorImages: Object.keys(colorImages).length > 0 ? JSON.stringify(colorImages) : null,
           colorSizeStock: Object.keys(colorSizeStock).length > 0 ? JSON.stringify(colorSizeStock) : null,
+          sizeChartImage: sizeChartImage.trim() || null,
           barcode: formData.barcode || null,
           sku: formData.sku || null,
           company: formData.company || null,
@@ -572,6 +577,59 @@ export default function EditProductPage() {
                 Please upload at least one product image
               </p>
             )}
+
+            {/* Size Chart Image (optional - for products that need a size chart) */}
+            <div className="mt-6 pt-6 border-t border-secondary-200">
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Size Chart Image (optional)
+              </label>
+              <p className="text-xs text-secondary-500 mb-2">
+                Add an image URL or upload a size chart. It will show as &quot;View Size Chart&quot; on the product page.
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <input
+                  type="url"
+                  value={sizeChartImage}
+                  onChange={(e) => setSizeChartImage(e.target.value)}
+                  placeholder="https://... or upload below"
+                  className="input-field flex-1 min-w-[200px]"
+                />
+                <label className="btn-secondary cursor-pointer inline-flex items-center gap-2 whitespace-nowrap">
+                  <Upload className="w-4 h-4" />
+                  {isUploadingSizeChart ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Upload'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                    className="sr-only"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      setIsUploadingSizeChart(true)
+                      try {
+                        const url = await uploadToFirebase(file, 'products')
+                        setSizeChartImage(url)
+                        toast.success('Size chart image uploaded')
+                      } catch (err: unknown) {
+                        toast.error(err instanceof Error ? err.message : 'Upload failed')
+                      } finally {
+                        setIsUploadingSizeChart(false)
+                        e.target.value = ''
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {sizeChartImage && (
+                <div className="mt-3 relative w-40 h-24 rounded-lg overflow-hidden bg-secondary-100">
+                  <Image
+                    src={sizeChartImage}
+                    alt="Size chart preview"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
+            </div>
           </motion.div>
 
           {/* Variants */}

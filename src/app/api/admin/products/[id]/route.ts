@@ -111,6 +111,7 @@ export async function PUT(
       name, slug, description, costPrice, price, salePrice, 
       categoryId, stock, isActive, featured, images,
       sizes, colors, colorImages, colorSizeStock,
+      sizeChartImage,
       barcode, sku, company
     } = body
 
@@ -140,28 +141,31 @@ export async function PUT(
       }
     }
 
+    const data: Record<string, unknown> = {
+      name,
+      slug,
+      description,
+      costPrice: costPrice || 0,
+      price,
+      salePrice: salePrice || null,
+      categoryId,
+      stock: stock || 0,
+      isActive: isActive !== undefined ? isActive : true,
+      featured: featured || false,
+      images,
+      sizes: sizes || null,
+      colors: colors || null,
+      colorImages: colorImages || null,
+      colorSizeStock: colorSizeStock || null,
+      barcode: barcode || null,
+      sku: sku || null,
+      company: company || null,
+    }
+    if (sizeChartImage !== undefined) data.sizeChartImage = sizeChartImage || null
+
     const product = await prisma.product.update({
       where: { id: params.id },
-      data: {
-        name,
-        slug,
-        description,
-        costPrice: costPrice || 0,
-        price,
-        salePrice: salePrice || null,
-        categoryId,
-        stock: stock || 0,
-        isActive: isActive !== undefined ? isActive : true,
-        featured: featured || false,
-        images,
-        sizes: sizes || null,
-        colors: colors || null,
-        colorImages: colorImages || null,
-        colorSizeStock: colorSizeStock || null,
-        barcode: barcode || null,
-        sku: sku || null,
-        company: company || null,
-      },
+      data,
     })
 
     return NextResponse.json(product)

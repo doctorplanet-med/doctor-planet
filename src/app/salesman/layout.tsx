@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
-  LayoutDashboard, Store, ShoppingCart, LogOut, X, User, History, Package, Barcode
+  LayoutDashboard, Store, ShoppingCart, LogOut, X, User, History, Package, Barcode, Wallet
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import Image from 'next/image'
@@ -18,6 +18,7 @@ const menuItems = [
   { href: '/salesman', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/salesman/pos', label: 'POS', icon: Store },
   { href: '/salesman/sales-history', label: 'Sales History', icon: History },
+  { href: '/salesman/expenses', label: 'Expenses', icon: Wallet },
   { href: '/salesman/products', label: 'Products', icon: Package },
   { href: '/salesman/barcodes', label: 'Barcodes', icon: Barcode },
   { href: '/salesman/orders', label: 'Online Orders', icon: ShoppingCart },

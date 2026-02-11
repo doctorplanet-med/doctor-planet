@@ -576,7 +576,7 @@ export default function SalesmanSalesHistoryPage() {
       {/* Sale Detail Modal */}
       {selectedSale && (
         <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          className="modal-overlay"
           onClick={() => setSelectedSale(null)}
         >
           <motion.div
