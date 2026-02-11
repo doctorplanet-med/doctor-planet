@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
   let title = 'Banner'
   let subtitle = ''
   let imagesJson = '{}'
+  let startDate: Date | null = null
+  let endDate: Date | null = null
   try {
     const session = await getServerSession(authOptions)
     if (!session || session.user?.role !== 'ADMIN') {
@@ -80,8 +82,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate as string | number) : null
-    const endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate as string | number) : null
+    startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate as string | number) : null
+    endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate as string | number) : null
     if (startDate && isNaN(startDate.getTime())) throw new Error('Invalid startDate')
     if (endDate && isNaN(endDate.getTime())) throw new Error('Invalid endDate')
 
@@ -107,8 +109,6 @@ export async function POST(request: NextRequest) {
         await ensureHeroBannerTable()
         const maxOrder = await prisma.heroBanner.aggregate({ _max: { order: true } })
         const order = (maxOrder._max.order ?? -1) + 1
-        const startDate = data.startDate && String(data.startDate).trim() ? new Date(data.startDate as string | number) : null
-        const endDate = data.endDate && String(data.endDate).trim() ? new Date(data.endDate as string | number) : null
         const banner = await prisma.heroBanner.create({
           data: {
             title: title || 'Banner',
