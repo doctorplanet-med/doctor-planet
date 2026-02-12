@@ -257,11 +257,14 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                   ${item.customization ? `
                     <div class="text-xs" style="padding-left:8px;margin-top:4px;background:#f0f9ff;padding:4px;border-radius:4px;">
                       <div style="font-weight:bold;color:#0369a1;">Customized:</div>
-                      ${Object.entries(item.customization).map(([category, options]) => `
-                        <div style="color:#666;">
-                          <strong>${category}:</strong> ${Object.entries(options).map(([opt, val]) => `${opt}: ${val}`).join(', ')}
-                        </div>
-                      `).join('')}
+                      ${Object.entries(item.customization).map(([category, options]) => {
+                        const optionsObj = options as Record<string, string>
+                        return `
+                          <div style="color:#666;">
+                            <strong>${category}:</strong> ${Object.entries(optionsObj).map(([opt, val]) => `${opt}: ${val}`).join(', ')}
+                          </div>
+                        `
+                      }).join('')}
                       ${item.customizationPrice ? `<div style="color:#0369a1;font-weight:bold;">+PKR ${item.customizationPrice.toLocaleString()}</div>` : ''}
                     </div>
                   ` : ''}
@@ -681,17 +684,20 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                             {customization && (
                               <div className="mt-1.5 p-2 bg-primary-50 rounded-lg border border-primary-200">
                                 <p className="text-xs font-medium text-primary-700 mb-1">Customized</p>
-                                {Object.entries(customization).map(([category, options]: [string, any]) => (
-                                  <div key={category} className="text-[10px] text-secondary-600">
-                                    <span className="font-medium">{category}:</span>{' '}
-                                    {Object.entries(options).map(([opt, val], idx) => (
-                                      <span key={opt}>
-                                        {opt}: {val as string}
-                                        {idx < Object.entries(options).length - 1 && ', '}
-                                      </span>
-                                    ))}
-                                  </div>
-                                ))}
+                                {Object.entries(customization).map(([category, options]) => {
+                                  const optionsObj = options as Record<string, string>
+                                  return (
+                                    <div key={category} className="text-[10px] text-secondary-600">
+                                      <span className="font-medium">{category}:</span>{' '}
+                                      {Object.entries(optionsObj).map(([opt, val], idx) => (
+                                        <span key={opt}>
+                                          {opt}: {val}
+                                          {idx < Object.entries(optionsObj).length - 1 && ', '}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )
+                                })}
                                 {item.customizationPrice && (
                                   <p className="text-xs text-primary-600 font-medium mt-1">
                                     +PKR {item.customizationPrice.toFixed(0)}

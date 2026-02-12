@@ -136,17 +136,20 @@ function MobileProductItem({ item }: { item: any }) {
               {item.customization && (
                 <div className="mt-2 p-2 bg-primary-50 rounded-lg border border-primary-200">
                   <p className="text-xs font-medium text-primary-700 mb-1">Customized</p>
-                  {Object.entries(item.customization).map(([category, options]) => (
-                    <div key={category} className="text-[10px] text-secondary-600 mb-1">
-                      <span className="font-medium">{category}:</span>{' '}
-                      {Object.entries(options).map(([opt, val], idx) => (
-                        <span key={opt}>
-                          {opt}: {val}
-                          {idx < Object.entries(options).length - 1 && ', '}
-                        </span>
-                      ))}
-                    </div>
-                  ))}
+                  {Object.entries(item.customization).map(([category, options]) => {
+                    const optionsObj = options as Record<string, string>
+                    return (
+                      <div key={category} className="text-[10px] text-secondary-600 mb-1">
+                        <span className="font-medium">{category}:</span>{' '}
+                        {Object.entries(optionsObj).map(([opt, val], idx) => (
+                          <span key={opt}>
+                            {opt}: {val}
+                            {idx < Object.entries(optionsObj).length - 1 && ', '}
+                          </span>
+                        ))}
+                      </div>
+                    )
+                  })}
                   {item.customizationPrice && (
                     <p className="text-xs text-primary-600 font-medium mt-1">
                       +PKR {item.customizationPrice.toFixed(0)}
