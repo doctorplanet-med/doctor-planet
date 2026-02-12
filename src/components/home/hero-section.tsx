@@ -42,7 +42,6 @@ function getGradientTopColor(banner: HeroBannerItem): string {
 
 export default function HeroSection({ settings: initialSettings, randomProducts = [], banners: bannersProp, children }: HeroSectionProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isHovered, setIsHovered] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -78,12 +77,11 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
 
   useEffect(() => {
     if (banners.length === 0) return
-    if (isHovered) return
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length)
     }, ROTATION_INTERVAL_MS)
     return () => clearInterval(timer)
-  }, [isHovered, banners.length])
+  }, [banners.length])
 
   const gradientTopColor = current ? getGradientTopColor(current) : DEFAULT_GRADIENT_TOP
 
@@ -172,8 +170,6 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
         {/* Banner area - z-10 so it stays above category circles when scrolling */}
         <div
           className="relative z-10 pt-0 sm:pt-20 sm:min-h-[40vh] lg:min-h-[70vh]"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
         >
           <motion.div className="relative min-h-0 max-sm:min-h-[80vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-[70vh] lg:h-[70vh] max-h-[900px] h-auto flex items-start justify-center pt-16 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
           {/* Clickable image - on mobile: larger, subtle corners; from sm: rounded card */}
