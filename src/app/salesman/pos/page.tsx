@@ -25,6 +25,18 @@ interface Product {
   sizes: string | null
   colors: string | null
   colorSizeStock: string | null
+  hasCustomization?: boolean
+  customizationPrice?: number | null
+  customizationCategories?: {
+    id: string
+    name: string
+    order: number
+    options: {
+      id: string
+      name: string
+      order: number
+    }[]
+  }[]
   category?: { name: string }
 }
 
@@ -37,6 +49,8 @@ interface CartItem {
   price: number
   costPrice: number
   dealId?: string // Optional deal reference
+  customization?: Record<string, Record<string, string>>
+  customizationPrice?: number
 }
 
 interface Deal {
@@ -112,6 +126,10 @@ export default function SalesmanPOSPage() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [currentDealContext, setCurrentDealContext] = useState<Deal | null>(null) // Track if adding from a deal
+  
+  // Customization
+  const [wantsCustomization, setWantsCustomization] = useState(false)
+  const [customizationData, setCustomizationData] = useState<Record<string, Record<string, string>>>({})
 
   // Mobile cart
   const [showMobileCart, setShowMobileCart] = useState(false)
@@ -435,6 +453,11 @@ export default function SalesmanPOSPage() {
     let productName = product.name
     let dealId: string | undefined = undefined
     
+    // Add customization price
+    if (wantsCustomization && product.customizationPrice) {
+      price += product.customizationPrice
+    }
+    
     // If adding from a deal, calculate proportional deal price
     if (currentDealContext) {
       const deal = currentDealContext
@@ -448,7 +471,7 @@ export default function SalesmanPOSPage() {
     }
     
     const existingIndex = cart.findIndex(
-      item => item.productId === product.id && item.size === size && item.color === color && item.dealId === dealId
+      item => item.productId === product.id && item.size === size && item.color === color && item.dealId === dealId && !item.customization
     )
 
     // Check available stock for this variant
@@ -458,7 +481,7 @@ export default function SalesmanPOSPage() {
       availableStock = colorSizeStock[color]?.[size] || 0
     }
 
-    if (existingIndex >= 0) {
+    if (existingIndex >= 0 && !wantsCustomization) {
       const currentQty = cart[existingIndex].quantity
       if (currentQty >= availableStock) {
         toast.error(`Only ${availableStock} in stock`)
@@ -482,14 +505,18 @@ export default function SalesmanPOSPage() {
         price,
         costPrice,
         dealId,
+        customization: wantsCustomization ? customizationData : undefined,
+        customizationPrice: wantsCustomization && product.customizationPrice ? product.customizationPrice : undefined,
       }])
-      toast.success(`Added ${productName}`)
+      toast.success(`Added ${productName}${wantsCustomization ? ' (Customized)' : ''}`)
     }
 
     setSelectingVariant(null)
     setSelectedSize(null)
     setSelectedColor(null)
     setCurrentDealContext(null) // Clear deal context after adding
+    setWantsCustomization(false)
+    setCustomizationData({})
   }
 
   const updateQuantity = (index: number, quantity: number) => {
@@ -543,6 +570,8 @@ export default function SalesmanPOSPage() {
             quantity: item.quantity,
             size: item.size,
             color: item.color,
+            customization: item.customization ? JSON.stringify(item.customization) : null,
+            customizationPrice: item.customizationPrice || null,
           })),
           customerName: customerName || null,
           customerPhone: customerPhone || null,
@@ -1072,13 +1101,18 @@ export default function SalesmanPOSPage() {
                           {item.color}{item.color && item.size && ' / '}{item.size}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-1">
+                      {item.customization && (
+                        <div className="mt-1 p-1.5 bg-primary-50 rounded border border-primary-200">
+                          <p className="text-[10px] font-medium text-primary-700">Customized</p>
+                        </div>
+                      )}
+                      <div className="mt-1">
                         <p className="font-bold text-primary-600 text-sm">
                           {formatCurrency(item.price * item.quantity)}
                         </p>
                         {(item.costPrice || 0) > 0 && (
                           <p className="text-xs text-green-600">
-                            (+{formatCurrency((item.price - (item.costPrice || 0)) * item.quantity)})
+                            Profit: +{formatCurrency((item.price - (item.costPrice || 0)) * item.quantity)}
                           </p>
                         )}
                       </div>
@@ -1225,9 +1259,21 @@ export default function SalesmanPOSPage() {
                                 {item.color}{item.color && item.size && ' / '}{item.size}
                               </p>
                             )}
-                            <p className="font-bold text-primary-600 text-sm mt-1">
-                              {formatCurrency(item.price * item.quantity)}
-                            </p>
+                            {item.customization && (
+                              <div className="mt-1 p-1.5 bg-primary-50 rounded border border-primary-200">
+                                <p className="text-[10px] font-medium text-primary-700">Customized</p>
+                              </div>
+                            )}
+                            <div className="mt-1">
+                              <p className="font-bold text-primary-600 text-sm">
+                                {formatCurrency(item.price * item.quantity)}
+                              </p>
+                              {(item.costPrice || 0) > 0 && (
+                                <p className="text-xs text-green-600">
+                                  Profit: +{formatCurrency((item.price - (item.costPrice || 0)) * item.quantity)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex flex-col items-end justify-between">
                             <button
@@ -1378,7 +1424,14 @@ export default function SalesmanPOSPage() {
 
                 {selectingVariant.sizes && (
                   <div>
-                    <label className="block text-sm font-semibold text-secondary-700 mb-3">Select Size</label>
+                    <label className="block text-sm font-semibold text-secondary-700 mb-3">
+                      Select Size
+                      {wantsCustomization && (
+                        <span className="text-xs font-normal text-primary-600 ml-2">
+                          (Optional - using custom measurements)
+                        </span>
+                      )}
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {JSON.parse(selectingVariant.sizes).map((size: string) => {
                         // Get stock for this size
@@ -1413,11 +1466,83 @@ export default function SalesmanPOSPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Customization Options */}
+                {selectingVariant.hasCustomization && selectingVariant.customizationCategories && selectingVariant.customizationCategories.length > 0 && (
+                  <div className="border-t border-secondary-200 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={wantsCustomization}
+                          onChange={(e) => {
+                            setWantsCustomization(e.target.checked)
+                            if (!e.target.checked) {
+                              setCustomizationData({})
+                            } else {
+                              // Clear size when enabling customization (optional)
+                              setSelectedSize(null)
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-sm font-semibold text-secondary-700">Customize Product</span>
+                      </label>
+                      {selectingVariant.customizationPrice && (
+                        <span className="text-sm font-bold text-primary-600">
+                          +{formatCurrency(selectingVariant.customizationPrice)}
+                        </span>
+                      )}
+                    </div>
+                    {selectingVariant.sizes && (
+                      <p className="text-xs text-secondary-500 mb-2">
+                        Size selection is optional when using custom measurements
+                      </p>
+                    )}
+                    {wantsCustomization && (
+                      <div className="space-y-3 mt-3">
+                        <p className="text-xs text-secondary-600">Enter measurements (in inches):</p>
+                        {selectingVariant.customizationCategories.map((category) => (
+                          <div key={category.id} className="p-3 bg-white rounded-lg border border-secondary-200">
+                            <p className="text-xs font-semibold text-secondary-900 mb-2">{category.name}</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {category.options.map((option) => (
+                                <div key={option.id}>
+                                  <label className="block text-xs text-secondary-600 mb-1">{option.name}</label>
+                                  <input
+                                    type="text"
+                                    value={customizationData[category.name]?.[option.name] || ''}
+                                    onChange={(e) => {
+                                      setCustomizationData(prev => ({
+                                        ...prev,
+                                        [category.name]: {
+                                          ...(prev[category.name] || {}),
+                                          [option.name]: e.target.value,
+                                        },
+                                      }))
+                                    }}
+                                    placeholder="e.g. 42"
+                                    className="w-full px-2 py-1.5 text-sm border border-secondary-200 rounded focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="p-6 bg-secondary-50 flex gap-3">
                 <button
-                  onClick={() => { setSelectingVariant(null); setCurrentDealContext(null); }}
+                  onClick={() => { 
+                    setSelectingVariant(null); 
+                    setCurrentDealContext(null);
+                    setWantsCustomization(false);
+                    setCustomizationData({});
+                  }}
                   className="flex-1 py-3 border border-secondary-300 rounded-xl font-medium hover:bg-white transition-colors"
                 >
                   Cancel

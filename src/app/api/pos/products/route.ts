@@ -23,7 +23,15 @@ export async function GET(request: NextRequest) {
       include: {
         category: {
           select: { id: true, name: true, slug: true }
-        }
+        },
+        customizationCategories: {
+          include: {
+            options: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
       },
       orderBy: { name: 'asc' }
     })

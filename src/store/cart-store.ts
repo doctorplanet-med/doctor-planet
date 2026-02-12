@@ -13,6 +13,8 @@ export interface CartItem {
   color?: string
   dealId?: string // For deal bundles - all items in a deal share the same dealId
   dealName?: string // Name of the deal for display
+  customization?: Record<string, Record<string, string>> // { categoryName: { optionName: value } }
+  customizationPrice?: number
 }
 
 interface CartStore {
@@ -49,7 +51,8 @@ export const useCartStore = create<CartStore>()(
             i.productId === item.productId &&
             i.size === item.size &&
             i.color === item.color &&
-            !i.dealId // Don't merge with deal items
+            !i.dealId && // Don't merge with deal items
+            !i.customization // Don't merge customized items
         )
 
         if (existingItem) {
@@ -112,8 +115,10 @@ export const useCartStore = create<CartStore>()(
 
       getTotal: () => {
         return get().items.reduce((total, item) => {
-          const price = item.salePrice || item.price
-          return total + price * item.quantity
+          const basePrice = item.salePrice || item.price
+          const customizationPrice = item.customizationPrice || 0
+          const finalPrice = basePrice + customizationPrice
+          return total + finalPrice * item.quantity
         }, 0)
       },
 

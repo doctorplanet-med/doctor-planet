@@ -93,15 +93,20 @@ export async function POST(request: NextRequest) {
       }
 
       const price = product.salePrice || product.price
-      subtotal += price * item.quantity
+      
+      // Add customization price to item price
+      const itemPrice = item.customizationPrice ? price + item.customizationPrice : price
+      subtotal += itemPrice * item.quantity
 
       saleItems.push({
         productId: product.id,
         productName: product.name,
         quantity: item.quantity,
-        price: price,
+        price: itemPrice,
         size: item.size || null,
         color: item.color || null,
+        customization: item.customization || null,
+        customizationPrice: item.customizationPrice || null,
       })
 
       // Update stock

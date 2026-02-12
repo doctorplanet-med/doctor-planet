@@ -86,7 +86,7 @@ function MobileProductItem({ item }: { item: any }) {
         {/* Price */}
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-secondary-900">
-            PKR {((item.salePrice || item.price) * item.quantity).toFixed(0)}
+            PKR {(((item.salePrice || item.price) + (item.customizationPrice || 0)) * item.quantity).toFixed(0)}
           </p>
           {isOpen ? (
             <ChevronUp className="w-4 h-4 text-secondary-400" />
@@ -110,7 +110,7 @@ function MobileProductItem({ item }: { item: any }) {
               <div className="flex justify-between text-xs">
                 <span className="text-secondary-600">Unit Price:</span>
                 <span className="font-medium text-secondary-900">
-                  PKR {(item.salePrice || item.price).toFixed(0)}
+                  PKR {((item.salePrice || item.price) + (item.customizationPrice || 0)).toFixed(0)}
                 </span>
               </div>
               
@@ -133,6 +133,28 @@ function MobileProductItem({ item }: { item: any }) {
                 </div>
               )}
 
+              {item.customization && (
+                <div className="mt-2 p-2 bg-primary-50 rounded-lg border border-primary-200">
+                  <p className="text-xs font-medium text-primary-700 mb-1">Customized</p>
+                  {Object.entries(item.customization).map(([category, options]) => (
+                    <div key={category} className="text-[10px] text-secondary-600 mb-1">
+                      <span className="font-medium">{category}:</span>{' '}
+                      {Object.entries(options).map(([opt, val], idx) => (
+                        <span key={opt}>
+                          {opt}: {val}
+                          {idx < Object.entries(options).length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                  {item.customizationPrice && (
+                    <p className="text-xs text-primary-600 font-medium mt-1">
+                      +PKR {item.customizationPrice.toFixed(0)}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {item.salePrice && item.salePrice < item.price && (
                 <div className="flex justify-between text-xs">
                   <span className="text-secondary-600">Original Price:</span>
@@ -145,7 +167,7 @@ function MobileProductItem({ item }: { item: any }) {
               <div className="flex justify-between text-xs pt-2 border-t border-secondary-200">
                 <span className="text-secondary-700 font-medium">Subtotal:</span>
                 <span className="font-bold text-primary-600">
-                  PKR {((item.salePrice || item.price) * item.quantity).toFixed(0)}
+                  PKR {(((item.salePrice || item.price) + (item.customizationPrice || 0)) * item.quantity).toFixed(0)}
                 </span>
               </div>
             </div>
@@ -343,9 +365,11 @@ export default function CheckoutPage() {
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
-            price: item.salePrice || item.price,
+            price: (item.salePrice || item.price) + (item.customizationPrice || 0),
             size: item.size,
             color: item.color,
+            customization: item.customization,
+            customizationPrice: item.customizationPrice,
           })),
           subtotal,
           shippingFee: shipping,
@@ -672,7 +696,7 @@ export default function CheckoutPage() {
                         </p>
                       )}
                       <p className="font-semibold text-secondary-900 mt-1">
-                        PKR {((item.salePrice || item.price) * item.quantity).toFixed(0)}
+                        PKR {(((item.salePrice || item.price) + (item.customizationPrice || 0)) * item.quantity).toFixed(0)}
                       </p>
                     </div>
                   </div>

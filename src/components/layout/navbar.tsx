@@ -17,6 +17,7 @@ import {
   Heart,
   Search,
   X,
+  Menu,
   FolderOpen,
   Package,
   Loader2,
@@ -41,6 +42,7 @@ const SCROLL_THRESHOLD = 80 // Only switch to solid navbar after user scrolls th
 export default function Navbar({ transparentOnHero = false }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [mobileSearchQuery, setMobileSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<{ products: { id: string; name: string; slug: string; category: { name: string; slug: string } }[]; categories: { id: string; name: string; slug: string }[] }>({ products: [], categories: [] })
@@ -139,10 +141,31 @@ export default function Navbar({ transparentOnHero = false }: NavbarProps) {
       >
         <nav className="max-w-[1600px] mx-auto px-4 sm:px-5 lg:px-6 relative">
           <div className="relative flex items-center justify-between h-14 sm:h-20">
-            {/* Logo - hide on mobile when search bar is open */}
+            {/* Mobile: logo on left */}
+            <Link href="/" className="sm:hidden flex items-center space-x-2 z-10 shrink-0 min-w-0">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative w-9 h-9 shrink-0"
+              >
+                <Image
+                  src="/logos/logo.png"
+                  alt="Doctor Planet"
+                  fill
+                  sizes="36px"
+                  className="object-contain"
+                />
+              </motion.div>
+              <span className="font-heading font-bold text-base truncate">
+                <span className="text-primary-600">doctor</span>
+                <span className="text-secondary-950">planet</span>
+              </span>
+            </Link>
+
+            {/* Logo - desktop only */}
             <Link
               href="/"
-              className={`flex items-center space-x-2 z-10 shrink-0 ${isMobileSearchOpen ? 'max-sm:hidden' : ''}`}
+              className="hidden sm:flex items-center space-x-2 z-10 shrink-0"
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -250,15 +273,15 @@ export default function Navbar({ transparentOnHero = false }: NavbarProps) {
               )}
             </div>
 
-            {/* Mobile: search icon (hidden when search bar is open); click opens search bar */}
-            <div className={`sm:hidden flex items-center z-10 shrink-0 ${isMobileSearchOpen ? 'hidden' : ''}`}>
+            {/* Mobile: 3-line menu on right */}
+            <div className="sm:hidden flex items-center z-10 shrink-0">
               <button
                 type="button"
-                onClick={() => setIsMobileSearchOpen(true)}
-                className={`p-2 rounded-full transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center ${textVariant === 'light' ? 'bg-white text-secondary-800 hover:bg-secondary-100' : 'text-secondary-700 hover:bg-secondary-100'}`}
-                aria-label="Search"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className={`p-2 rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center ${textVariant === 'light' ? 'text-white hover:bg-white/10' : 'text-secondary-700 hover:bg-secondary-100'}`}
+                aria-label="Open menu"
               >
-                <Search className="w-5 h-5 shrink-0" />
+                <Menu className="w-6 h-6" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -421,6 +444,225 @@ export default function Navbar({ transparentOnHero = false }: NavbarProps) {
                       </div>
                     )}
                   </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* Mobile: slide-out menu from left (3-line menu content) */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="sm:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-hidden
+                />
+                <motion.div
+                  initial={{ opacity: 0, x: '100%' }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: '100%' }}
+                  transition={{ type: 'tween', duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="sm:hidden fixed top-0 right-0 bottom-0 z-[70] w-full max-w-[280px] flex flex-col bg-white shadow-2xl"
+                >
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-secondary-100 shrink-0">
+                    <span className="font-heading font-bold text-lg">
+                      <span className="text-primary-600">doctor</span>
+                      <span className="text-secondary-950">planet</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-2 rounded-full text-secondary-600 hover:bg-secondary-100"
+                      aria-label="Close menu"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  {/* Search inside menu - suggestions in same sidebar, no separate screen */}
+                  <div className="px-3 py-3 border-b border-secondary-100 shrink-0">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={mobileSearchQuery}
+                        onChange={(e) => setMobileSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && (handleMobileSearch(), setIsMobileMenuOpen(false))}
+                        placeholder="Search products..."
+                        className="w-full rounded-xl border border-secondary-200 bg-secondary-50/80 py-2.5 pl-10 pr-9 text-sm text-secondary-900 placeholder:text-secondary-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+                        autoComplete="off"
+                      />
+                      {mobileSearchQuery.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setMobileSearchQuery('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-secondary-400 hover:bg-secondary-200/80"
+                          aria-label="Clear search"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    {mobileSearchQuery.trim().length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => { handleMobileSearch(); setIsMobileMenuOpen(false) }}
+                        className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-primary-600 text-white px-3 py-2 text-sm font-medium"
+                      >
+                        Search
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {/* Suggestions in same sidebar when typing */}
+                  {mobileSearchQuery.trim().length >= 2 && (
+                    <div className="flex-1 overflow-auto min-h-0 border-b border-secondary-100">
+                      {suggestionsLoading && (
+                        <div className="flex flex-col items-center justify-center py-8 px-4">
+                          <Loader2 className="w-6 h-6 text-primary-500 animate-spin mb-2" />
+                          <p className="text-xs text-secondary-500">Searching...</p>
+                        </div>
+                      )}
+                      {!suggestionsLoading && (suggestions.products.length > 0 || suggestions.categories.length > 0) && (
+                        <div className="py-3 px-2">
+                          {suggestions.categories.length > 0 && (
+                            <section className="mb-3">
+                              <div className="flex items-center gap-2 px-2 mb-1.5">
+                                <FolderOpen className="w-3.5 h-3.5 text-primary-500" />
+                                <h3 className="text-xs font-semibold text-secondary-500 uppercase tracking-wider">Categories</h3>
+                              </div>
+                              <ul className="space-y-0.5">
+                                {suggestions.categories.map((c) => (
+                                  <li key={c.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() => { router.push(`/products?category=${c.slug}`); setIsMobileMenuOpen(false) }}
+                                      className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-sm text-secondary-800 hover:bg-secondary-50"
+                                    >
+                                      <span className="font-medium truncate">{c.name}</span>
+                                      <ArrowRight className="w-4 h-4 text-secondary-300 shrink-0" />
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </section>
+                          )}
+                          {suggestions.products.length > 0 && (
+                            <section>
+                              <div className="flex items-center gap-2 px-2 mb-1.5">
+                                <Package className="w-3.5 h-3.5 text-primary-500" />
+                                <h3 className="text-xs font-semibold text-secondary-500 uppercase tracking-wider">Items</h3>
+                              </div>
+                              <ul className="space-y-0.5">
+                                {suggestions.products.map((p) => (
+                                  <li key={p.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() => { router.push(`/products/${p.slug}`); setIsMobileMenuOpen(false) }}
+                                      className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left hover:bg-secondary-50"
+                                    >
+                                      <div className="min-w-0">
+                                        <span className="block text-sm font-medium text-secondary-900 truncate">{p.name}</span>
+                                        {p.category && (
+                                          <span className="block text-xs text-secondary-500 truncate">{p.category.name}</span>
+                                        )}
+                                      </div>
+                                      <ArrowRight className="w-4 h-4 text-secondary-300 shrink-0" />
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </section>
+                          )}
+                        </div>
+                      )}
+                      {!suggestionsLoading && mobileSearchQuery.trim().length >= 2 && suggestions.products.length === 0 && suggestions.categories.length === 0 && (
+                        <div className="py-6 px-4 text-center">
+                          <p className="text-sm text-secondary-600 mb-2">No results found</p>
+                          <button
+                            type="button"
+                            onClick={() => { handleMobileSearch(); setIsMobileMenuOpen(false) }}
+                            className="rounded-xl bg-primary-600 text-white px-4 py-2 text-sm font-medium"
+                          >
+                            Search anyway
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <nav className={`flex-1 overflow-auto py-4 ${mobileSearchQuery.trim().length >= 2 ? '' : ''}`}>
+                    <ul className="space-y-0.5 px-2">
+                      {navLinks.map((link) => {
+                        const isActive = pathname === link.href
+                        return (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`flex items-center px-3 py-3 rounded-xl text-base font-medium transition-colors ${
+                                isActive ? 'bg-primary-50 text-primary-700' : 'text-secondary-800 hover:bg-secondary-50'
+                              }`}
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                    <div className="mt-4 pt-4 border-t border-secondary-100 px-2 space-y-0.5">
+                      <button
+                        type="button"
+                        onClick={() => { setIsMobileMenuOpen(false); toggleCart() }}
+                        className="flex items-center w-full px-3 py-3 rounded-xl text-secondary-800 hover:bg-secondary-50 font-medium"
+                      >
+                        <ShoppingCart className="w-5 h-5 mr-3" />
+                        Cart {itemCount > 0 && `(${itemCount})`}
+                      </button>
+                      {session ? (
+                        <>
+                          {(isAdmin || isSalesman) && (
+                            <Link
+                              href={isAdmin ? '/admin' : '/salesman'}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="flex items-center px-3 py-3 rounded-xl text-secondary-800 hover:bg-secondary-50 font-medium"
+                            >
+                              <LayoutDashboard className="w-5 h-5 mr-3" />
+                              {isAdmin ? 'Admin' : 'Salesman'}
+                            </Link>
+                          )}
+                          <Link
+                            href="/profile"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center px-3 py-3 rounded-xl text-secondary-800 hover:bg-secondary-50 font-medium"
+                          >
+                            <User className="w-5 h-5 mr-3" />
+                            Profile
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => { setIsMobileMenuOpen(false); signOut() }}
+                            className="flex items-center w-full px-3 py-3 rounded-xl text-red-600 hover:bg-red-50 font-medium"
+                          >
+                            <LogOut className="w-5 h-5 mr-3" />
+                            Sign Out
+                          </button>
+                        </>
+                      ) : (
+                        <Link
+                          href="/login"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center px-3 py-3 rounded-xl text-secondary-800 hover:bg-secondary-50 font-medium"
+                        >
+                          <User className="w-5 h-5 mr-3" />
+                          Sign In
+                        </Link>
+                      )}
+                    </div>
+                  </nav>
                 </motion.div>
               </>
             )}

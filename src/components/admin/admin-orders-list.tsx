@@ -17,6 +17,8 @@ import {
   Phone,
   Printer,
   Receipt,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import PrintableOrderBill from '@/components/pos/printable-order-bill'
@@ -27,6 +29,8 @@ interface OrderItem {
   price: number
   size: string | null
   color: string | null
+  customization: string | null
+  customizationPrice: number | null
   product: { name: string; images: string }
 }
 
@@ -41,6 +45,10 @@ interface Order {
   paymentMethod: string
   shippingAddress: string
   notes: string | null
+  isReturned: boolean
+  returnReason: string | null
+  returnedAt: Date | null
+  returnedBy: string | null
   createdAt: Date
   user: { name: string | null; email: string | null; phone: string | null }
   items: OrderItem[]
@@ -87,6 +95,17 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
   const [showBill, setShowBill] = useState(false)
   const [billSettings, setBillSettings] = useState<BillSettings | null>(null)
   const billRef = useRef<HTMLDivElement>(null)
+  
+  // Delete all orders state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+  
+  // Return order state
+  const [showReturnModal, setShowReturnModal] = useState(false)
+  const [returnOrderId, setReturnOrderId] = useState<string | null>(null)
+  const [returnReason, setReturnReason] = useState('')
+  const [isProcessingReturn, setIsProcessingReturn] = useState(false)
 
   useEffect(() => {
     fetchBillSettings()
@@ -119,6 +138,8 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
         price: item.price,
         size: item.size,
         color: item.color,
+        customization: item.customization ? JSON.parse(item.customization) : null,
+        customizationPrice: item.customizationPrice,
       })),
       subtotal: order.subtotal,
       shippingFee: order.shippingFee,
@@ -233,6 +254,17 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                     <span style="width:80px;text-align:right">PKR ${(item.price * item.quantity).toLocaleString()}</span>
                   </div>
                   ${item.color || item.size ? `<div class="text-xs text-gray" style="padding-left:8px">${item.color || ''}${item.color && item.size ? ' / ' : ''}${item.size || ''} @ PKR ${item.price.toLocaleString()} each</div>` : ''}
+                  ${item.customization ? `
+                    <div class="text-xs" style="padding-left:8px;margin-top:4px;background:#f0f9ff;padding:4px;border-radius:4px;">
+                      <div style="font-weight:bold;color:#0369a1;">Customized:</div>
+                      ${Object.entries(item.customization).map(([category, options]) => `
+                        <div style="color:#666;">
+                          <strong>${category}:</strong> ${Object.entries(options).map(([opt, val]) => `${opt}: ${val}`).join(', ')}
+                        </div>
+                      `).join('')}
+                      ${item.customizationPrice ? `<div style="color:#0369a1;font-weight:bold;">+PKR ${item.customizationPrice.toLocaleString()}</div>` : ''}
+                    </div>
+                  ` : ''}
                 </div>
               `).join('')}
             </div>
@@ -310,12 +342,89 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
     }
   }
 
+  const handleDeleteAllOrders = async () => {
+    if (deleteConfirmText !== 'DELETE ALL ORDERS') {
+      toast.error('Please type the confirmation text correctly')
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch('/api/admin/orders/delete-all', {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setOrders([])
+        setShowDeleteModal(false)
+        setDeleteConfirmText('')
+        toast.success('All orders deleted successfully')
+        window.location.reload()
+      } else {
+        toast.error('Failed to delete orders')
+      }
+    } catch (error) {
+      toast.error('Something went wrong')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleReturnOrder = async () => {
+    if (!returnOrderId || !returnReason.trim()) {
+      toast.error('Please provide a return reason')
+      return
+    }
+
+    setIsProcessingReturn(true)
+    try {
+      const response = await fetch(`/api/admin/orders/${returnOrderId}/return`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnReason }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Update orders list
+        setOrders(orders.map(o => 
+          o.id === returnOrderId 
+            ? { ...o, isReturned: true, returnReason, returnedAt: new Date(), status: 'CANCELLED' }
+            : o
+        ))
+        if (selectedOrder?.id === returnOrderId) {
+          setSelectedOrder({ ...selectedOrder, isReturned: true, returnReason, returnedAt: new Date(), status: 'CANCELLED' })
+        }
+        setShowReturnModal(false)
+        setReturnOrderId(null)
+        setReturnReason('')
+        toast.success('Order returned successfully. Stock restored and revenue deducted.')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to process return')
+      }
+    } catch (error) {
+      toast.error('Something went wrong')
+    } finally {
+      setIsProcessingReturn(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-heading font-bold text-secondary-900">Orders</h1>
-        <p className="text-secondary-600 mt-1">{orders.length} total orders</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-heading font-bold text-secondary-900">Orders</h1>
+          <p className="text-secondary-600 mt-1">{orders.length} total orders</p>
+        </div>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete All Orders
+        </button>
       </div>
 
       {/* Filters */}
@@ -369,11 +478,21 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="hover:bg-secondary-50 transition-colors"
+                  onClick={() => setSelectedOrder(order)}
+                  className="hover:bg-secondary-50 transition-colors cursor-pointer"
                 >
                   <td className="px-6 py-4">
-                    <p className="font-medium text-secondary-900">#{order.orderNumber}</p>
-                    <p className="text-xs text-secondary-500">{order.paymentMethod}</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <p className="font-medium text-secondary-900">#{order.orderNumber}</p>
+                        <p className="text-xs text-secondary-500">{order.paymentMethod}</p>
+                      </div>
+                      {order.isReturned && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                          Returned
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-medium text-secondary-900">{order.user.name || 'No name'}</p>
@@ -388,7 +507,7 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                   <td className="px-6 py-4">
                     <span className="font-semibold text-secondary-900">PKR {order.total.toFixed(0)}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <select
                       value={order.status}
                       onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
@@ -407,7 +526,7 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                       {new Date(order.createdAt).toLocaleTimeString()}
                     </p>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => setSelectedOrder(order)}
@@ -423,6 +542,18 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                       >
                         <Printer className="w-5 h-5" />
                       </button>
+                      {!order.isReturned && order.status !== 'CANCELLED' && (
+                        <button
+                          onClick={() => {
+                            setReturnOrderId(order.id)
+                            setShowReturnModal(true)
+                          }}
+                          className="p-2 text-secondary-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Process Return"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </motion.tr>
@@ -446,7 +577,7 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="modal-overlay"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedOrder(null)}
           >
             <motion.div
@@ -527,9 +658,10 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                   <div className="space-y-3">
                     {selectedOrder.items.map((item) => {
                       const images = JSON.parse(item.product.images)
+                      const customization = item.customization ? JSON.parse(item.customization) : null
                       return (
                         <div key={item.id} className="flex items-center gap-4 p-3 bg-secondary-50 rounded-xl">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                             <Image
                               src={images[0]}
                               alt={item.product.name}
@@ -537,7 +669,7 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                               className="object-cover"
                             />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <p className="font-medium text-secondary-900">{item.product.name}</p>
                             {(item.size || item.color) && (
                               <p className="text-sm text-secondary-500">
@@ -546,9 +678,30 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                                 {item.color && `Color: ${item.color}`}
                               </p>
                             )}
-                            <p className="text-sm text-secondary-500">Qty: {item.quantity}</p>
+                            {customization && (
+                              <div className="mt-1.5 p-2 bg-primary-50 rounded-lg border border-primary-200">
+                                <p className="text-xs font-medium text-primary-700 mb-1">Customized</p>
+                                {Object.entries(customization).map(([category, options]: [string, any]) => (
+                                  <div key={category} className="text-[10px] text-secondary-600">
+                                    <span className="font-medium">{category}:</span>{' '}
+                                    {Object.entries(options).map(([opt, val], idx) => (
+                                      <span key={opt}>
+                                        {opt}: {val as string}
+                                        {idx < Object.entries(options).length - 1 && ', '}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ))}
+                                {item.customizationPrice && (
+                                  <p className="text-xs text-primary-600 font-medium mt-1">
+                                    +PKR {item.customizationPrice.toFixed(0)}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            <p className="text-sm text-secondary-500 mt-1">Qty: {item.quantity}</p>
                           </div>
-                          <p className="font-semibold text-secondary-900">
+                          <p className="font-semibold text-secondary-900 flex-shrink-0">
                             PKR {(item.price * item.quantity).toFixed(0)}
                           </p>
                         </div>
@@ -581,8 +734,8 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                   </div>
                 </div>
 
-                {/* Print Bill Button */}
-                <div className="pt-4">
+                {/* Action Buttons */}
+                <div className="pt-4 space-y-3">
                   <button
                     onClick={() => handlePrintBill(selectedOrder)}
                     className="w-full py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 flex items-center justify-center gap-2 transition-colors"
@@ -590,7 +743,195 @@ export default function AdminOrdersList({ orders: initialOrders }: AdminOrdersLi
                     <Printer className="w-5 h-5" />
                     Print Invoice / Bill
                   </button>
+                  {!selectedOrder.isReturned && selectedOrder.status !== 'CANCELLED' && (
+                    <button
+                      onClick={() => {
+                        setReturnOrderId(selectedOrder.id)
+                        setShowReturnModal(true)
+                      }}
+                      className="w-full py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      Process Return
+                    </button>
+                  )}
+                  {selectedOrder.isReturned && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <p className="text-sm font-semibold text-red-700 mb-1">Order Returned</p>
+                      <p className="text-xs text-red-600">Reason: {selectedOrder.returnReason}</p>
+                      {selectedOrder.returnedAt && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Returned on: {new Date(selectedOrder.returnedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete All Orders Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => !isDeleting && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-secondary-900">Delete All Orders</h3>
+                  <p className="text-sm text-secondary-500">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-secondary-700 mb-4">
+                  This will permanently delete <span className="font-bold text-red-600">{orders.length} orders</span> and all associated data including order items.
+                </p>
+                <p className="text-sm text-secondary-600 mb-3">
+                  To confirm, please type <span className="font-mono font-bold">DELETE ALL ORDERS</span> below:
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="Type here to confirm"
+                  disabled={isDeleting}
+                  className="w-full px-4 py-3 border-2 border-secondary-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-100 disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setDeleteConfirmText('')
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 border-2 border-secondary-200 rounded-xl font-medium hover:bg-secondary-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAllOrders}
+                  disabled={deleteConfirmText !== 'DELETE ALL ORDERS' || isDeleting}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Delete All
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Return Order Modal */}
+      <AnimatePresence>
+        {showReturnModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => !isProcessingReturn && setShowReturnModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-secondary-900">Process Return</h3>
+                  <p className="text-sm text-secondary-500">Stock will be restored</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-secondary-700 mb-4">
+                  This will mark the order as returned, restore product stock, and deduct from total revenue.
+                </p>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Return Reason <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  placeholder="e.g., Customer not satisfied, Wrong size, Damaged product..."
+                  disabled={isProcessingReturn}
+                  rows={4}
+                  className="w-full px-4 py-3 border-2 border-secondary-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-100 disabled:opacity-50 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowReturnModal(false)
+                    setReturnOrderId(null)
+                    setReturnReason('')
+                  }}
+                  disabled={isProcessingReturn}
+                  className="flex-1 py-3 border-2 border-secondary-200 rounded-xl font-medium hover:bg-secondary-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReturnOrder}
+                  disabled={!returnReason.trim() || isProcessingReturn}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isProcessingReturn ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Process Return
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </motion.div>

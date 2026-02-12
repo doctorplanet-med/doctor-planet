@@ -19,7 +19,7 @@ export async function GET(
 
     const product = await prisma.product.findUnique({
       where: { id: params.id },
-      include: { category: true },
+      include: { category: true, customizationCategories: { include: { options: true }, orderBy: { order: 'asc' } } },
     })
 
     if (!product) {
@@ -112,6 +112,8 @@ export async function PUT(
       categoryId, stock, isActive, featured, images,
       sizes, colors, colorImages, colorSizeStock,
       sizeChartImage,
+      hasCustomization, customizationFields, customizationPrice,
+      customizationCategories,
       barcode, sku, company
     } = body
 
@@ -157,18 +159,60 @@ export async function PUT(
       colors: colors || null,
       colorImages: colorImages || null,
       colorSizeStock: colorSizeStock || null,
+      hasCustomization: hasCustomization ?? false,
+      customizationFields: customizationFields ?? null,
+      customizationPrice: customizationPrice ?? null,
       barcode: barcode || null,
       sku: sku || null,
       company: company || null,
     }
     if (sizeChartImage !== undefined) data.sizeChartImage = sizeChartImage || null
 
-    const product = await prisma.product.update({
-      where: { id: params.id },
-      data,
+    const categoriesData = Array.isArray(customizationCategories)
+      ? customizationCategories.map((cat: { name?: string; order?: number; options?: { name: string }[] }, i: number) => ({
+          name: cat.name || 'Category',
+          order: typeof cat.order === 'number' ? cat.order : i,
+          options: Array.isArray(cat.options)
+            ? cat.options.map((opt: { name?: string }, j: number) => ({
+                name: opt.name || 'Option',
+                order: j,
+              }))
+            : [],
+        }))
+      : []
+
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: params.id },
+        data,
+      })
+      if (Array.isArray(customizationCategories)) {
+        await tx.customizationCategory.deleteMany({ where: { productId: params.id } })
+        for (let i = 0; i < categoriesData.length; i++) {
+          const cat = categoriesData[i]
+          const opts = cat.options ?? []
+          await tx.customizationCategory.create({
+            data: {
+              productId: params.id,
+              name: cat.name,
+              order: cat.order,
+              options: {
+                create: opts.map((opt: { name: string; order?: number }, j: number) => ({
+                  name: opt.name,
+                  order: opt.order ?? j,
+                })),
+              },
+            },
+          })
+        }
+      }
     })
 
-    return NextResponse.json(product)
+    const updatedProduct = await prisma.product.findUnique({
+      where: { id: params.id },
+      include: { category: true, customizationCategories: { include: { options: true }, orderBy: { order: 'asc' } } },
+    })
+    return NextResponse.json(updatedProduct!)
   } catch (error) {
     console.error('Error updating product:', error)
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })

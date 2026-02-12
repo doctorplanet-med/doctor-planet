@@ -125,13 +125,40 @@ model Product {
   colorImages String?     // JSON object mapping color names to image URLs e.g. {"Black": "/img1.jpg", "White": "/img2.jpg"}
   colorSizeStock String?  // JSON object for stock per color-size e.g. {"Black": {"S": 10, "M": 15}, "White": {"S": 5}}
   sizeChartImage String?  // Optional URL to size chart image (shown on product page for some products)
+  hasCustomization Boolean @default(false)  // Product supports custom measurements (e.g. stitching)
+  customizationFields String?  // Legacy: JSON array of field names (use customizationCategories for new data)
+  customizationPrice  Float?   // Extra price (PKR) when customer selects customize
   featured    Boolean     @default(false)
   isActive    Boolean     @default(true)
+  customizationCategories CustomizationCategory[]
   orderItems  OrderItem[]
   cartItems   CartItem[]
   wishlistItems WishlistItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+}
+
+// Optional: only present when product has customization. Not compulsory.
+model CustomizationCategory {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // e.g. "Body Measurements", "Size"
+  order     Int      @default(0)  // Display order
+  options   CustomizationOption[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Optional: options under a category (e.g. Shoulder, Chest under "Body Measurements")
+model CustomizationOption {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   CustomizationCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       String   // e.g. "Shoulder", "Chest", "Length"
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model CartItem {
@@ -174,20 +201,26 @@ model Order {
   paymentMethod   String      @default("COD") // Cash on Delivery only
   paymentStatus   String      @default("PENDING") // PENDING, PAID (collected on delivery)
   notes           String?     // Customer notes for delivery
+  isReturned      Boolean     @default(false) // If order is returned
+  returnReason    String?     // Reason for return
+  returnedAt      DateTime?   // When order was returned
+  returnedBy      String?     // Admin/Salesman who processed return
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  price     Float
-  size      String?
-  color     String?
+  id                  String  @id @default(cuid())
+  orderId             String
+  order               Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId           String
+  product             Product @relation(fields: [productId], references: [id])
+  quantity            Int
+  price               Float
+  size                String?
+  color               String?
+  customization       String? // JSON string of customization data
+  customizationPrice  Float?
 }
 
 model Notification {
@@ -276,19 +309,26 @@ model POSSale {
   customerName    String?       // Optional customer info for POS
   customerPhone   String?
   notes           String?
+  isReturned      Boolean       @default(false)
+  returnReason    String?
+  returnedAt      DateTime?
+  returnedBy      String?
   createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model POSSaleItem {
-  id          String   @id @default(cuid())
-  saleId      String
-  sale        POSSale  @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  productId   String
-  productName String   // Store product name at time of sale
-  quantity    Int
-  price       Float    // Price at time of sale
-  size        String?
-  color       String?
+  id                  String   @id @default(cuid())
+  saleId              String
+  sale                POSSale  @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId           String
+  productName         String   // Store product name at time of sale
+  quantity            Int
+  price               Float    // Price at time of sale
+  size                String?
+  color               String?
+  customization       String?  // JSON string of customization data
+  customizationPrice  Float?
 }
 
 // Expenses - added by admin or salesman, optional image

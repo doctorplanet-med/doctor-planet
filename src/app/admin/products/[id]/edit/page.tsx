@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   Barcode,
   Building2,
+  Sliders,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { uploadToFirebase } from '@/lib/upload'
@@ -42,6 +43,10 @@ interface Product {
   colorImages: string | null
   colorSizeStock: string | null
   sizeChartImage?: string | null
+  hasCustomization?: boolean
+  customizationFields?: string | null
+  customizationPrice?: number | null
+  customizationCategories?: { id: string; name: string; order: number; options: { id: string; name: string; order: number }[] }[]
   barcode: string | null
   sku: string | null
   company: string | null
@@ -83,6 +88,11 @@ export default function EditProductPage() {
   const [isUploadingSizeChart, setIsUploadingSizeChart] = useState(false)
   const [newSize, setNewSize] = useState('')
   const [newColor, setNewColor] = useState('')
+  // Customization (optional) - categories with options (CustomizationCategory / CustomizationOption in DB)
+  const [hasCustomization, setHasCustomization] = useState(false)
+  const [customizationCategories, setCustomizationCategories] = useState<{ name: string; options: string[]; newOption: string }[]>([])
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [customizationPrice, setCustomizationPrice] = useState('')
 
   const calculatedTotalStock = Object.values(colorSizeStock).reduce((total, sizeStocks) => {
     return total + Object.values(sizeStocks).reduce((sum, qty) => sum + qty, 0)
@@ -134,7 +144,25 @@ export default function EditProductPage() {
           try {
             setColorSizeStock(product.colorSizeStock ? JSON.parse(product.colorSizeStock) : {})
           } catch { setColorSizeStock({}) }
-          setSizeChartImage((product as Product & { sizeChartImage?: string | null }).sizeChartImage || '')
+          setSizeChartImage(product.sizeChartImage || '')
+          setHasCustomization(product.hasCustomization ?? false)
+          if (product.customizationCategories?.length) {
+            setCustomizationCategories(
+              product.customizationCategories.map((c) => ({
+                name: c.name,
+                options: c.options.map((o) => o.name),
+                newOption: '',
+              }))
+            )
+          } else {
+            try {
+              const legacy = product.customizationFields ? JSON.parse(product.customizationFields) : []
+              if (Array.isArray(legacy) && legacy.length > 0) {
+                setCustomizationCategories([{ name: 'Measurements', options: legacy, newOption: '' }])
+              }
+            } catch { /* ignore */ }
+          }
+          setCustomizationPrice(product.customizationPrice != null ? String(product.customizationPrice) : '')
         } else {
           toast.error('Product not found')
           router.push('/admin/products')
@@ -255,6 +283,48 @@ export default function EditProductPage() {
     setColorSizeStock(newStock)
   }
 
+  const addCustomizationCategory = () => {
+    const name = newCategoryName.trim()
+    if (name) {
+      setCustomizationCategories([...customizationCategories, { name, options: [], newOption: '' }])
+      setNewCategoryName('')
+    }
+  }
+
+  const removeCustomizationCategory = (index: number) => {
+    setCustomizationCategories(customizationCategories.filter((_, i) => i !== index))
+  }
+
+  const updateCustomizationCategoryName = (index: number, name: string) => {
+    setCustomizationCategories(customizationCategories.map((c, i) => (i === index ? { ...c, name } : c)))
+  }
+
+  const addCustomizationOption = (categoryIndex: number) => {
+    const cat = customizationCategories[categoryIndex]
+    const opt = cat.newOption.trim()
+    if (opt && !cat.options.includes(opt)) {
+      setCustomizationCategories(
+        customizationCategories.map((c, i) =>
+          i === categoryIndex ? { ...c, options: [...c.options, opt], newOption: '' } : c
+        )
+      )
+    }
+  }
+
+  const removeCustomizationOption = (categoryIndex: number, optionName: string) => {
+    setCustomizationCategories(
+      customizationCategories.map((c, i) =>
+        i === categoryIndex ? { ...c, options: c.options.filter((o) => o !== optionName) } : c
+      )
+    )
+  }
+
+  const setCustomizationCategoryNewOption = (categoryIndex: number, value: string) => {
+    setCustomizationCategories(
+      customizationCategories.map((c, i) => (i === categoryIndex ? { ...c, newOption: value } : c))
+    )
+  }
+
   const addColor = () => {
     if (newColor.trim() && !colors.includes(newColor.trim())) {
       const trimmedColor = newColor.trim()
@@ -342,6 +412,17 @@ export default function EditProductPage() {
           barcode: formData.barcode || null,
           sku: formData.sku || null,
           company: formData.company || null,
+          // Customization (optional) – backend/database to be added later
+          hasCustomization,
+          customizationFields: null,
+          customizationPrice: hasCustomization && customizationPrice.trim() ? parseFloat(customizationPrice) : null,
+          customizationCategories: hasCustomization
+            ? customizationCategories.map((c, i) => ({
+                name: c.name,
+                order: i,
+                options: c.options.map((name, j) => ({ name, order: j })),
+              }))
+            : [],
         }),
       })
 
@@ -761,6 +842,126 @@ export default function EditProductPage() {
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Customization (Optional) - admin adds field names; user enters values (e.g. inches) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+            className="bg-white rounded-2xl shadow-sm p-6"
+          >
+            <h2 className="text-lg font-heading font-semibold text-secondary-900 mb-6 flex items-center gap-2">
+              <Sliders className="w-5 h-5 text-primary-600" />
+              Customization (Optional)
+            </h2>
+            <p className="text-sm text-secondary-500 mb-4">
+              Enable for products like stitching of scrub: add measurement field names (e.g. Shoulder, Chest). Customers will enter their measurements (e.g. in inches) in these fields.
+            </p>
+            <label className="flex items-center gap-3 cursor-pointer mb-4">
+              <input
+                type="checkbox"
+                checked={hasCustomization}
+                onChange={(e) => {
+                  setHasCustomization(e.target.checked)
+                  if (!e.target.checked) {
+                    setCustomizationCategories([])
+                    setCustomizationPrice('')
+                  }
+                }}
+                className="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-secondary-700">This product supports customization</span>
+            </label>
+            {hasCustomization && (
+              <div className="pt-4 border-t border-secondary-200">
+                <p className="text-xs text-secondary-500 mb-4">
+                  Add <strong>Customization categories</strong> (e.g. Body Measurements) and <strong>options</strong> under each (e.g. Shoulder, Chest). Users will enter values (e.g. in inches) for each option. Not compulsory.
+                </p>
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomizationCategory())}
+                    placeholder="e.g. Body Measurements, Size"
+                    className="input-field flex-1"
+                  />
+                  <button type="button" onClick={addCustomizationCategory} className="btn-primary px-4">
+                    Add category
+                  </button>
+                </div>
+                {customizationCategories.map((cat, catIndex) => (
+                  <div key={catIndex} className="mb-4 p-4 rounded-xl border border-primary-200 bg-primary-50/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <input
+                        type="text"
+                        value={cat.name}
+                        onChange={(e) => updateCustomizationCategoryName(catIndex, e.target.value)}
+                        placeholder="Category name"
+                        className="input-field flex-1 max-w-[240px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCustomizationCategory(catIndex)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Remove category"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {cat.options.map((opt) => (
+                        <span
+                          key={opt}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-full text-sm border border-primary-200"
+                        >
+                          {opt}
+                          <button type="button" onClick={() => removeCustomizationOption(catIndex, opt)} className="text-primary-600 hover:text-red-500">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={cat.newOption}
+                        onChange={(e) => setCustomizationCategoryNewOption(catIndex, e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomizationOption(catIndex))}
+                        placeholder="e.g. Shoulder, Chest — then Add"
+                        className="input-field flex-1 text-sm"
+                      />
+                      <button type="button" onClick={() => addCustomizationOption(catIndex)} className="btn-secondary text-sm px-3">
+                        Add option
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {customizationCategories.length === 0 && (
+                  <p className="text-xs text-secondary-500 mb-4">
+                    Add a category (e.g. Body Measurements), then add options (e.g. Shoulder, Chest).
+                  </p>
+                )}
+                <div className="mt-4 pt-4 border-t border-secondary-200">
+                  <label className="block text-sm font-medium text-secondary-700 mb-2">
+                    Customization price (PKR)
+                  </label>
+                  <input
+                    type="number"
+                    value={customizationPrice}
+                    onChange={(e) => setCustomizationPrice(e.target.value)}
+                    placeholder="e.g. 500"
+                    min="0"
+                    step="1"
+                    className="input-field w-full max-w-[200px]"
+                  />
+                  <p className="text-xs text-secondary-500 mt-1">
+                    Extra amount when customer selects &quot;Customize&quot;. Leave empty for no extra charge.
+                  </p>
                 </div>
               </div>
             )}

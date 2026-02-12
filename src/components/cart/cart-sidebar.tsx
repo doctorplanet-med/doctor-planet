@@ -220,7 +220,7 @@ export default function CartSidebar() {
                               )}
                               <div className="flex items-center gap-1 mt-1">
                                 <span className="font-semibold text-primary-600 text-xs">
-                                  PKR {(item.salePrice || item.price).toFixed(0)}
+                                  PKR {((item.salePrice || item.price) + (item.customizationPrice || 0)).toFixed(0)}
                                 </span>
                                 {item.salePrice && (
                                   <span className="text-[10px] text-secondary-400 line-through">
@@ -237,7 +237,7 @@ export default function CartSidebar() {
                       <div className="bg-primary-100/50 px-3 py-2 flex items-center justify-between border-t border-primary-200">
                         <span className="text-xs text-primary-700">Deal Total:</span>
                         <span className="font-bold text-primary-700">
-                          PKR {deal.items.reduce((sum, i) => sum + (i.salePrice || i.price) * i.quantity, 0).toFixed(0)}
+                          PKR {deal.items.reduce((sum, i) => sum + ((i.salePrice || i.price) + (i.customizationPrice || 0)) * i.quantity, 0).toFixed(0)}
                         </span>
                       </div>
                     </motion.div>
@@ -276,12 +276,28 @@ export default function CartSidebar() {
                               {item.color && `Color: ${item.color}`}
                             </p>
                           )}
+                          {item.customization && (
+                            <div className="mt-1.5 p-2 bg-primary-50 rounded-lg border border-primary-200">
+                              <p className="text-xs font-medium text-primary-700 mb-1">Customized</p>
+                              {Object.entries(item.customization).map(([category, options]) => (
+                                <div key={category} className="text-[10px] text-secondary-600">
+                                  <span className="font-medium">{category}:</span>{' '}
+                                  {Object.entries(options).map(([opt, val], idx) => (
+                                    <span key={opt}>
+                                      {opt}: {val}
+                                      {idx < Object.entries(options).length - 1 && ', '}
+                                    </span>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mt-2 sm:mt-3">
                             <div className="flex items-center space-x-1 sm:space-x-2">
                               {item.salePrice ? (
                                 <>
                                   <span className="font-semibold text-primary-600 text-sm sm:text-base">
-                                    PKR {item.salePrice.toFixed(0)}
+                                    PKR {((item.salePrice + (item.customizationPrice || 0))).toFixed(0)}
                                   </span>
                                   <span className="text-xs text-secondary-400 line-through">
                                     PKR {item.price.toFixed(0)}
@@ -289,7 +305,7 @@ export default function CartSidebar() {
                                 </>
                               ) : (
                                 <span className="font-semibold text-secondary-900 text-sm sm:text-base">
-                                  PKR {item.price.toFixed(0)}
+                                  PKR {((item.price + (item.customizationPrice || 0))).toFixed(0)}
                                 </span>
                               )}
                             </div>

@@ -90,11 +90,37 @@ CREATE TABLE "Product" (
     "colors" TEXT,
     "colorImages" TEXT,
     "colorSizeStock" TEXT,
+    "sizeChartImage" TEXT,
+    "hasCustomization" BOOLEAN NOT NULL DEFAULT false,
+    "customizationFields" TEXT,
+    "customizationPrice" REAL,
     "featured" BOOLEAN NOT NULL DEFAULT false,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "CustomizationCategory" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "productId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "CustomizationCategory_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "CustomizationOption" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "categoryId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "CustomizationOption_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "CustomizationCategory" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -125,8 +151,7 @@ CREATE TABLE "WishlistItem" (
 CREATE TABLE "Order" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "orderNumber" TEXT NOT NULL,
-    "userId" TEXT,
-    "guestEmail" TEXT,
+    "userId" TEXT NOT NULL,
     "subtotal" REAL NOT NULL,
     "shippingFee" REAL NOT NULL DEFAULT 0,
     "total" REAL NOT NULL,
@@ -137,7 +162,7 @@ CREATE TABLE "Order" (
     "notes" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -261,6 +286,20 @@ CREATE TABLE "POSSaleItem" (
 );
 
 -- CreateTable
+CREATE TABLE "Expense" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "amount" REAL NOT NULL,
+    "description" TEXT NOT NULL,
+    "category" TEXT,
+    "expenseDate" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "image" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Expense_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "BillSettings" (
     "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'main',
     "storeName" TEXT NOT NULL DEFAULT 'Doctor Planet',
@@ -326,6 +365,18 @@ CREATE TABLE "HeroBanner" (
     "order" INTEGER NOT NULL DEFAULT 0,
     "startDate" DATETIME,
     "endDate" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "PromoBanner" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "imageUrl" TEXT NOT NULL,
+    "linkUrl" TEXT NOT NULL DEFAULT '/',
+    "alt" TEXT NOT NULL DEFAULT 'Promo',
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );

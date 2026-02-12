@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Store, Receipt, User, Calendar, DollarSign, 
   Search, X, Eye, Trash2, ChevronLeft, ChevronRight,
-  ShoppingBag, Printer
+  ShoppingBag, Printer, AlertTriangle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -34,6 +34,8 @@ interface POSSaleItem {
   price: number
   size: string | null
   color: string | null
+  customization: string | null
+  customizationPrice: number | null
 }
 
 interface POSSale {
@@ -51,6 +53,10 @@ interface POSSale {
   customerName: string | null
   customerPhone: string | null
   notes: string | null
+  isReturned: boolean
+  returnReason: string | null
+  returnedAt: string | null
+  returnedBy: string | null
   createdAt: string
 }
 
@@ -62,6 +68,12 @@ export default function AdminPOSSalesPage() {
   const [selectedSale, setSelectedSale] = useState<POSSale | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [billSettings, setBillSettings] = useState<BillSettings | null>(null)
+  
+  // Return state
+  const [showReturnModal, setShowReturnModal] = useState(false)
+  const [returnSaleId, setReturnSaleId] = useState<string | null>(null)
+  const [returnReason, setReturnReason] = useState('')
+  const [isProcessingReturn, setIsProcessingReturn] = useState(false)
 
   useEffect(() => {
     fetchSales()
@@ -133,6 +145,45 @@ export default function AdminPOSSalesPage() {
       toast.error('Failed to fetch sales')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleReturnSale = async () => {
+    if (!returnSaleId || !returnReason.trim()) {
+      toast.error('Please provide a return reason')
+      return
+    }
+
+    setIsProcessingReturn(true)
+    try {
+      const response = await fetch(`/api/pos/sales/${returnSaleId}/return`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnReason }),
+      })
+
+      if (response.ok) {
+        // Update sales list
+        setSales(sales.map(s => 
+          s.id === returnSaleId 
+            ? { ...s, isReturned: true, returnReason, returnedAt: new Date().toISOString() }
+            : s
+        ))
+        if (selectedSale?.id === returnSaleId) {
+          setSelectedSale({ ...selectedSale, isReturned: true, returnReason, returnedAt: new Date().toISOString() })
+        }
+        setShowReturnModal(false)
+        setReturnSaleId(null)
+        setReturnReason('')
+        toast.success('Sale returned successfully. Stock restored and revenue deducted.')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to process return')
+      }
+    } catch (error) {
+      toast.error('Something went wrong')
+    } finally {
+      setIsProcessingReturn(false)
     }
   }
 
@@ -287,9 +338,16 @@ export default function AdminPOSSalesPage() {
                   className="hover:bg-secondary-50"
                 >
                   <td className="px-6 py-4">
-                    <span className="font-mono text-sm font-medium text-primary-600">
-                      {sale.receiptNumber}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm font-medium text-primary-600">
+                        {sale.receiptNumber}
+                      </span>
+                      {sale.isReturned && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                          Returned
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -361,13 +419,18 @@ export default function AdminPOSSalesPage() {
                       >
                         <Printer className="w-5 h-5" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(sale.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      {!sale.isReturned && (
+                        <button
+                          onClick={() => {
+                            setReturnSaleId(sale.id)
+                            setShowReturnModal(true)
+                          }}
+                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg"
+                          title="Process Return"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </motion.tr>
@@ -409,7 +472,7 @@ export default function AdminPOSSalesPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="modal-overlay"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedSale(null)}
           >
             <motion.div
@@ -508,13 +571,121 @@ export default function AdminPOSSalesPage() {
                   </div>
                 )}
 
-                {/* Print Button */}
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handlePrintBill(selectedSale)}
+                    className="w-full py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 flex items-center justify-center gap-2"
+                  >
+                    <Printer className="w-5 h-5" />
+                    Print Receipt
+                  </button>
+                  {!selectedSale.isReturned && (
+                    <button
+                      onClick={() => {
+                        setReturnSaleId(selectedSale.id)
+                        setShowReturnModal(true)
+                      }}
+                      className="w-full py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      Process Return
+                    </button>
+                  )}
+                  {selectedSale.isReturned && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <p className="text-sm font-semibold text-red-700 mb-1">Sale Returned</p>
+                      <p className="text-xs text-red-600">Reason: {selectedSale.returnReason}</p>
+                      {selectedSale.returnedAt && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Returned on: {new Date(selectedSale.returnedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Return Sale Modal */}
+      <AnimatePresence>
+        {showReturnModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => !isProcessingReturn && setShowReturnModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-secondary-900">Process Return</h3>
+                  <p className="text-sm text-secondary-500">Stock will be restored</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-secondary-700 mb-4">
+                  This will mark the sale as returned, restore product stock, and deduct from total revenue.
+                </p>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Return Reason <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  placeholder="e.g., Customer not satisfied, Wrong size, Damaged product..."
+                  disabled={isProcessingReturn}
+                  rows={4}
+                  className="w-full px-4 py-3 border-2 border-secondary-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-100 disabled:opacity-50 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
                 <button
-                  onClick={() => handlePrintBill(selectedSale)}
-                  className="w-full py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setShowReturnModal(false)
+                    setReturnSaleId(null)
+                    setReturnReason('')
+                  }}
+                  disabled={isProcessingReturn}
+                  className="flex-1 py-3 border-2 border-secondary-200 rounded-xl font-medium hover:bg-secondary-50 transition-colors disabled:opacity-50"
                 >
-                  <Printer className="w-5 h-5" />
-                  Print Receipt
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReturnSale}
+                  disabled={!returnReason.trim() || isProcessingReturn}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isProcessingReturn ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Process Return
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

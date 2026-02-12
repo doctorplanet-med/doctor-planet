@@ -86,14 +86,23 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
           <motion.div className="relative min-h-0 max-sm:min-h-[80vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-[70vh] lg:h-[70vh] max-h-[900px] h-auto flex items-start justify-center pt-16 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
           {/* Clickable image - on mobile: larger, subtle corners; from sm: rounded card */}
           {current && (
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={currentSlideClamped}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-4xl lg:max-w-6xl xl:max-w-[calc(100%-4rem)] 2xl:max-w-[calc(100%-5rem)] mx-auto flex justify-center relative"
+                initial={{ opacity: 0, x: 80, scale: 0.96 }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                  scale: 1,
+                }}
+                exit={{ opacity: 0, x: -80, scale: 0.98 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 360,
+                  damping: 34,
+                  mass: 0.9,
+                }}
+                className="w-full max-w-4xl lg:max-w-6xl xl:max-w-[calc(100%-4rem)] 2xl:max-w-[calc(100%-5rem)] mx-auto flex justify-center relative will-change-transform"
               >
                 <Link
                   href={current.ctaLink}

@@ -19,6 +19,14 @@ async function getProduct(slug: string) {
           slug: true,
         },
       },
+      customizationCategories: {
+        include: {
+          options: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
     },
   })
 

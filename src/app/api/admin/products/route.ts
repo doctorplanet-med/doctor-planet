@@ -67,6 +67,10 @@ export async function POST(request: NextRequest) {
       colorImages,
       colorSizeStock,
       sizeChartImage,
+      hasCustomization,
+      customizationFields,
+      customizationPrice,
+      customizationCategories,
       isActive,
       isFeatured,
       barcode,
@@ -92,6 +96,21 @@ export async function POST(request: NextRequest) {
       finalBarcode = await generateBarcode()
     }
 
+    const categoriesData = Array.isArray(customizationCategories)
+      ? customizationCategories.map((cat: { name?: string; order?: number; options?: { name: string }[] }, i: number) => ({
+          name: cat.name || 'Category',
+          order: typeof cat.order === 'number' ? cat.order : i,
+          options: {
+            create: Array.isArray(cat.options)
+              ? cat.options.map((opt: { name?: string }, j: number) => ({
+                  name: opt.name || 'Option',
+                  order: j,
+                }))
+              : [],
+          },
+        }))
+      : []
+
     const product = await prisma.product.create({
       data: {
         name,
@@ -108,12 +127,19 @@ export async function POST(request: NextRequest) {
         colorImages,
         colorSizeStock,
         sizeChartImage: sizeChartImage || null,
+        hasCustomization: hasCustomization ?? false,
+        customizationFields: customizationFields || null,
+        customizationPrice: customizationPrice ?? null,
         isActive: isActive ?? true,
         featured: isFeatured ?? false,
         barcode: finalBarcode,
         sku: sku || null,
         company: company || null,
+        customizationCategories: categoriesData.length > 0
+          ? { create: categoriesData }
+          : undefined,
       },
+      include: { category: true, customizationCategories: { include: { options: true } } },
     })
 
     return NextResponse.json(product)

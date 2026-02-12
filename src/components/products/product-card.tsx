@@ -237,7 +237,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                   className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1"
                 >
                   <TrendingUp className="w-2.5 h-2.5" />
-                  {product.stock} Left
+                  Low Stock
                 </motion.div>
               )}
               {product.stock === 0 && (

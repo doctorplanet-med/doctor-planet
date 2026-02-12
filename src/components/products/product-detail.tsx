@@ -20,6 +20,7 @@ import {
   Loader2,
   Ruler,
   X,
+  Sliders,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSession } from 'next-auth/react'
@@ -41,6 +42,18 @@ interface Product {
   colorImages: string | null
   colorSizeStock: string | null
   sizeChartImage?: string | null
+  hasCustomization?: boolean
+  customizationPrice?: number | null
+  customizationCategories?: {
+    id: string
+    name: string
+    order: number
+    options: {
+      id: string
+      name: string
+      order: number
+    }[]
+  }[]
   category: {
     name: string
     slug: string
@@ -72,6 +85,9 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const [imageAnimationKey, setImageAnimationKey] = useState(0)
   const [sizeChartOpen, setSizeChartOpen] = useState(false)
+  // Customization state
+  const [wantsCustomization, setWantsCustomization] = useState(false)
+  const [customizationData, setCustomizationData] = useState<Record<string, Record<string, string>>>({})
 
   const { addItem, setCartOpen } = useCartStore()
   const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
@@ -197,8 +213,23 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
 
   const currentStock = getCurrentStock()
   const canAddToCart = hasVariantStock 
-    ? (selectedColor && selectedSize && currentStock > 0)
+    ? (selectedColor && (selectedSize || wantsCustomization) && currentStock > 0)
     : product.stock > 0
+
+  const updateCustomizationField = (categoryName: string, optionName: string, value: string) => {
+    setCustomizationData(prev => ({
+      ...prev,
+      [categoryName]: {
+        ...(prev[categoryName] || {}),
+        [optionName]: value,
+      },
+    }))
+  }
+
+  const displayPrice = product.salePrice || product.price
+  const finalPrice = wantsCustomization && product.customizationPrice 
+    ? displayPrice + product.customizationPrice 
+    : displayPrice
 
   const handleAddToCart = () => {
     addItem({
@@ -210,6 +241,8 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
       quantity,
       size: selectedSize || undefined,
       color: selectedColor || undefined,
+      customization: wantsCustomization ? customizationData : undefined,
+      customizationPrice: wantsCustomization && product.customizationPrice ? product.customizationPrice : undefined,
     })
     toast.success(`${product.name} added to cart!`)
     setCartOpen(true)
@@ -391,20 +424,29 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
             </h1>
 
             {/* Price */}
-            <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-              {product.salePrice ? (
-                <>
-                  <span className="text-xl sm:text-3xl font-bold text-primary-600">
-                    PKR {product.salePrice.toLocaleString()}
+            <div className="mb-4 sm:mb-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                {product.salePrice ? (
+                  <>
+                    <span className="text-xl sm:text-3xl font-bold text-primary-600">
+                      PKR {finalPrice.toLocaleString()}
+                    </span>
+                    {!wantsCustomization && (
+                      <span className="text-sm sm:text-xl text-secondary-400 line-through">
+                        PKR {product.price.toLocaleString()}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-xl sm:text-3xl font-bold text-secondary-900">
+                    PKR {finalPrice.toLocaleString()}
                   </span>
-                  <span className="text-sm sm:text-xl text-secondary-400 line-through">
-                    PKR {product.price.toLocaleString()}
-                  </span>
-                </>
-              ) : (
-                <span className="text-xl sm:text-3xl font-bold text-secondary-900">
-                  PKR {product.price.toLocaleString()}
-                </span>
+                )}
+              </div>
+              {wantsCustomization && product.customizationPrice && (
+                <p className="text-xs sm:text-sm text-secondary-600 mt-1.5">
+                  Base price: PKR {displayPrice.toLocaleString()} + Customization: PKR {product.customizationPrice.toLocaleString()}
+                </p>
               )}
             </div>
 
@@ -416,11 +458,11 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                     <>
                       <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 shrink-0" />
                       <span className="text-green-600 text-xs sm:text-base font-medium">
-                        In Stock ({currentStock} available for {selectedColor} - {selectedSize})
+                        In Stock
                       </span>
                     </>
                   ) : (
-                    <span className="text-red-500 text-xs sm:text-base font-medium">Out of Stock for this variant</span>
+                    <span className="text-red-500 text-xs sm:text-base font-medium">Out of Stock</span>
                   )
                 ) : (
                   <span className="text-secondary-500 text-xs sm:text-base">Select color and size to see availability</span>
@@ -429,7 +471,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 <>
                   <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 shrink-0" />
                   <span className="text-green-600 text-xs sm:text-base font-medium">
-                    In Stock ({product.stock} available)
+                    In Stock
                   </span>
                 </>
               ) : (
@@ -447,9 +489,9 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               <div className="mb-4 sm:mb-6">
                 <label className="block text-sm sm:text-base font-medium text-secondary-900 mb-2 sm:mb-3">
                   Size {selectedSize && <span className="text-primary-600">: {selectedSize}</span>}
-                  {hasVariantStock && selectedColor && selectedSize && (
-                    <span className="text-xs sm:text-sm text-secondary-500 font-normal ml-1 sm:ml-2">
-                      ({getSizeStock(selectedSize)} in stock)
+                  {wantsCustomization && (
+                    <span className="text-xs sm:text-sm text-primary-600 font-normal ml-1 sm:ml-2">
+                      (Optional - using custom measurements)
                     </span>
                   )}
                 </label>
@@ -473,14 +515,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                             : 'border-secondary-200 text-secondary-700 hover:border-primary-300'
                         }`}
                       >
-                        <span className="flex flex-col items-center">
-                          <span>{size}</span>
-                          {hasVariantStock && selectedColor && (
-                            <span className={`text-xs ${isAvailable ? 'text-secondary-500' : 'text-secondary-400'}`}>
-                              {sizeStock === 0 ? 'Out' : sizeStock}
-                            </span>
-                          )}
-                        </span>
+                        <span>{size}</span>
                       </motion.button>
                     )
                   })}
@@ -496,11 +531,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               <div className="mb-5 sm:mb-8">
                 <label className="block text-sm sm:text-base font-medium text-secondary-900 mb-2 sm:mb-3">
                   Color: <span className="text-primary-600">{selectedColor}</span>
-                  {hasVariantStock && selectedColor && (
-                    <span className="text-xs sm:text-sm text-secondary-500 font-normal ml-1 sm:ml-2">
-                      (Total: {getColorStock(selectedColor)} in stock)
-                    </span>
-                  )}
                 </label>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
                   {colors.map((color: string) => {
@@ -532,14 +562,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                               />
                             </span>
                           )}
-                          <span className="flex flex-col items-start">
-                            <span>{color}</span>
-                            {hasVariantStock && (
-                              <span className={`text-xs ${isColorAvailable ? 'text-secondary-500' : 'text-secondary-400'}`}>
-                                {colorStock === 0 ? 'Out of stock' : `${colorStock} available`}
-                              </span>
-                            )}
-                          </span>
+                          <span>{color}</span>
                         </span>
                         {selectedColor === color && (
                           <motion.span
@@ -593,7 +616,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
             </div>
 
             {/* Selection Reminder */}
-            {hasVariantStock && sizes.length > 0 && (!selectedColor || !selectedSize) && (
+            {hasVariantStock && sizes.length > 0 && (!selectedColor || (!selectedSize && !wantsCustomization)) && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -602,9 +625,92 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 <p className="text-amber-800 text-xs sm:text-sm">
                   {!selectedColor 
                     ? 'Please select a color to continue'
-                    : 'Please select a size to continue'}
+                    : 'Please select a size or enable customization to continue'}
                 </p>
               </motion.div>
+            )}
+
+            {/* Customization Options */}
+            {product.hasCustomization && product.customizationCategories && product.customizationCategories.length > 0 && (
+              <div className="mb-5 sm:mb-8 p-4 sm:p-6 bg-primary-50/50 border-2 border-primary-200 rounded-xl sm:rounded-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-secondary-900 flex items-center gap-2">
+                    <Sliders className="w-5 h-5 text-primary-600" />
+                    Customize This Product
+                  </h3>
+                  {product.customizationPrice && (
+                    <span className="text-sm sm:text-base font-semibold text-primary-600">
+                      +PKR {product.customizationPrice.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer mb-4 p-3 bg-white rounded-lg border border-primary-200">
+                  <input
+                    type="checkbox"
+                    checked={wantsCustomization}
+                    onChange={(e) => {
+                      setWantsCustomization(e.target.checked)
+                      if (!e.target.checked) {
+                        setCustomizationData({})
+                      } else {
+                        // Clear size selection when customization is enabled (optional)
+                        setSelectedSize(null)
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm sm:text-base text-secondary-700">
+                      I want this product customized
+                      {product.customizationPrice && (
+                        <span className="text-primary-600 font-medium ml-1">
+                          (+PKR {product.customizationPrice.toLocaleString()})
+                        </span>
+                      )}
+                    </span>
+                    {sizes.length > 0 && (
+                      <p className="text-xs text-secondary-500 mt-0.5">
+                        Size selection is optional when using custom measurements
+                      </p>
+                    )}
+                  </div>
+                </label>
+                {wantsCustomization && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4"
+                  >
+                    <p className="text-xs sm:text-sm text-secondary-600 mb-3">
+                      Enter your measurements (in inches) for each field:
+                    </p>
+                    {product.customizationCategories.map((category) => (
+                      <div key={category.id} className="p-3 sm:p-4 bg-white rounded-lg border border-secondary-200">
+                        <h4 className="text-sm sm:text-base font-semibold text-secondary-900 mb-3">
+                          {category.name}
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {category.options.map((option) => (
+                            <div key={option.id}>
+                              <label className="block text-xs sm:text-sm font-medium text-secondary-700 mb-1.5">
+                                {option.name}
+                              </label>
+                              <input
+                                type="text"
+                                value={customizationData[category.name]?.[option.name] || ''}
+                                onChange={(e) => updateCustomizationField(category.name, option.name, e.target.value)}
+                                placeholder="e.g. 42"
+                                className="w-full px-3 py-2 text-sm border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
             )}
 
             {/* Features */}
