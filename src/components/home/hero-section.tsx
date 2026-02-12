@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { heroBanners as defaultBanners, type HeroBannerItem } from '@/data/heroBanners'
+import { Sparkles, Zap, TrendingUp } from 'lucide-react'
 
 interface SiteSettings {
   freeShippingMinimum?: number | null
@@ -42,12 +43,33 @@ function getGradientTopColor(banner: HeroBannerItem): string {
 export default function HeroSection({ settings: initialSettings, randomProducts = [], banners: bannersProp, children }: HeroSectionProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
   const banners = (bannersProp?.length ? bannersProp : defaultBanners) as HeroBannerItem[]
   const safeIndex = Math.min(currentSlide, Math.max(0, banners.length - 1))
   const currentSlideClamped = banners.length === 0 ? 0 : safeIndex
   const current = banners[currentSlideClamped]
+
+  // Parallax scroll effect
+  const { scrollY } = useScroll()
+  const y = useTransform(scrollY, [0, 500], [0, 150])
+  const opacity = useTransform(scrollY, [0, 300], [1, 0])
+
+  // Mouse move effect for floating elements
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        setMousePosition({
+          x: (e.clientX - rect.left - rect.width / 2) / 20,
+          y: (e.clientY - rect.top - rect.height / 2) / 20,
+        })
+      }
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
 
 
   useEffect(() => {
@@ -67,15 +89,77 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
 
   return (
     <section ref={containerRef} className="relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-white/20 rounded-full"
+            initial={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            animate={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+              scale: [1, 1.5, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+        ))}
+      </div>
+
       {/* Wrapper so gradient extends over banner + children (e.g. category circles) */}
       <div className="relative">
         {/* Full-bleed gradient: covers entire first block (banner + circles), smooth merge into white */}
-        <div
+        <motion.div
           className="absolute left-0 right-0 bottom-0 top-0 max-sm:-top-16 transition-colors duration-500"
           style={{
             background: `linear-gradient(to bottom, ${gradientTopColor} 0%, ${gradientTopColor} 12%, color-mix(in srgb, ${gradientTopColor} 70%, white) 35%, color-mix(in srgb, ${gradientTopColor} 25%, white) 55%, color-mix(in srgb, ${gradientTopColor} 8%, white) 75%, white 92%, white 100%)`,
+            y,
+            opacity,
           }}
         />
+
+        {/* Floating decorative elements */}
+        <motion.div
+          className="absolute top-20 left-10 hidden lg:block"
+          animate={{
+            x: mousePosition.x * 2,
+            y: mousePosition.y * 2,
+            rotate: [0, 10, 0],
+          }}
+          transition={{ type: 'spring', stiffness: 50, damping: 20 }}
+        >
+          <Sparkles className="w-12 h-12 text-white/30" />
+        </motion.div>
+        <motion.div
+          className="absolute top-40 right-20 hidden lg:block"
+          animate={{
+            x: mousePosition.x * -1.5,
+            y: mousePosition.y * -1.5,
+            rotate: [0, -15, 0],
+          }}
+          transition={{ type: 'spring', stiffness: 50, damping: 20 }}
+        >
+          <Zap className="w-16 h-16 text-white/20" />
+        </motion.div>
+        <motion.div
+          className="absolute bottom-40 left-1/4 hidden lg:block"
+          animate={{
+            x: mousePosition.x * 1,
+            y: mousePosition.y * 1,
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ type: 'spring', stiffness: 50, damping: 20 }}
+        >
+          <TrendingUp className="w-10 h-10 text-white/25" />
+        </motion.div>
 
         {/* Banner area - z-10 so it stays above category circles when scrolling */}
         <div
@@ -89,13 +173,14 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={currentSlideClamped}
-                initial={{ opacity: 0, x: 80, scale: 0.96 }}
+                initial={{ opacity: 0, x: 80, scale: 0.96, rotateY: 10 }}
                 animate={{
                   opacity: 1,
                   x: 0,
                   scale: 1,
+                  rotateY: 0,
                 }}
-                exit={{ opacity: 0, x: -80, scale: 0.98 }}
+                exit={{ opacity: 0, x: -80, scale: 0.98, rotateY: -10 }}
                 transition={{
                   type: 'spring',
                   stiffness: 360,
@@ -103,39 +188,64 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
                   mass: 0.9,
                 }}
                 className="w-full max-w-4xl lg:max-w-6xl xl:max-w-[calc(100%-4rem)] 2xl:max-w-[calc(100%-5rem)] mx-auto flex justify-center relative will-change-transform"
+                style={{ perspective: '1000px' }}
               >
-                <Link
-                  href={current.ctaLink}
-                  className="block w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-transform duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent"
+                <motion.div
+                  whileHover={{ scale: 1.02, rotateY: 2 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="w-full"
                 >
-                  {/* Below 640: fixed 400×600 (2:3); tablet: 40vh; lg: 16:9, 68vh */}
-                  <div className="relative w-full aspect-[2/3] max-sm:max-w-[400px] max-sm:max-h-[600px] sm:aspect-[16/9] sm:max-h-[38vh] lg:max-h-[68vh] max-h-[70vh] max-w-[calc(100%-1rem)] sm:max-w-none mx-auto bg-secondary-100 overflow-hidden rounded-2xl sm:rounded-3xl">
-                    <picture className="block size-full">
-                      <source
-                        media="(min-width: 1024px)"
-                        srcSet={current.images.desktop}
-                      />
-                      <source
-                        media="(min-width: 640px)"
-                        srcSet={current.images.tablet ?? current.images.desktop}
-                      />
-                      <img
-                        src={current.images.mobile}
-                        alt=""
-                        className="w-full h-full object-cover object-center"
-                      />
-                    </picture>
-                  </div>
-                </Link>
-                {/* Dots inside banner bottom - one per slide */}
+                  <Link
+                    href={current.ctaLink}
+                    className="block w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent relative group"
+                  >
+                    {/* Shine effect on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none z-10" />
+                    {/* Below 640: fixed 400×600 (2:3); tablet: 40vh; lg: 16:9, 68vh */}
+                    <div className="relative w-full aspect-[2/3] max-sm:max-w-[400px] max-sm:max-h-[600px] sm:aspect-[16/9] sm:max-h-[38vh] lg:max-h-[68vh] max-h-[70vh] max-w-[calc(100%-1rem)] sm:max-w-none mx-auto bg-secondary-100 overflow-hidden rounded-2xl sm:rounded-3xl">
+                      <motion.picture
+                        className="block size-full"
+                        initial={{ scale: 1.1 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                      >
+                        <source
+                          media="(min-width: 1024px)"
+                          srcSet={current.images.desktop}
+                        />
+                        <source
+                          media="(min-width: 640px)"
+                          srcSet={current.images.tablet ?? current.images.desktop}
+                        />
+                        <motion.img
+                          src={current.images.mobile}
+                          alt=""
+                          className="w-full h-full object-cover object-center"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      </motion.picture>
+                      
+                      {/* Gradient overlay for depth */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+                    </div>
+                  </Link>
+                </motion.div>
+                {/* Animated dots inside banner bottom - one per slide */}
                 {banners.length > 0 && (
                   <div
                     className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-20 pointer-events-none"
                     aria-hidden
                   >
-                    <div className="flex items-center gap-2 pointer-events-auto">
+                    <motion.div
+                      className="flex items-center gap-2 pointer-events-auto bg-black/30 backdrop-blur-md px-4 py-2 rounded-full"
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
                       {banners.map((_, index) => (
-                        <button
+                        <motion.button
                           key={banners[index]?.id ?? index}
                           type="button"
                           onClick={(e) => {
@@ -143,19 +253,35 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
                             e.stopPropagation()
                             setCurrentSlide(index)
                           }}
-                          className="rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+                          className="rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 relative"
                           aria-label={`Go to slide ${index + 1}`}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
                         >
-                          <span
+                          <motion.span
                             className={`block rounded-full transition-all duration-300 ${
                               index === currentSlideClamped
                                 ? 'w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white'
-                                : 'w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white/50 hover:bg-white/70'
+                                : 'w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white/50'
                             }`}
+                            animate={
+                              index === currentSlideClamped
+                                ? { scale: [1, 1.2, 1] }
+                                : {}
+                            }
+                            transition={{ duration: 0.3 }}
                           />
-                        </button>
+                          {index === currentSlideClamped && (
+                            <motion.span
+                              className="absolute inset-0 rounded-full bg-white/30"
+                              initial={{ scale: 1, opacity: 1 }}
+                              animate={{ scale: 2, opacity: 0 }}
+                              transition={{ duration: 1, repeat: Infinity }}
+                            />
+                          )}
+                        </motion.button>
                       ))}
-                    </div>
+                    </motion.div>
                   </div>
                 )}
               </motion.div>

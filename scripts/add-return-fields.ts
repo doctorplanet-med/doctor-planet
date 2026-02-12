@@ -68,7 +68,6 @@ async function addReturnFields() {
       `ALTER TABLE POSSale ADD COLUMN returnReason TEXT`,
       `ALTER TABLE POSSale ADD COLUMN returnedAt DATETIME`,
       `ALTER TABLE POSSale ADD COLUMN returnedBy TEXT`,
-      `ALTER TABLE POSSale ADD COLUMN updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`,
     ]
 
     for (const sql of posSaleAlters) {

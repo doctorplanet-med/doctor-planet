@@ -20,7 +20,7 @@ interface Page {
 
 interface Section {
   id: string
-  type: 'text' | 'list' | 'faq' | 'stats' | 'cta' | 'cards'
+  type: 'text' | 'list' | 'faq' | 'stats' | 'cta' | 'cards' | 'table' | 'image'
   title: string
   subtitle?: string
   content?: string
@@ -28,6 +28,9 @@ interface Section {
   buttonText?: string
   buttonLink?: string
   bgColor?: 'white' | 'light' | 'dark' | 'primary'
+  imageUrl?: string
+  tableHeaders?: string[]
+  tableRows?: string[][]
 }
 
 interface PageContent {
@@ -55,6 +58,8 @@ const pageTemplates = [
 const sectionTypes = [
   { type: 'text', label: 'Text Block', description: 'Rich text content' },
   { type: 'list', label: 'List', description: 'Bullet point list' },
+  { type: 'table', label: 'Table', description: 'Size chart table' },
+  { type: 'image', label: 'Image', description: 'Upload size chart image' },
   { type: 'faq', label: 'FAQ', description: 'Collapsible Q&A' },
   { type: 'stats', label: 'Statistics', description: 'Number highlights' },
   { type: 'cards', label: 'Cards', description: 'Grid of cards' },
@@ -81,6 +86,7 @@ export default function AdminPagesPage() {
   })
   const [isPublished, setIsPublished] = useState(true)
   const [expandedSections, setExpandedSections] = useState<string[]>([])
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
 
   useEffect(() => {
     fetchPages()
@@ -178,6 +184,9 @@ export default function AdminPagesPage() {
              type === 'stats' ? [{ number: '', label: '' }] :
              type === 'cards' ? [{ title: '', description: '' }] : [],
       bgColor: 'white',
+      imageUrl: type === 'image' ? '' : undefined,
+      tableHeaders: type === 'table' ? ['Size', 'Measurement'] : undefined,
+      tableRows: type === 'table' ? [['', '']] : undefined,
     }
     setPageContent(prev => ({
       ...prev,
@@ -215,6 +224,48 @@ export default function AdminPagesPage() {
     setExpandedSections(prev => 
       prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
     )
+  }
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image too large (max 5MB)')
+      return
+    }
+
+    setUploadingHeroImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setPageContent(prev => ({ ...prev, heroImage: data.url }))
+        toast.success('Hero image uploaded!')
+      } else {
+        const error = await res.json()
+        toast.error(error.error || 'Failed to upload image')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload image')
+    } finally {
+      setUploadingHeroImage(false)
+    }
   }
 
   const togglePublish = async (page: Page) => {
@@ -334,12 +385,14 @@ export default function AdminPagesPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="modal-overlay"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowEditor(false)}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
             >
               {/* Editor Header */}
@@ -399,13 +452,68 @@ export default function AdminPagesPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-secondary-700 mb-1">Hero Image URL (optional)</label>
+                      <label className="block text-sm font-medium text-secondary-700 mb-2">Hero Image (optional)</label>
+                      
+                      {/* Image Preview */}
+                      {pageContent.heroImage && (
+                        <div className="relative w-full h-48 mb-3 rounded-lg overflow-hidden border border-secondary-200 group">
+                          <img
+                            src={pageContent.heroImage}
+                            alt="Hero"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setPageContent(prev => ({ ...prev, heroImage: '' }))}
+                            className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Upload Button */}
+                      <label className={`flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors mb-3 ${
+                        uploadingHeroImage 
+                          ? 'border-primary-300 bg-primary-50 cursor-wait' 
+                          : 'border-secondary-300 hover:border-primary-500 cursor-pointer'
+                      }`}>
+                        {uploadingHeroImage ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                              className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full"
+                            />
+                            <span className="text-primary-600 font-medium">Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-5 h-5 text-secondary-600" />
+                            <span className="text-secondary-600">Upload from Device</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                          onChange={handleHeroImageUpload}
+                          className="hidden"
+                          disabled={uploadingHeroImage}
+                        />
+                      </label>
+
+                      {/* URL Input */}
+                      <div className="flex items-center gap-2 text-xs text-secondary-500 mb-2">
+                        <div className="flex-1 border-t border-secondary-200"></div>
+                        <span>OR</span>
+                        <div className="flex-1 border-t border-secondary-200"></div>
+                      </div>
                       <input
                         type="text"
                         value={pageContent.heroImage || ''}
                         onChange={(e) => setPageContent(prev => ({ ...prev, heroImage: e.target.value }))}
                         className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                        placeholder="https://..."
+                        placeholder="Or paste image URL: https://..."
                       />
                     </div>
                   </div>
@@ -726,6 +834,178 @@ export default function AdminPagesPage() {
                                     className="w-full px-3 py-2 border border-secondary-300 rounded-lg text-sm"
                                     placeholder="Ready to get started?"
                                   />
+                                </div>
+                              </div>
+                            )}
+
+                            {section.type === 'table' && (
+                              <div>
+                                {/* Single Scrollable Container for Headers and Rows */}
+                                <div className="border border-secondary-200 rounded-lg p-3 bg-secondary-50">
+                                  <div className="overflow-x-auto scrollbar-thin">
+                                    <div className="min-w-max">
+                                      {/* Table Headers */}
+                                      <div className="mb-3">
+                                        <label className="block text-xs font-medium text-secondary-600 mb-2">Headers</label>
+                                        <div className="flex gap-1.5">
+                                          {(section.tableHeaders || []).map((header: string, i: number) => (
+                                            <div key={i} className="flex gap-1 w-[140px]">
+                                              <input
+                                                type="text"
+                                                value={header}
+                                                onChange={(e) => {
+                                                  const newHeaders = [...(section.tableHeaders || [])]
+                                                  newHeaders[i] = e.target.value
+                                                  updateSection(section.id, { tableHeaders: newHeaders })
+                                                }}
+                                                className="flex-1 px-2 py-1.5 border border-secondary-300 rounded text-xs bg-white"
+                                                placeholder={`Col ${i + 1}`}
+                                              />
+                                              {(section.tableHeaders || []).length > 1 && (
+                                                <button
+                                                  onClick={() => {
+                                                    const newHeaders = (section.tableHeaders || []).filter((_: string, idx: number) => idx !== i)
+                                                    const newRows = (section.tableRows || []).map((row: string[]) => 
+                                                      row.filter((_: string, idx: number) => idx !== i)
+                                                    )
+                                                    updateSection(section.id, { tableHeaders: newHeaders, tableRows: newRows })
+                                                  }}
+                                                  className="p-1 text-red-500 hover:bg-red-50 rounded flex-shrink-0"
+                                                >
+                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                              )}
+                                            </div>
+                                          ))}
+                                          <button
+                                            onClick={() => {
+                                              const newHeaders = [...(section.tableHeaders || []), '']
+                                              const newRows = (section.tableRows || []).map((row: string[]) => [...row, ''])
+                                              updateSection(section.id, { tableHeaders: newHeaders, tableRows: newRows })
+                                            }}
+                                            className="px-2 py-1.5 text-primary-600 hover:bg-primary-50 rounded text-xs whitespace-nowrap flex-shrink-0 border border-primary-200"
+                                          >
+                                            + Col
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      {/* Table Rows */}
+                                      <div>
+                                        <label className="block text-xs font-medium text-secondary-600 mb-2">Rows</label>
+                                        <div className="space-y-1.5">
+                                          {(section.tableRows || []).map((row: string[], i: number) => (
+                                            <div key={i} className="flex gap-1.5">
+                                              {row.map((cell: string, j: number) => (
+                                                <input
+                                                  key={j}
+                                                  type="text"
+                                                  value={cell}
+                                                  onChange={(e) => {
+                                                    const newRows = [...(section.tableRows || [])]
+                                                    newRows[i][j] = e.target.value
+                                                    updateSection(section.id, { tableRows: newRows })
+                                                  }}
+                                                  className="w-[140px] px-2 py-1.5 border border-secondary-300 rounded text-xs bg-white"
+                                                  placeholder={section.tableHeaders?.[j] || `Col ${j + 1}`}
+                                                />
+                                              ))}
+                                              <button
+                                                onClick={() => {
+                                                  const newRows = (section.tableRows || []).filter((_: string[], idx: number) => idx !== i)
+                                                  updateSection(section.id, { tableRows: newRows })
+                                                }}
+                                                className="p-1 text-red-500 hover:bg-red-50 rounded flex-shrink-0"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Add Row Button Outside */}
+                                <button
+                                  onClick={() => {
+                                    const newRow = new Array((section.tableHeaders || []).length).fill('')
+                                    updateSection(section.id, { tableRows: [...(section.tableRows || []), newRow] })
+                                  }}
+                                  className="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                                >
+                                  + Add Row
+                                </button>
+                              </div>
+                            )}
+
+                            {section.type === 'image' && (
+                              <div>
+                                <label className="block text-sm font-medium text-secondary-700 mb-2">Size Chart Image</label>
+                                <div className="space-y-3">
+                                  <div className="border-2 border-dashed border-secondary-300 rounded-lg p-6 text-center">
+                                    <ImageIcon className="w-12 h-12 text-secondary-400 mx-auto mb-2" />
+                                    <label className="cursor-pointer">
+                                      <span className="text-primary-600 hover:text-primary-700 font-medium">
+                                        Upload Image
+                                      </span>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                          const file = e.target.files?.[0]
+                                          if (!file) return
+
+                                          const formData = new FormData()
+                                          formData.append('file', file)
+
+                                          try {
+                                            const res = await fetch('/api/upload', {
+                                              method: 'POST',
+                                              body: formData,
+                                            })
+
+                                            if (res.ok) {
+                                              const { url } = await res.json()
+                                              updateSection(section.id, { imageUrl: url })
+                                              toast.success('Image uploaded!')
+                                            } else {
+                                              toast.error('Upload failed')
+                                            }
+                                          } catch (error) {
+                                            toast.error('Upload error')
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                    <p className="text-xs text-secondary-500 mt-1">or enter URL below</p>
+                                  </div>
+
+                                  <input
+                                    type="text"
+                                    value={section.imageUrl || ''}
+                                    onChange={(e) => updateSection(section.id, { imageUrl: e.target.value })}
+                                    className="w-full px-3 py-2 border border-secondary-300 rounded-lg text-sm"
+                                    placeholder="https://example.com/size-chart.jpg"
+                                  />
+
+                                  {section.imageUrl && (
+                                    <div className="relative">
+                                      <img
+                                        src={section.imageUrl}
+                                        alt="Size chart preview"
+                                        className="w-full rounded-lg border border-secondary-200"
+                                      />
+                                      <button
+                                        onClick={() => updateSection(section.id, { imageUrl: '' })}
+                                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             )}

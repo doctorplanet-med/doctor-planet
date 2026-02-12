@@ -28,9 +28,8 @@ import { useCartStore } from '@/store/cart-store'
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/products', label: 'Products' },
-  { href: '/products?category=medical-clothes', label: 'Clothes' },
-  { href: '/products?category=medical-shoes', label: 'Shoes' },
-  { href: '/products?category=medical-equipment', label: 'Equipment' },
+  { href: '/about', label: 'About' },
+  { href: '/size-guide', label: 'Size Guide' },
 ]
 
 interface NavbarProps {

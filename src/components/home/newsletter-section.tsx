@@ -42,28 +42,68 @@ export default function NewsletterSection() {
   }
 
   return (
-    <section className="py-8 sm:py-16 lg:py-20 bg-gradient-to-br from-primary-50 to-white">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <section className="py-8 sm:py-16 lg:py-20 bg-gradient-to-br from-primary-50 via-purple-50 to-white relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-3 h-3 bg-primary-300/20 rounded-full"
+            initial={{
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+              y: Math.random() * 600,
+            }}
+            animate={{
+              y: [Math.random() * 600, -100, Math.random() * 600],
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: Math.random() * 3 + 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-primary-100"
+          transition={{ duration: 0.6, type: 'spring' }}
+          className="relative bg-gradient-to-br from-white to-primary-50/30 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-primary-200/50 backdrop-blur-sm"
         >
           {/* Animated Background Elements */}
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary-100/50 to-transparent" />
           
           {/* Floating decorative elements */}
           <motion.div 
-            className="absolute top-10 right-10 w-20 h-20 bg-primary-200/30 rounded-full blur-xl"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute top-10 right-10 w-20 h-20 bg-gradient-to-r from-primary-400 to-purple-400 rounded-full blur-xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.4, 0.2],
+              rotate: [0, 180, 360],
+            }}
+            transition={{ duration: 8, repeat: Infinity }}
           />
           <motion.div 
-            className="absolute bottom-10 right-1/4 w-32 h-32 bg-blue-200/20 rounded-full blur-2xl"
-            animate={{ scale: [1, 1.1, 1], x: [0, 20, 0] }}
-            transition={{ duration: 6, repeat: Infinity }}
+            className="absolute bottom-10 right-1/4 w-32 h-32 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full blur-2xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              x: [0, 30, 0],
+              opacity: [0.15, 0.3, 0.15],
+            }}
+            transition={{ duration: 10, repeat: Infinity }}
+          />
+          <motion.div 
+            className="absolute top-1/2 left-10 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-2xl"
+            animate={{
+              scale: [1, 1.15, 1],
+              y: [0, -20, 0],
+              opacity: [0.1, 0.25, 0.1],
+            }}
+            transition={{ duration: 7, repeat: Infinity }}
           />
           
           {/* Medical cross pattern */}
@@ -77,13 +117,20 @@ export default function NewsletterSection() {
             <div className="max-w-2xl">
               {/* Icon - Mobile */}
               <motion.div
-                initial={{ scale: 0 }}
-                whileInView={{ scale: 1 }}
+                initial={{ scale: 0, rotate: -180 }}
+                whileInView={{ scale: 1, rotate: 0 }}
                 viewport={{ once: true }}
-                transition={{ type: 'spring', damping: 15 }}
-                className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg"
+                transition={{ type: 'spring', damping: 15, delay: 0.2 }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-500 via-purple-500 to-primary-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg relative overflow-hidden group"
               >
-                <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-white relative z-10" />
+                {/* Shine effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                />
               </motion.div>
 
               {/* Content */}
@@ -92,12 +139,34 @@ export default function NewsletterSection() {
                 Newsletter
               </div>
               
-              <h2 className="text-xl sm:text-3xl md:text-4xl font-heading font-bold text-secondary-900 mb-2 sm:mb-4">
-                Stay Updated with <span className="text-primary-600">Doctor Planet</span>
-              </h2>
-              <p className="text-sm sm:text-lg text-secondary-600 mb-5 sm:mb-8">
+              <motion.h2
+                className="text-xl sm:text-3xl md:text-4xl font-heading font-bold text-secondary-900 mb-2 sm:mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                Stay Updated with{' '}
+                <motion.span
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-purple-600 to-primary-600"
+                  animate={{
+                    backgroundPosition: ['0%', '100%', '0%'],
+                  }}
+                  transition={{ duration: 5, repeat: Infinity }}
+                  style={{ backgroundSize: '200% 100%' }}
+                >
+                  Doctor Planet
+                </motion.span>
+              </motion.h2>
+              <motion.p
+                className="text-sm sm:text-lg text-secondary-600 mb-5 sm:mb-8"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+              >
                 Get exclusive deals, new arrivals, and healthcare tips.
-              </p>
+              </motion.p>
 
               {/* Form - Mobile Stacked */}
               <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-0 sm:flex sm:gap-4">
@@ -113,15 +182,20 @@ export default function NewsletterSection() {
                   <Mail className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-secondary-400" />
                 </div>
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.05, boxShadow: '0 10px 25px -5px rgba(124, 58, 237, 0.5)' }}
+                  whileTap={{ scale: 0.95 }}
                   type="submit"
                   disabled={isSubmitting || isSubscribed}
-                  className={`w-full sm:w-auto px-6 py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base text-white transition-all flex items-center justify-center gap-2 ${
+                  className={`relative w-full sm:w-auto px-6 py-3 sm:py-3.5 rounded-xl font-semibold text-sm sm:text-base text-white transition-all flex items-center justify-center gap-2 overflow-hidden ${
                     isSubscribed 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'bg-primary-600 hover:bg-primary-700'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600' 
+                      : 'bg-gradient-to-r from-primary-600 via-purple-600 to-primary-600'
                   } disabled:opacity-50`}
+                  style={{ backgroundSize: '200% 100%' }}
+                  animate={!isSubscribed && !isSubmitting ? {
+                    backgroundPosition: ['0%', '100%', '0%'],
+                  } : {}}
+                  transition={{ duration: 3, repeat: Infinity }}
                 >
                   {isSubmitting ? (
                     <>

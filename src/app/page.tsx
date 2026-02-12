@@ -4,6 +4,7 @@ import PromoBannerSection from '@/components/home/promo-banner-section'
 import ExclusiveOffersSection from '@/components/home/exclusive-offers-section'
 import DealsOffersSection from '@/components/home/deals-offers-section'
 import FeaturedProducts from '@/components/home/featured-products'
+import AllProductsSection from '@/components/home/all-products-section'
 import FeaturesSection from '@/components/home/features-section'
 import TestimonialsSection from '@/components/home/testimonials-section'
 import NewsletterSection from '@/components/home/newsletter-section'
@@ -82,6 +83,22 @@ async function getRandomProducts() {
   return shuffled.slice(0, 7)
 }
 
+async function getAllProducts() {
+  return await prisma.product.findMany({
+    where: { isActive: true },
+    include: {
+      category: {
+        select: {
+          name: true,
+          slug: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 8
+  })
+}
+
 async function getActiveDeals() {
   const now = new Date()
   const allDeals = await prisma.deal.findMany({
@@ -157,7 +174,7 @@ async function getHeroBanners(): Promise<HeroBannerItem[]> {
 }
 
 export default async function HomePage() {
-  const [categories, featuredProducts, productsOnSale, activeDeals, settings, randomProducts, heroBanners] = await Promise.all([
+  const [categories, featuredProducts, productsOnSale, activeDeals, settings, randomProducts, heroBanners, allProducts] = await Promise.all([
     getCategories(),
     getFeaturedProducts(),
     getProductsOnSale(),
@@ -165,6 +182,7 @@ export default async function HomePage() {
     getSettings(),
     getRandomProducts(),
     getHeroBanners(),
+    getAllProducts(),
   ])
 
   return (
@@ -176,6 +194,7 @@ export default async function HomePage() {
       <ExclusiveOffersSection products={productsOnSale} />
       <DealsOffersSection deals={activeDeals} />
       <FeaturedProducts products={featuredProducts} />
+      <AllProductsSection products={allProducts} />
       <FeaturesSection />
       <TestimonialsSection />
       <NewsletterSection />

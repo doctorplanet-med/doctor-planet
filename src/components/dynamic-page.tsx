@@ -14,15 +14,18 @@ interface PageContent {
 
 interface Section {
   id: string
-  type: 'text' | 'list' | 'faq' | 'stats' | 'cta' | 'image' | 'cards'
+  type: 'text' | 'list' | 'faq' | 'stats' | 'cta' | 'image' | 'cards' | 'table'
   title?: string
   subtitle?: string
   content?: string
   items?: ListItem[] | FAQItem[] | StatItem[] | CardItem[]
   image?: string
+  imageUrl?: string
   buttonText?: string
   buttonLink?: string
   bgColor?: 'white' | 'light' | 'dark' | 'primary'
+  tableHeaders?: string[]
+  tableRows?: string[][]
 }
 
 interface ListItem {
@@ -276,10 +279,56 @@ export default function DynamicPage({ slug, defaultContent }: DynamicPageProps) 
                 </div>
               )}
 
+              {/* Table Section */}
+              {section.type === 'table' && section.tableHeaders && section.tableRows && (
+                <div className="relative">
+                  {/* Scroll indicator for mobile */}
+                  <div className="block sm:hidden text-center text-xs text-secondary-500 mb-2">
+                    ← Swipe to see more →
+                  </div>
+                  
+                  <div className="overflow-x-auto overflow-y-visible scrollbar-thin scrollbar-thumb-primary-400 scrollbar-track-secondary-100 rounded-xl shadow-lg">
+                    <table className="w-full min-w-[600px] border-collapse bg-white">
+                      <thead className="bg-primary-600 text-white sticky top-0 z-10">
+                        <tr>
+                          {section.tableHeaders.map((header, i) => (
+                            <th key={i} className="px-4 sm:px-6 py-3 sm:py-4 text-left font-semibold text-sm sm:text-base whitespace-nowrap">
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {section.tableRows.map((row, i) => (
+                          <tr key={i} className={i % 2 === 0 ? 'bg-secondary-50' : 'bg-white'}>
+                            {row.map((cell, j) => (
+                              <td key={j} className="px-4 sm:px-6 py-3 sm:py-4 text-secondary-700 border-t border-secondary-200 text-sm sm:text-base whitespace-nowrap">
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Desktop scroll hint */}
+                  <div className="hidden sm:block text-center text-xs text-secondary-400 mt-2">
+                    Scroll horizontally if table is wide
+                  </div>
+                </div>
+              )}
+
               {/* Image Section */}
-              {section.type === 'image' && section.image && (
+              {section.type === 'image' && (section.image || section.imageUrl) && (
                 <div className="relative h-[300px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
-                  <Image src={section.image} alt={section.title || ''} fill sizes="(max-width: 768px) 100vw, 1024px" className="object-cover" />
+                  <Image 
+                    src={section.imageUrl || section.image || ''} 
+                    alt={section.title || ''} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, 1024px" 
+                    className="object-contain bg-white p-4" 
+                  />
                 </div>
               )}
             </motion.div>
