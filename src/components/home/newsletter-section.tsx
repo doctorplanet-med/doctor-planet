@@ -45,25 +45,32 @@ export default function NewsletterSection() {
     <section className="py-8 sm:py-16 lg:py-20 bg-gradient-to-br from-primary-50 via-purple-50 to-white relative overflow-hidden">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-3 h-3 bg-primary-300/20 rounded-full"
-            initial={{
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-              y: Math.random() * 600,
-            }}
-            animate={{
-              y: [Math.random() * 600, -100, Math.random() * 600],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: Math.random() * 3 + 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
+        {[...Array(15)].map((_, i) => {
+          const randomX = (i * 67) % 1000
+          const randomY = (i * 43) % 600
+          const randomDuration = 2 + (i % 3)
+          const randomDelay = (i * 0.3) % 2
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute w-3 h-3 bg-primary-300/20 rounded-full"
+              initial={{
+                x: randomX,
+                y: randomY,
+              }}
+              animate={{
+                y: [randomY, -100, randomY],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: randomDuration,
+                repeat: Infinity,
+                delay: randomDelay,
+              }}
+            />
+          )
+        })}
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">

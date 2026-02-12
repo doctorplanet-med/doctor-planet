@@ -91,27 +91,35 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
     <section ref={containerRef} className="relative overflow-hidden">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-white/20 rounded-full"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-            }}
-            animate={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          />
-        ))}
+        {[...Array(20)].map((_, i) => {
+          const randomX = (i * 73) % 1200
+          const randomY = (i * 59) % 800
+          const randomX2 = ((i + 10) * 73) % 1200
+          const randomY2 = ((i + 10) * 59) % 800
+          const randomDuration = 10 + (i % 10)
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              initial={{
+                x: randomX,
+                y: randomY,
+              }}
+              animate={{
+                x: randomX2,
+                y: randomY2,
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: randomDuration,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            />
+          )
+        })}
       </div>
 
       {/* Wrapper so gradient extends over banner + children (e.g. category circles) */}
