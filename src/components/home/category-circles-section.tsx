@@ -56,7 +56,7 @@ export default function CategoryCirclesSection({ categories }: CategoryCirclesSe
   return (
     <section
       ref={sectionRef}
-      className="py-8 sm:py-10 bg-transparent"
+      className="pt-2 pb-8 sm:py-10 bg-transparent"
       aria-label="Shop by category"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
