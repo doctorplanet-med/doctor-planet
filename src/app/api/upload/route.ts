@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
-import { existsSync } from 'fs'
+import { v2 as cloudinary } from 'cloudinary'
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,27 +53,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Convert file to base64 for Cloudinary upload
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    const base64 = buffer.toString('base64')
+    const dataURI = `data:${file.type};base64,${base64}`
 
-    const timestamp = Date.now()
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const filename = `${timestamp}_${originalName}`
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-
-    const filepath = path.join(uploadDir, filename)
-    await writeFile(filepath, buffer)
-
-    const publicUrl = `/uploads/${filename}`
+    // Upload to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(dataURI, {
+      folder: 'doctor-planet',
+      resource_type: 'image',
+    })
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
-      filename: filename,
+      url: uploadResponse.secure_url,
+      publicId: uploadResponse.public_id,
     })
   } catch (error: unknown) {
     console.error('Upload error:', error)
@@ -81,4 +81,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
