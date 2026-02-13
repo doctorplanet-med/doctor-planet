@@ -193,6 +193,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
   const [editForm, setEditForm] = useState({ ctaText: '', ctaLink: '', backgroundGradient: '', mobileImage: '', tabletImage: '', desktopImage: '', startDate: '', endDate: '' })
   const [uploadingField, setUploadingField] = useState<string | null>(null)
   const [saveEditLoading, setSaveEditLoading] = useState(false)
+  const [previewImages, setPreviewImages] = useState<{ mobile?: string; desktop?: string }>({})
 
   // Promo Banners (3rd section: PNG/JPG/GIF, transparent bg)
   const [promoBanners, setPromoBanners] = useState<{ id: string; imageUrl: string; linkUrl: string; alt: string; order: number; isActive: boolean }[]>([])
@@ -394,6 +395,10 @@ export default function AdminSettings({ settings: initialSettings, categories = 
   }
 
   const uploadImage = async (file: File, field: 'mobileImage' | 'desktopImage' | 'tabletImage', isEdit: boolean) => {
+    // Create local preview immediately
+    const previewUrl = URL.createObjectURL(file)
+    setPreviewImages(prev => ({ ...prev, [field === 'mobileImage' ? 'mobile' : 'desktop']: previewUrl }))
+    
     setUploadingField(field)
     try {
       const formData = new FormData()
@@ -407,10 +412,18 @@ export default function AdminSettings({ settings: initialSettings, categories = 
         } else {
           setNewBanner((prev) => ({ ...prev, [field]: data.url }))
         }
+        // Update preview with actual uploaded URL
+        setPreviewImages(prev => ({ ...prev, [field === 'mobileImage' ? 'mobile' : 'desktop']: data.url }))
         toast.success('Image uploaded')
-      } else toast.error(data.error || 'Upload failed')
+      } else {
+        toast.error(data.error || 'Upload failed')
+        // Clear preview on error
+        setPreviewImages(prev => ({ ...prev, [field === 'mobileImage' ? 'mobile' : 'desktop']: undefined }))
+      }
     } catch {
       toast.error('Failed to upload image')
+      // Clear preview on error
+      setPreviewImages(prev => ({ ...prev, [field === 'mobileImage' ? 'mobile' : 'desktop']: undefined }))
     } finally {
       setUploadingField(null)
     }
@@ -540,6 +553,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
           startDate: '',
           endDate: '',
         })
+        setPreviewImages({}) // Clear previews
         toast.success('Banner added')
       } else toast.error('Failed to add banner')
     } catch {
@@ -898,6 +912,51 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                             </label>
                           </div>
                         </div>
+                        
+                        {/* Banner Preview */}
+                        {(previewImages.mobile || previewImages.desktop || newBanner.mobileImage || newBanner.desktopImage) && (
+                          <div className="sm:col-span-2 border-t pt-4">
+                            <h4 className="text-sm font-semibold text-secondary-900 mb-3 flex items-center gap-2">
+                              <ImageIcon className="w-4 h-4" />
+                              Banner Preview (How it will appear)
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              {/* Mobile Preview */}
+                              {(previewImages.mobile || newBanner.mobileImage) && (
+                                <div>
+                                  <p className="text-xs text-secondary-600 mb-2 font-medium">📱 Mobile View (Tall)</p>
+                                  <div className="relative w-full h-[280px] sm:h-[320px] rounded-xl overflow-hidden border-2 border-secondary-200 bg-secondary-100">
+                                    <img
+                                      src={previewImages.mobile || newBanner.mobileImage}
+                                      alt="Mobile preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 border-2 border-dashed border-primary-400 pointer-events-none"></div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Desktop Preview */}
+                              {(previewImages.desktop || newBanner.desktopImage) && (
+                                <div>
+                                  <p className="text-xs text-secondary-600 mb-2 font-medium">🖥️ Desktop View (Wide)</p>
+                                  <div className="relative w-full h-[200px] sm:h-[240px] rounded-xl overflow-hidden border-2 border-secondary-200 bg-secondary-100">
+                                    <img
+                                      src={previewImages.desktop || newBanner.desktopImage}
+                                      alt="Desktop preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 border-2 border-dashed border-primary-400 pointer-events-none"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-secondary-500 mt-2 italic">
+                              ℹ️ The dashed border shows the visible banner area. Images will be center-cropped to fit.
+                            </p>
+                          </div>
+                        )}
+                        
                         <div>
                           <label className="block text-sm font-medium text-secondary-700 mb-1">Show from (optional)</label>
                           <input
