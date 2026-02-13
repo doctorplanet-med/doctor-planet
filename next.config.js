@@ -12,12 +12,6 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['undici'],
   },
-  // Increase body size limit for image uploads
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
 }
 
 module.exports = nextConfig
