@@ -34,6 +34,7 @@
     "react": "^18.2.0",
     "react-barcode": "^1.6.1",
     "react-dom": "^18.2.0",
+    "react-easy-crop": "^5.5.6",
     "react-hot-toast": "^2.4.1",
     "resend": "^6.9.1",
     "zustand": "^4.5.0"

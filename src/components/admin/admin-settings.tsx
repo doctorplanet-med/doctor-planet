@@ -193,6 +193,8 @@ export default function AdminSettings({ settings: initialSettings, categories = 
   const [editForm, setEditForm] = useState({ ctaText: '', ctaLink: '', backgroundGradient: '', mobileImage: '', tabletImage: '', desktopImage: '', startDate: '', endDate: '' })
   const [uploadingField, setUploadingField] = useState<string | null>(null)
   const [saveEditLoading, setSaveEditLoading] = useState(false)
+  const [previewImages, setPreviewImages] = useState<{ mobile?: string; desktop?: string }>({})
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
 
   // Promo Banners (3rd section: PNG/JPG/GIF, transparent bg)
   const [promoBanners, setPromoBanners] = useState<{ id: string; imageUrl: string; linkUrl: string; alt: string; order: number; isActive: boolean }[]>([])
@@ -394,6 +396,12 @@ export default function AdminSettings({ settings: initialSettings, categories = 
   }
 
   const uploadImage = async (file: File, field: 'mobileImage' | 'desktopImage' | 'tabletImage', isEdit: boolean) => {
+    // Create local preview
+    const previewUrl = URL.createObjectURL(file)
+    const previewKey = field === 'mobileImage' ? 'mobile' : 'desktop'
+    setPreviewImages(prev => ({ ...prev, [previewKey]: previewUrl }))
+    setShowPreviewModal(true)
+    
     setUploadingField(field)
     try {
       const formData = new FormData()
@@ -407,12 +415,16 @@ export default function AdminSettings({ settings: initialSettings, categories = 
         } else {
           setNewBanner((prev) => ({ ...prev, [field]: data.url }))
         }
-        toast.success('Image uploaded')
+        // Update preview with uploaded URL
+        setPreviewImages(prev => ({ ...prev, [previewKey]: data.url }))
+        toast.success('Image uploaded - Check preview below')
       } else {
         toast.error(data.error || 'Upload failed')
+        setPreviewImages(prev => ({ ...prev, [previewKey]: undefined }))
       }
     } catch {
       toast.error('Failed to upload image')
+      setPreviewImages(prev => ({ ...prev, [previewKey]: undefined }))
     } finally {
       setUploadingField(null)
     }
@@ -542,6 +554,8 @@ export default function AdminSettings({ settings: initialSettings, categories = 
           startDate: '',
           endDate: '',
         })
+        setPreviewImages({})
+        setShowPreviewModal(false)
         toast.success('Banner added')
       } else toast.error('Failed to add banner')
     } catch {
@@ -900,6 +914,88 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                             </label>
                           </div>
                         </div>
+                        
+                        {/* Banner Preview */}
+                        {(previewImages.mobile || previewImages.desktop || newBanner.mobileImage || newBanner.desktopImage) && (
+                          <div className="sm:col-span-2 border-t border-secondary-200 pt-6 mt-2">
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="text-sm font-semibold text-secondary-900 flex items-center gap-2">
+                                <ImageIcon className="w-5 h-5 text-primary-600" />
+                                Banner Preview - How it will appear on site
+                              </h4>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPreviewImages({})
+                                  setShowPreviewModal(false)
+                                }}
+                                className="text-xs text-secondary-500 hover:text-secondary-700"
+                              >
+                                Clear previews
+                              </button>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-6">
+                              {/* Mobile Preview */}
+                              {(previewImages.mobile || newBanner.mobileImage) && (
+                                <div>
+                                  <p className="text-xs font-medium text-secondary-700 mb-2 flex items-center gap-1">
+                                    📱 Mobile (Tall - 800×1200px recommended)
+                                  </p>
+                                  <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden border-2 border-primary-200 bg-gradient-to-br from-secondary-50 to-secondary-100">
+                                    <img
+                                      src={previewImages.mobile || newBanner.mobileImage}
+                                      alt="Mobile preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {/* Visible area overlay */}
+                                    <div className="absolute inset-0 border-4 border-dashed border-primary-500 pointer-events-none"></div>
+                                    <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                                      Visible area
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-secondary-500 mt-2 italic">
+                                    ✓ Image fills entire mobile banner
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {/* Desktop Preview */}
+                              {(previewImages.desktop || newBanner.desktopImage) && (
+                                <div>
+                                  <p className="text-xs font-medium text-secondary-700 mb-2 flex items-center gap-1">
+                                    🖥️ Desktop (Wide - 1600×900px recommended)
+                                  </p>
+                                  <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border-2 border-primary-200 bg-gradient-to-br from-secondary-50 to-secondary-100">
+                                    <img
+                                      src={previewImages.desktop || newBanner.desktopImage}
+                                      alt="Desktop preview"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {/* Visible area overlay */}
+                                    <div className="absolute inset-0 border-4 border-dashed border-primary-500 pointer-events-none"></div>
+                                    <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                                      Visible area
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-secondary-500 mt-2 italic">
+                                    ✓ Image fills entire desktop banner
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800">
+                                <strong>💡 Tip:</strong> The dashed border shows the visible banner area. Images use <code className="bg-blue-100 px-1 rounded">object-cover</code> which centers and crops to fill the space. 
+                                <br/>
+                                <strong>Mobile:</strong> Use tall/portrait images (2:3 ratio).
+                                <br/>
+                                <strong>Desktop:</strong> Use wide/landscape images (16:9 ratio).
+                              </p>
+                            </div>
+                          </div>
+                        )}
                         
                         <div>
                           <label className="block text-sm font-medium text-secondary-700 mb-1">Show from (optional)</label>
