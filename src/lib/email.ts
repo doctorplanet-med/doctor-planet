@@ -151,50 +151,123 @@ const emailTemplates = {
       <html>
       <head>
         <meta charset="utf-8">
-        <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .header h1 { color: white; margin: 0; font-size: 28px; }
-          .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
-          .status-badge { background: #3B82F6; color: white; padding: 12px 24px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
-          .progress { display: flex; justify-content: space-between; margin: 30px 0; padding: 0 10px; }
-          .step { text-align: center; flex: 1; }
-          .step-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; }
-          .step-circle.done { background: #10B981; color: white; }
-          .step-circle.current { background: #3B82F6; color: white; }
-          .step-circle.pending { background: #e0e0e0; color: #999; }
-          .step-label { font-size: 12px; color: #666; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
-        </style>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>🏥 Doctor Planet</h1>
-          </div>
-          <div class="content">
-            <div style="text-align: center;">
-              <div class="status-badge">✓ Order Confirmed</div>
-            </div>
-            
-            <h2 style="text-align: center;">Great news, ${data.customerName}!</h2>
-            <p style="text-align: center;">Your order <strong>#${data.orderNumber}</strong> has been confirmed and is being prepared.</p>
-            
-            <div class="progress">
-              <div class="step"><div class="step-circle done">✓</div><div class="step-label">Placed</div></div>
-              <div class="step"><div class="step-circle current">2</div><div class="step-label">Confirmed</div></div>
-              <div class="step"><div class="step-circle pending">3</div><div class="step-label">Processing</div></div>
-              <div class="step"><div class="step-circle pending">4</div><div class="step-label">Shipped</div></div>
-              <div class="step"><div class="step-circle pending">5</div><div class="step-label">Delivered</div></div>
-            </div>
-            
-            <p style="text-align: center; font-size: 18px;"><strong>Order Total: PKR ${data.total.toFixed(0)} (COD)</strong></p>
-          </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
-          </div>
-        </div>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">🏥 Doctor Planet</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px;">
+                    <!-- Status Badge -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center">
+                          <div style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0;">✓ Order Confirmed</div>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <h2 style="text-align: center; color: #333;">Great news, ${data.customerName}!</h2>
+                    <p style="text-align: center;">Your order <strong>#${data.orderNumber}</strong> has been confirmed and is being prepared.</p>
+                    
+                    <!-- Progress Steps -->
+                    <table width="100%" cellpadding="10" cellspacing="0" style="margin: 30px 0;">
+                      <tr>
+                        <!-- Step 1: Placed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Placed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 2: Confirmed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #3B82F6; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666; font-weight: bold;">Confirmed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 3: Processing -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; color: #999; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; margin-bottom: 8px;">3</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Processing</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 4: Shipped -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; color: #999; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; margin-bottom: 8px;">4</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Shipped</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 5: Delivered -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; color: #999; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; margin-bottom: 8px;">5</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Delivered</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="text-align: center; font-size: 18px;"><strong>Order Total: PKR ${data.total.toFixed(0)} (COD)</strong></p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px;">
+                    <p style="margin: 0;">© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </body>
       </html>
     `,
@@ -207,51 +280,124 @@ const emailTemplates = {
       <html>
       <head>
         <meta charset="utf-8">
-        <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .header h1 { color: white; margin: 0; font-size: 28px; }
-          .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
-          .status-badge { background: #6366F1; color: white; padding: 12px 24px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
-          .progress { display: flex; justify-content: space-between; margin: 30px 0; padding: 0 10px; }
-          .step { text-align: center; flex: 1; }
-          .step-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; }
-          .step-circle.done { background: #10B981; color: white; }
-          .step-circle.current { background: #6366F1; color: white; }
-          .step-circle.pending { background: #e0e0e0; color: #999; }
-          .step-label { font-size: 12px; color: #666; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
-        </style>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>📦 Doctor Planet</h1>
-          </div>
-          <div class="content">
-            <div style="text-align: center;">
-              <div class="status-badge">📦 Processing</div>
-            </div>
-            
-            <h2 style="text-align: center;">Your order is being prepared!</h2>
-            <p style="text-align: center;">Hi ${data.customerName}, we're packing your order <strong>#${data.orderNumber}</strong> with care.</p>
-            
-            <div class="progress">
-              <div class="step"><div class="step-circle done">✓</div><div class="step-label">Placed</div></div>
-              <div class="step"><div class="step-circle done">✓</div><div class="step-label">Confirmed</div></div>
-              <div class="step"><div class="step-circle current">📦</div><div class="step-label">Processing</div></div>
-              <div class="step"><div class="step-circle pending">4</div><div class="step-label">Shipped</div></div>
-              <div class="step"><div class="step-circle pending">5</div><div class="step-label">Delivered</div></div>
-            </div>
-            
-            <p style="text-align: center;">Your items are being carefully packed. We'll ship soon!</p>
-            <p style="text-align: center; font-size: 18px;"><strong>Order Total: PKR ${data.total.toFixed(0)} (COD)</strong></p>
-          </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
-          </div>
-        </div>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">📦 Doctor Planet</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px;">
+                    <!-- Status Badge -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center">
+                          <div style="background: #6366F1; color: white; padding: 12px 24px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0;">📦 Processing</div>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <h2 style="text-align: center; color: #333;">Your order is being prepared!</h2>
+                    <p style="text-align: center;">Hi ${data.customerName}, we're packing your order <strong>#${data.orderNumber}</strong> with care.</p>
+                    
+                    <!-- Progress Steps -->
+                    <table width="100%" cellpadding="10" cellspacing="0" style="margin: 30px 0;">
+                      <tr>
+                        <!-- Step 1: Placed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Placed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 2: Confirmed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Confirmed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 3: Processing -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #6366F1; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">📦</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666; font-weight: bold;">Processing</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 4: Shipped -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; color: #999; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; margin-bottom: 8px;">4</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Shipped</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 5: Delivered -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; color: #999; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; margin-bottom: 8px;">5</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Delivered</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="text-align: center;">Your items are being carefully packed. We'll ship soon!</p>
+                    <p style="text-align: center; font-size: 18px;"><strong>Order Total: PKR ${data.total.toFixed(0)} (COD)</strong></p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px;">
+                    <p style="margin: 0;">© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </body>
       </html>
     `,
@@ -264,64 +410,145 @@ const emailTemplates = {
       <html>
       <head>
         <meta charset="utf-8">
-        <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .header h1 { color: white; margin: 0; font-size: 28px; }
-          .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
-          .status-badge { background: #8B5CF6; color: white; padding: 15px 30px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; font-size: 18px; }
-          .progress { display: flex; justify-content: space-between; margin: 30px 0; padding: 0 10px; }
-          .step { text-align: center; flex: 1; }
-          .step-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; }
-          .step-circle.done { background: #10B981; color: white; }
-          .step-circle.current { background: #8B5CF6; color: white; }
-          .step-circle.pending { background: #e0e0e0; color: #999; }
-          .step-label { font-size: 12px; color: #666; }
-          .address-box { background: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0; }
-          .cod-reminder { background: #FEF3C7; padding: 15px; border-radius: 10px; text-align: center; margin: 20px 0; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
-        </style>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>🚚 Doctor Planet</h1>
-          </div>
-          <div class="content">
-            <div style="text-align: center;">
-              <div class="status-badge">🚚 On the Way!</div>
-            </div>
-            
-            <h2 style="text-align: center;">Your order has been shipped!</h2>
-            <p style="text-align: center;">Hi ${data.customerName}, great news! Your order <strong>#${data.orderNumber}</strong> is on its way to you.</p>
-            
-            <div class="progress">
-              <div class="step"><div class="step-circle done">✓</div><div class="step-label">Placed</div></div>
-              <div class="step"><div class="step-circle done">✓</div><div class="step-label">Confirmed</div></div>
-              <div class="step"><div class="step-circle done">✓</div><div class="step-label">Processing</div></div>
-              <div class="step"><div class="step-circle current">🚚</div><div class="step-label">Shipped</div></div>
-              <div class="step"><div class="step-circle pending">5</div><div class="step-label">Delivered</div></div>
-            </div>
-            
-            <div class="address-box">
-              <h3 style="margin-top: 0;">📍 Delivering to:</h3>
-              <p style="margin: 0;">
-                <strong>${data.shippingAddress.name}</strong><br>
-                📞 ${data.shippingAddress.phone}<br>
-                ${data.shippingAddress.address}<br>
-                ${data.shippingAddress.city}${data.shippingAddress.state ? `, ${data.shippingAddress.state}` : ''} ${data.shippingAddress.postalCode}
-              </p>
-            </div>
-            
-            <div class="cod-reminder">
-              💵 <strong>Please keep PKR ${data.total.toFixed(0)} ready for Cash on Delivery</strong>
-            </div>
-          </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
-          </div>
-        </div>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">🚚 Doctor Planet</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px;">
+                    <!-- Status Badge -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center">
+                          <div style="background: #8B5CF6; color: white; padding: 15px 30px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; font-size: 18px;">🚚 On the Way!</div>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <h2 style="text-align: center; color: #333;">Your order has been shipped!</h2>
+                    <p style="text-align: center;">Hi ${data.customerName}, great news! Your order <strong>#${data.orderNumber}</strong> is on its way to you.</p>
+                    
+                    <!-- Progress Steps -->
+                    <table width="100%" cellpadding="10" cellspacing="0" style="margin: 30px 0;">
+                      <tr>
+                        <!-- Step 1: Placed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Placed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 2: Confirmed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Confirmed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 3: Processing -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Processing</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 4: Shipped -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #8B5CF6; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">🚚</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666; font-weight: bold;">Shipped</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 5: Delivered -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e0e0e0; color: #999; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; margin-bottom: 8px;">5</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Delivered</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Delivery Address -->
+                    <table width="100%" cellpadding="20" cellspacing="0" style="background: #f0f0f0; border-radius: 10px; margin: 20px 0;">
+                      <tr>
+                        <td>
+                          <h3 style="margin-top: 0; color: #333;">📍 Delivering to:</h3>
+                          <p style="margin: 0;">
+                            <strong>${data.shippingAddress.name}</strong><br>
+                            📞 ${data.shippingAddress.phone}<br>
+                            ${data.shippingAddress.address}<br>
+                            ${data.shippingAddress.city}${data.shippingAddress.state ? `, ${data.shippingAddress.state}` : ''} ${data.shippingAddress.postalCode}
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- COD Reminder -->
+                    <table width="100%" cellpadding="15" cellspacing="0" style="background: #FEF3C7; border-radius: 10px; margin: 20px 0;">
+                      <tr>
+                        <td align="center">
+                          💵 <strong>Please keep PKR ${data.total.toFixed(0)} ready for Cash on Delivery</strong>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px;">
+                    <p style="margin: 0;">© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </body>
       </html>
     `,
@@ -334,57 +561,141 @@ const emailTemplates = {
       <html>
       <head>
         <meta charset="utf-8">
-        <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .header h1 { color: white; margin: 0; font-size: 28px; }
-          .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
-          .status-badge { background: #10B981; color: white; padding: 15px 30px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; font-size: 20px; }
-          .progress { display: flex; justify-content: space-between; margin: 30px 0; padding: 0 10px; }
-          .step { text-align: center; flex: 1; }
-          .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: bold; }
-          .step-label { font-size: 12px; color: #666; }
-          .thank-you { text-align: center; padding: 30px; background: #ECFDF5; border-radius: 10px; margin: 20px 0; }
-          .btn { display: inline-block; background: #8B0000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
-        </style>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>🎉 Doctor Planet</h1>
-          </div>
-          <div class="content">
-            <div style="text-align: center;">
-              <div class="status-badge">✓ Delivered!</div>
-            </div>
-            
-            <h2 style="text-align: center;">Your order has been delivered!</h2>
-            <p style="text-align: center;">Hi ${data.customerName}, your order <strong>#${data.orderNumber}</strong> has been successfully delivered.</p>
-            
-            <div class="progress">
-              <div class="step"><div class="step-circle">✓</div><div class="step-label">Placed</div></div>
-              <div class="step"><div class="step-circle">✓</div><div class="step-label">Confirmed</div></div>
-              <div class="step"><div class="step-circle">✓</div><div class="step-label">Processing</div></div>
-              <div class="step"><div class="step-circle">✓</div><div class="step-label">Shipped</div></div>
-              <div class="step"><div class="step-circle">✓</div><div class="step-label">Delivered</div></div>
-            </div>
-            
-            <div class="thank-you">
-              <h3 style="margin: 0 0 10px; color: #059669;">Thank you for shopping with us! 🙏</h3>
-              <p style="margin: 0; color: #666;">We hope you love your new medical apparel!</p>
-            </div>
-            
-            <p style="text-align: center;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/products" class="btn">Shop Again</a>
-            </p>
-          </div>
-          <div class="footer">
-            <p>Questions? Contact us anytime.</p>
-            <p>© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
-          </div>
-        </div>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Doctor Planet</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 30px;">
+                    <!-- Status Badge -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center">
+                          <div style="background: #10B981; color: white; padding: 15px 30px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; font-size: 20px;">✓ Delivered!</div>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <h2 style="text-align: center; color: #333;">Your order has been delivered!</h2>
+                    <p style="text-align: center;">Hi ${data.customerName}, your order <strong>#${data.orderNumber}</strong> has been successfully delivered.</p>
+                    
+                    <!-- Progress Steps - All Complete -->
+                    <table width="100%" cellpadding="10" cellspacing="0" style="margin: 30px 0;">
+                      <tr>
+                        <!-- Step 1: Placed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Placed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 2: Confirmed -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Confirmed</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 3: Processing -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Processing</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 4: Shipped -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666;">Shipped</td>
+                            </tr>
+                          </table>
+                        </td>
+                        
+                        <!-- Step 5: Delivered -->
+                        <td width="20%" align="center" style="padding: 5px;">
+                          <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                              <td align="center">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #10B981; color: white; display: inline-block; text-align: center; line-height: 40px; font-weight: bold; font-size: 18px; margin-bottom: 8px;">✓</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td align="center" style="font-size: 12px; color: #666; font-weight: bold;">Delivered</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Thank You Section -->
+                    <table width="100%" cellpadding="30" cellspacing="0" style="background: #ECFDF5; border-radius: 10px; margin: 20px 0;">
+                      <tr>
+                        <td align="center">
+                          <h3 style="margin: 0 0 10px; color: #059669;">Thank you for shopping with us! 🙏</h3>
+                          <p style="margin: 0; color: #666;">We hope you love your new medical apparel!</p>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Shop Again Button -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center" style="padding: 20px 0;">
+                          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/products" style="display: inline-block; background: #8B0000; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Shop Again</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px;">
+                    <p style="margin: 5px 0;">Questions? Contact us anytime.</p>
+                    <p style="margin: 5px 0;">© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </body>
       </html>
     `,
