@@ -144,7 +144,7 @@ export default function TestimonialsSection() {
         >
           <div className="flex items-center justify-center gap-2 text-primary-400 font-medium text-xs sm:text-sm uppercase tracking-wider mb-1 sm:mb-2">
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Testimonials
+            Happy Doctors
           </div>
           <h2 className="text-xl sm:text-3xl md:text-4xl font-heading font-bold text-white mb-2 sm:mb-4">
             What Our Customers Say
