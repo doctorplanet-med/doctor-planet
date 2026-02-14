@@ -229,17 +229,6 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                   </div>
                 </motion.div>
               )}
-              {product.stock < 10 && product.stock > 0 && (
-                <motion.div
-                  initial={{ x: -50, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, type: 'spring' }}
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1"
-                >
-                  <TrendingUp className="w-2.5 h-2.5" />
-                  Low Stock
-                </motion.div>
-              )}
               {product.stock === 0 && (
                 <span className="bg-gradient-to-r from-secondary-700 to-secondary-600 text-white text-[9px] sm:text-xs font-bold px-2 py-1 sm:px-2.5 sm:py-1 rounded-full shadow-lg">
                   Sold Out

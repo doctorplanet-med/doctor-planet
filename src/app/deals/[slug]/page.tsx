@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cart-store'
+import RichTextDisplay from '@/components/rich-text-display'
 
 interface Product {
   id: string
@@ -289,7 +290,9 @@ export default function DealDetailPage() {
                 </div>
                 <h1 className="text-lg sm:text-4xl font-bold mb-1 sm:mb-2">{deal.name}</h1>
                 {deal.description && (
-                  <p className="text-primary-100 text-xs sm:text-base max-w-2xl line-clamp-2 sm:line-clamp-none">{deal.description}</p>
+                  <div className="text-primary-100 text-xs sm:text-base max-w-2xl line-clamp-2 sm:line-clamp-none">
+                    <RichTextDisplay content={deal.description} />
+                  </div>
                 )}
               </div>
               

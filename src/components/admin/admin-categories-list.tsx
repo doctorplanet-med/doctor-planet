@@ -15,6 +15,8 @@ import {
   Link as LinkIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import RichTextEditor from '@/components/admin/rich-text-editor'
+import RichTextDisplay from '@/components/rich-text-display'
 
 interface Category {
   id: string
@@ -224,9 +226,9 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
               <h3 className="font-heading font-semibold text-lg text-secondary-900">
                 {category.name}
               </h3>
-              <p className="text-sm text-secondary-500 mt-1 line-clamp-2">
-                {category.description || 'No description'}
-              </p>
+              <div className="text-sm text-secondary-500 mt-1 line-clamp-2">
+                <RichTextDisplay content={category.description || 'No description'} />
+              </div>
               <div className="flex items-center justify-between mt-4">
                 <span className="text-sm text-primary-600 font-medium">
                   {category._count.products} products
@@ -326,12 +328,10 @@ export default function AdminCategoriesList({ categories: initialCategories }: A
                   <label className="block text-sm font-medium text-secondary-700 mb-2">
                     Description
                   </label>
-                  <textarea
+                  <RichTextEditor
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(value) => setFormData({ ...formData, description: value })}
                     placeholder="Category description..."
-                    rows={3}
-                    className="input-field resize-none"
                   />
                 </div>
 

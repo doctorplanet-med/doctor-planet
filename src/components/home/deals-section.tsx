@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Tag, ArrowRight, Package, Clock, Flame } from 'lucide-react'
+import RichTextDisplay from '@/components/rich-text-display'
 
 interface Product {
   id: string
@@ -171,9 +172,9 @@ export default function DealsSection() {
                       </h3>
                       
                       {deal.description && (
-                        <p className="text-sm text-secondary-500 mb-3 line-clamp-2">
-                          {deal.description}
-                        </p>
+                        <div className="text-sm text-secondary-500 mb-3 line-clamp-2">
+                          <RichTextDisplay content={deal.description} />
+                        </div>
                       )}
 
                       {/* Products included */}

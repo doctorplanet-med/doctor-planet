@@ -19,6 +19,8 @@ import {
   ImageIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import RichTextEditor from '@/components/admin/rich-text-editor'
+import RichTextDisplay from '@/components/rich-text-display'
 
 interface Product {
   id: string
@@ -383,7 +385,9 @@ export default function AdminDealsPage() {
                 <div className="p-4">
                   <h3 className="font-bold text-secondary-900 mb-2">{deal.name}</h3>
                   {deal.description && (
-                    <p className="text-sm text-secondary-500 mb-3 line-clamp-2">{deal.description}</p>
+                    <div className="text-sm text-secondary-500 mb-3 line-clamp-2">
+                      <RichTextDisplay content={deal.description} />
+                    </div>
                   )}
 
                   {/* Products in deal */}
@@ -506,12 +510,10 @@ export default function AdminDealsPage() {
                   <label className="block text-sm font-medium text-secondary-700 mb-2">
                     Description
                   </label>
-                  <textarea
+                  <RichTextEditor
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(value) => setFormData({ ...formData, description: value })}
                     placeholder="Describe what's included in this deal..."
-                    rows={2}
-                    className="w-full px-4 py-2 border border-secondary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 

@@ -27,6 +27,7 @@ import { useSession } from 'next-auth/react'
 import { useCartStore } from '@/store/cart-store'
 import { useWishlistStore } from '@/store/wishlist-store'
 import ProductCard from './product-card'
+import RichTextDisplay from '@/components/rich-text-display'
 
 interface Product {
   id: string
@@ -213,7 +214,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
 
   const currentStock = getCurrentStock()
   const canAddToCart = hasVariantStock 
-    ? (selectedColor && (selectedSize || wantsCustomization) && currentStock > 0)
+    ? (selectedColor && selectedSize && (selectedSize !== 'Custom' ? currentStock > 0 : true))
     : product.stock > 0
 
   const updateCustomizationField = (categoryName: string, optionName: string, value: string) => {
@@ -346,11 +347,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                     -{discount}% OFF
                   </span>
                 )}
-                {product.stock < 10 && product.stock > 0 && (
-                  <span className="bg-amber-500 text-white text-[10px] sm:text-sm font-semibold px-2 py-0.5 sm:px-4 sm:py-1.5 rounded-full">
-                    Low Stock
-                  </span>
-                )}
               </div>
 
               {/* Actions */}
@@ -409,6 +405,16 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 ))}
               </div>
             )}
+            
+            {/* Description - Moved to left column */}
+            <div className="mt-6 sm:mt-8">
+              <h2 className="text-lg sm:text-xl font-heading font-semibold text-secondary-900 mb-3 sm:mb-4">
+                Product Description
+              </h2>
+              <div className="text-secondary-600 text-sm sm:text-base leading-relaxed">
+                <RichTextDisplay content={product.description} />
+              </div>
+            </div>
           </motion.div>
 
           {/* Product Info */}
@@ -479,56 +485,9 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               )}
             </div>
 
-            {/* Description */}
-            <p className="text-secondary-600 text-sm sm:text-base leading-relaxed mb-5 sm:mb-8">
-              {product.description}
-            </p>
-
-            {/* Size Selection */}
-            {sizes.length > 0 && (
-              <div className="mb-4 sm:mb-6">
-                <label className="block text-sm sm:text-base font-medium text-secondary-900 mb-2 sm:mb-3">
-                  Size {selectedSize && <span className="text-primary-600">: {selectedSize}</span>}
-                  {wantsCustomization && (
-                    <span className="text-xs sm:text-sm text-primary-600 font-normal ml-1 sm:ml-2">
-                      (Optional - using custom measurements)
-                    </span>
-                  )}
-                </label>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {sizes.map((size: string) => {
-                    const sizeStock = hasVariantStock ? getSizeStock(size) : null
-                    const isAvailable = hasVariantStock ? isSizeAvailable(size) : true
-                    
-                    return (
-                      <motion.button
-                        key={size}
-                        onClick={() => handleSizeSelect(size)}
-                        disabled={hasVariantStock && !isAvailable}
-                        whileHover={isAvailable ? { scale: 1.05 } : {}}
-                        whileTap={isAvailable ? { scale: 0.95 } : {}}
-                        className={`relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border-2 text-sm sm:text-base font-medium transition-all ${
-                          !isAvailable
-                            ? 'border-secondary-200 bg-secondary-100 text-secondary-400 cursor-not-allowed line-through'
-                            : selectedSize === size
-                            ? 'border-primary-600 bg-primary-50 text-primary-600'
-                            : 'border-secondary-200 text-secondary-700 hover:border-primary-300'
-                        }`}
-                      >
-                        <span>{size}</span>
-                      </motion.button>
-                    )
-                  })}
-                </div>
-                {hasVariantStock && !selectedColor && (
-                  <p className="text-sm text-amber-600 mt-2">Select a color first to see size availability</p>
-                )}
-              </div>
-            )}
-
             {/* Color Selection */}
             {colors.length > 0 && (
-              <div className="mb-5 sm:mb-8">
+              <div className="mb-4 sm:mb-6">
                 <label className="block text-sm sm:text-base font-medium text-secondary-900 mb-2 sm:mb-3">
                   Color: <span className="text-primary-600">{selectedColor}</span>
                 </label>
@@ -577,6 +536,66 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </div>
             )}
 
+            {/* Size Selection */}
+            {sizes.length > 0 && (
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-sm sm:text-base font-medium text-secondary-900 mb-2 sm:mb-3">
+                  Size {selectedSize && <span className="text-primary-600">: {selectedSize}</span>}
+                </label>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                  {sizes.map((size: string) => {
+                    const sizeStock = hasVariantStock ? getSizeStock(size) : null
+                    const isAvailable = hasVariantStock ? isSizeAvailable(size) : true
+                    
+                    return (
+                      <motion.button
+                        key={size}
+                        onClick={() => handleSizeSelect(size)}
+                        disabled={hasVariantStock && !isAvailable}
+                        whileHover={isAvailable ? { scale: 1.05 } : {}}
+                        whileTap={isAvailable ? { scale: 0.95 } : {}}
+                        className={`relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border-2 text-sm sm:text-base font-medium transition-all ${
+                          !isAvailable
+                            ? 'border-secondary-200 bg-secondary-100 text-secondary-400 cursor-not-allowed line-through'
+                            : selectedSize === size
+                            ? 'border-primary-600 bg-primary-50 text-primary-600'
+                            : 'border-secondary-200 text-secondary-700 hover:border-primary-300'
+                        }`}
+                      >
+                        <span>{size}</span>
+                      </motion.button>
+                    )
+                  })}
+                  
+                  {/* Add "Custom" option if product has customization */}
+                  {product.hasCustomization && product.customizationCategories && product.customizationCategories.length > 0 && (
+                    <motion.button
+                      key="custom"
+                      onClick={() => {
+                        setSelectedSize('Custom')
+                        setWantsCustomization(true)
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border-2 text-sm sm:text-base font-medium transition-all ${
+                        selectedSize === 'Custom'
+                          ? 'border-primary-600 bg-primary-50 text-primary-600'
+                          : 'border-secondary-200 text-secondary-700 hover:border-primary-300'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        <Sliders className="w-3 h-3 sm:w-4 sm:h-4" />
+                        Custom
+                      </span>
+                    </motion.button>
+                  )}
+                </div>
+                {hasVariantStock && !selectedColor && (
+                  <p className="text-sm text-amber-600 mt-2">Select a color first to see size availability</p>
+                )}
+              </div>
+            )}
+
             {/* Quantity and Add to Cart */}
             <div className="flex items-center gap-2 sm:gap-4 mb-5 sm:mb-8">
               <div className="flex items-center border-2 border-secondary-200 rounded-lg sm:rounded-xl overflow-hidden shrink-0">
@@ -615,28 +634,13 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </motion.button>
             </div>
 
-            {/* Selection Reminder */}
-            {hasVariantStock && sizes.length > 0 && (!selectedColor || (!selectedSize && !wantsCustomization)) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-2.5 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl mb-5 sm:mb-8"
-              >
-                <p className="text-amber-800 text-xs sm:text-sm">
-                  {!selectedColor 
-                    ? 'Please select a color to continue'
-                    : 'Please select a size or enable customization to continue'}
-                </p>
-              </motion.div>
-            )}
-
-            {/* Customization Options */}
-            {product.hasCustomization && product.customizationCategories && product.customizationCategories.length > 0 && (
+            {/* Customization Options - Show only when Custom size is selected */}
+            {product.hasCustomization && product.customizationCategories && product.customizationCategories.length > 0 && selectedSize === 'Custom' && (
               <div className="mb-5 sm:mb-8 p-4 sm:p-6 bg-primary-50/50 border-2 border-primary-200 rounded-xl sm:rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base sm:text-lg font-semibold text-secondary-900 flex items-center gap-2">
                     <Sliders className="w-5 h-5 text-primary-600" />
-                    Customize This Product
+                    Custom Measurements
                   </h3>
                   {product.customizationPrice && (
                     <span className="text-sm sm:text-base font-semibold text-primary-600">
@@ -644,72 +648,40 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                     </span>
                   )}
                 </div>
-                <label className="flex items-center gap-3 cursor-pointer mb-4 p-3 bg-white rounded-lg border border-primary-200">
-                  <input
-                    type="checkbox"
-                    checked={wantsCustomization}
-                    onChange={(e) => {
-                      setWantsCustomization(e.target.checked)
-                      if (!e.target.checked) {
-                        setCustomizationData({})
-                      } else {
-                        // Clear size selection when customization is enabled (optional)
-                        setSelectedSize(null)
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm sm:text-base text-secondary-700">
-                      I want this product customized
-                      {product.customizationPrice && (
-                        <span className="text-primary-600 font-medium ml-1">
-                          (+PKR {product.customizationPrice.toLocaleString()})
-                        </span>
-                      )}
-                    </span>
-                    {sizes.length > 0 && (
-                      <p className="text-xs text-secondary-500 mt-0.5">
-                        Size selection is optional when using custom measurements
-                      </p>
-                    )}
-                  </div>
-                </label>
-                {wantsCustomization && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4"
-                  >
-                    <p className="text-xs sm:text-sm text-secondary-600 mb-3">
-                      Enter your measurements (in inches) for each field:
-                    </p>
-                    {product.customizationCategories.map((category) => (
-                      <div key={category.id} className="p-3 sm:p-4 bg-white rounded-lg border border-secondary-200">
-                        <h4 className="text-sm sm:text-base font-semibold text-secondary-900 mb-3">
-                          {category.name}
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {category.options.map((option) => (
-                            <div key={option.id}>
-                              <label className="block text-xs sm:text-sm font-medium text-secondary-700 mb-1.5">
-                                {option.name}
-                              </label>
-                              <input
-                                type="text"
-                                value={customizationData[category.name]?.[option.name] || ''}
-                                onChange={(e) => updateCustomizationField(category.name, option.name, e.target.value)}
-                                placeholder="e.g. 42"
-                                className="w-full px-3 py-2 text-sm border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                              />
-                            </div>
-                          ))}
-                        </div>
+                
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-xs sm:text-sm text-secondary-600 mb-3">
+                    Enter your measurements (in inches) for each field:
+                  </p>
+                  {product.customizationCategories.map((category) => (
+                    <div key={category.id} className="p-3 sm:p-4 bg-white rounded-lg border border-secondary-200">
+                      <h4 className="text-sm sm:text-base font-semibold text-secondary-900 mb-3">
+                        {category.name}
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {category.options.map((option) => (
+                          <div key={option.id}>
+                            <label className="block text-xs sm:text-sm font-medium text-secondary-700 mb-1.5">
+                              {option.name}
+                            </label>
+                            <input
+                              type="text"
+                              value={customizationData[category.name]?.[option.name] || ''}
+                              onChange={(e) => updateCustomizationField(category.name, option.name, e.target.value)}
+                              placeholder="e.g. 42"
+                              className="w-full px-3 py-2 text-sm border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </motion.div>
-                )}
+                    </div>
+                  ))}
+                </motion.div>
               </div>
             )}
 
@@ -731,7 +703,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
 
             {/* Size Chart - only when product has a size chart image */}
             {product.sizeChartImage && (
-              <div className="mt-5 sm:mt-6">
+              <div className="mt-5 sm:mt-6 mb-5 sm:mb-8">
                 <button
                   type="button"
                   onClick={() => setSizeChartOpen(true)}

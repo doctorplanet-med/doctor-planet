@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { uploadToFirebase } from '@/lib/upload'
+import RichTextEditor from '@/components/admin/rich-text-editor'
 
 interface Category {
   id: string
@@ -395,12 +396,10 @@ export default function AddProductPage() {
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
                   Description *
                 </label>
-                <textarea
+                <RichTextEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe your product..."
-                  rows={4}
-                  className="input-field resize-none"
+                  onChange={(value) => setFormData({ ...formData, description: value })}
+                  placeholder="Describe your product... Use the toolbar to add formatting, bullets, numbering, etc."
                   required
                 />
               </div>

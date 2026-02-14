@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 import { ArrowRight, Sparkles, ChevronLeft, ChevronRight, Shirt, Footprints, Stethoscope, Package, Eye } from 'lucide-react'
+import RichTextDisplay from '@/components/rich-text-display'
 
 interface Category {
   id: string
@@ -199,9 +200,11 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
                           {category.name}
                         </h3>
                         
-                        <p className="text-white/70 text-sm lg:text-base mb-4 line-clamp-2 group-hover:text-white/90 transition-colors">
-                          {category.description || 'Explore our premium collection of professional medical wear.'}
-                        </p>
+                        <div className="text-white/70 text-sm lg:text-base mb-4 line-clamp-2 group-hover:text-white/90 transition-colors">
+                          <RichTextDisplay 
+                            content={category.description || 'Explore our premium collection of professional medical wear.'} 
+                          />
+                        </div>
                         
                         <motion.div
                           className="inline-flex items-center gap-2 text-white font-semibold"
