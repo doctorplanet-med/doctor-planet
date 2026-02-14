@@ -248,6 +248,39 @@ export default function EditProductPage() {
     setImages(images.filter((_, i) => i !== index))
   }
 
+  const handleSizeChartUpload = async (file: File | null) => {
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPG, PNG or WebP')
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large (max 5MB)')
+      return
+    }
+
+    setIsUploadingSizeChart(true)
+    try {
+      const url = await uploadToFirebase(file, 'size-charts')
+      setSizeChartImage(url)
+      toast.success('Size chart uploaded successfully')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload size chart')
+    } finally {
+      setIsUploadingSizeChart(false)
+    }
+  }
+
+  const removeSizeChart = () => {
+    setSizeChartImage('')
+    toast.success('Size chart removed')
+  }
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -663,50 +696,68 @@ export default function EditProductPage() {
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 Size Chart Image (optional)
               </label>
-              <p className="text-xs text-secondary-500 mb-2">
-                Add an image URL or upload a size chart. It will show as &quot;View Size Chart&quot; on the product page.
+              <p className="text-xs text-secondary-500 mb-3">
+                Upload a size chart image to help customers choose the right size
               </p>
-              <div className="flex gap-2 flex-wrap">
-                <input
-                  type="url"
-                  value={sizeChartImage}
-                  onChange={(e) => setSizeChartImage(e.target.value)}
-                  placeholder="https://... or upload below"
-                  className="input-field flex-1 min-w-[200px]"
-                />
-                <label className="btn-secondary cursor-pointer inline-flex items-center gap-2 whitespace-nowrap">
-                  <Upload className="w-4 h-4" />
-                  {isUploadingSizeChart ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Upload'}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                    className="sr-only"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0]
-                      if (!file) return
-                      setIsUploadingSizeChart(true)
-                      try {
-                        const url = await uploadToFirebase(file, 'products')
-                        setSizeChartImage(url)
-                        toast.success('Size chart image uploaded')
-                      } catch (err: unknown) {
-                        toast.error(err instanceof Error ? err.message : 'Upload failed')
-                      } finally {
-                        setIsUploadingSizeChart(false)
-                        e.target.value = ''
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-              {sizeChartImage && (
-                <div className="mt-3 relative w-40 h-24 rounded-lg overflow-hidden bg-secondary-100">
-                  <Image
-                    src={sizeChartImage}
-                    alt="Size chart preview"
-                    fill
-                    className="object-contain"
-                  />
+              
+              {!sizeChartImage ? (
+                <div>
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => handleSizeChartUpload(e.target.files?.[0] || null)}
+                      className="hidden"
+                      id="editSizeChartInput"
+                    />
+                    <div
+                      onClick={() => document.getElementById('editSizeChartInput')?.click()}
+                      className="border-2 border-dashed border-secondary-300 rounded-xl p-6 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50/50 transition-colors"
+                    >
+                      {isUploadingSizeChart ? (
+                        <div className="flex flex-col items-center">
+                          <Loader2 className="w-8 h-8 text-primary-600 animate-spin mb-2" />
+                          <p className="text-secondary-600 text-sm">Uploading...</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mb-3">
+                            <Upload className="w-6 h-6 text-primary-600" />
+                          </div>
+                          <p className="text-secondary-900 font-medium mb-1">
+                            Click to upload size chart
+                          </p>
+                          <p className="text-xs text-secondary-500">
+                            PNG, JPG or WebP (max 5MB)
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative rounded-xl overflow-hidden bg-secondary-100 border-2 border-secondary-200">
+                    <div className="relative w-full" style={{ minHeight: '200px' }}>
+                      <Image
+                        src={sizeChartImage}
+                        alt="Size Chart"
+                        width={600}
+                        height={400}
+                        className="w-full h-auto"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeSizeChart}
+                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-secondary-500">
+                    This size chart will be shown to customers on the product page
+                  </p>
                 </div>
               )}
             </div>

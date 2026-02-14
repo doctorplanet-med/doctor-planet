@@ -21,6 +21,7 @@ import {
   Ruler,
   X,
   Sliders,
+  Image as ImageIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSession } from 'next-auth/react'
@@ -84,6 +85,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   const [selectedColor, setSelectedColor] = useState(colors[0] || null)
   const [quantity, setQuantity] = useState(1)
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
+  const [sizeChartOpen, setSizeChartOpen] = useState(false)
   const [imageAnimationKey, setImageAnimationKey] = useState(0)
   const [sizeChartOpen, setSizeChartOpen] = useState(false)
   // Customization state
@@ -539,9 +541,21 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
             {/* Size Selection */}
             {sizes.length > 0 && (
               <div className="mb-4 sm:mb-6">
-                <label className="block text-sm sm:text-base font-medium text-secondary-900 mb-2 sm:mb-3">
-                  Size {selectedSize && <span className="text-primary-600">: {selectedSize}</span>}
-                </label>
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <label className="block text-sm sm:text-base font-medium text-secondary-900">
+                    Size {selectedSize && <span className="text-primary-600">: {selectedSize}</span>}
+                  </label>
+                  {product.sizeChartImage && (
+                    <button
+                      type="button"
+                      onClick={() => setSizeChartOpen(true)}
+                      className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 transition-colors"
+                    >
+                      <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                      View Size Chart
+                    </button>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {sizes.map((size: string) => {
                     const sizeStock = hasVariantStock ? getSizeStock(size) : null
