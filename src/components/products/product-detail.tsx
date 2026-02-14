@@ -87,7 +87,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const [sizeChartOpen, setSizeChartOpen] = useState(false)
   const [imageAnimationKey, setImageAnimationKey] = useState(0)
-  const [sizeChartOpen, setSizeChartOpen] = useState(false)
   // Customization state
   const [wantsCustomization, setWantsCustomization] = useState(false)
   const [customizationData, setCustomizationData] = useState<Record<string, Record<string, string>>>({})
