@@ -167,11 +167,11 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
           <TrendingUp className="w-10 h-10 text-white/25" />
         </motion.div>
 
-        {/* Banner area - z-10 so it stays above category circles when scrolling. Large screen size matches admin: 1600×900 (16:9, max 900px height). */}
+        {/* Banner area - z-10 so it stays above category circles when scrolling. On small screens pt-14 clears fixed navbar. */}
         <div
-          className="relative z-10 pt-0 sm:pt-20 sm:min-h-[40vh] lg:min-h-0"
+          className="relative z-10 pt-14 sm:pt-20 sm:min-h-[40vh] lg:min-h-0"
         >
-          <motion.div className="relative min-h-0 sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-6 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
+          <motion.div className="relative min-h-0 sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-4 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
           {/* Clickable image - on mobile: larger, subtle corners; from sm: rounded card */}
           {current && (
             <AnimatePresence mode="wait" initial={false}>
@@ -295,7 +295,7 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
         </div>
 
         {/* Children (e.g. category circles) sit on same gradient, below banner in stack */}
-        <div className="relative z-0">
+        <div className="relative z-0 pt-3 sm:pt-4">
           {children}
         </div>
       </div>
