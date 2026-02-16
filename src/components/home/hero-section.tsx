@@ -171,7 +171,7 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
         <div
           className="relative z-10 pt-0 sm:pt-20 sm:min-h-[40vh] lg:min-h-0"
         >
-          <motion.div className="relative min-h-0 max-sm:min-h-[80vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-12 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
+          <motion.div className="relative min-h-0 max-sm:min-h-[52vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-6 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
           {/* Clickable image - on mobile: larger, subtle corners; from sm: rounded card */}
           {current && (
             <AnimatePresence mode="wait" initial={false}>
@@ -207,7 +207,7 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
                     {/* Shine effect on hover */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none z-10" />
                     {/* Mobile: 2:3 (e.g. 800×1200); tablet: 16:9, 38vh; large: 16:9, max height 560px (matches admin recommendation) */}
-                    <div className="relative w-full aspect-[2/3] max-sm:max-w-[400px] max-sm:max-h-[600px] sm:aspect-[16/9] sm:max-h-[38vh] lg:aspect-[16/9] lg:max-h-[560px] max-w-[calc(100%-1rem)] sm:max-w-none mx-auto bg-secondary-100 overflow-hidden rounded-2xl sm:rounded-3xl">
+                    <div className="relative w-full aspect-[2/3] max-sm:max-w-[300px] max-sm:max-h-[420px] sm:aspect-[16/9] sm:max-h-[38vh] lg:aspect-[16/9] lg:max-h-[560px] max-w-[calc(100%-1rem)] sm:max-w-none mx-auto bg-secondary-100 overflow-hidden rounded-2xl sm:rounded-3xl">
                       <motion.picture
                         className="block size-full"
                         initial={{ scale: 1.1 }}
