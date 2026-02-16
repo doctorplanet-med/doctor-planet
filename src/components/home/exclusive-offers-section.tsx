@@ -24,15 +24,20 @@ interface ExclusiveOffersSectionProps {
   products: Product[]
 }
 
+const CARD_WIDTH_DESKTOP = 280
+const SCROLL_AMOUNT = 320
+
 export default function ExclusiveOffersSection({ products }: ExclusiveOffersSectionProps) {
   const sectionRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollRefDesktop = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-50px' })
 
   const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = direction === 'left' ? -320 : 320
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    const el = scrollRef.current ?? scrollRefDesktop.current
+    if (el) {
+      const amount = direction === 'left' ? -SCROLL_AMOUNT : SCROLL_AMOUNT
+      el.scrollBy({ left: amount, behavior: 'smooth' })
     }
   }
 
@@ -104,24 +109,45 @@ export default function ExclusiveOffersSection({ products }: ExclusiveOffersSect
           </div>
         </div>
 
-        {/* Desktop: grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4 }}
-          className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {products.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: index * 0.06 }}
+        {/* Desktop (lg): horizontal scroll with left/right buttons */}
+        <div className="hidden sm:block relative">
+          <div
+            ref={scrollRefDesktop}
+            className="flex gap-6 overflow-x-auto overflow-y-hidden pb-4 hide-scrollbar scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {products.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: index * 0.06 }}
+                className="flex-shrink-0"
+                style={{ minWidth: CARD_WIDTH_DESKTOP, maxWidth: CARD_WIDTH_DESKTOP }}
+              >
+                <ProductCard product={product} index={index} />
+              </motion.div>
+            ))}
+          </div>
+          <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between pointer-events-none py-4 -mx-2">
+            <button
+              type="button"
+              onClick={() => scroll('left')}
+              className="pointer-events-auto w-10 h-10 rounded-full bg-white/95 shadow-lg border border-secondary-200 flex items-center justify-center text-secondary-700 hover:bg-primary-600 hover:text-white hover:border-primary-500 transition-colors"
+              aria-label="Scroll left"
             >
-              <ProductCard product={product} index={index} />
-            </motion.div>
-          ))}
-        </motion.div>
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              className="pointer-events-auto w-10 h-10 rounded-full bg-white/95 shadow-lg border border-secondary-200 flex items-center justify-center text-secondary-700 hover:bg-primary-600 hover:text-white hover:border-primary-500 transition-colors"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   )
