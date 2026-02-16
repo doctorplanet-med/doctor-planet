@@ -77,4 +77,4 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true, // Required in production so session cookies work (e.g. www.doctorplanet.pk)
-}
+} as NextAuthOptions
