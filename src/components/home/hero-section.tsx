@@ -167,11 +167,11 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
           <TrendingUp className="w-10 h-10 text-white/25" />
         </motion.div>
 
-        {/* Banner area - z-10 so it stays above category circles when scrolling */}
+        {/* Banner area - z-10 so it stays above category circles when scrolling. Large screen size matches admin: 1600×900 (16:9, max 900px height). */}
         <div
-          className="relative z-10 pt-0 sm:pt-20 sm:min-h-[40vh] lg:min-h-[70vh]"
+          className="relative z-10 pt-0 sm:pt-20 sm:min-h-[40vh] lg:min-h-0"
         >
-          <motion.div className="relative min-h-0 max-sm:min-h-[80vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-[70vh] lg:h-[70vh] max-h-[900px] h-auto flex items-start justify-center pt-12 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
+          <motion.div className="relative min-h-0 max-sm:min-h-[80vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-12 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
           {/* Clickable image - on mobile: larger, subtle corners; from sm: rounded card */}
           {current && (
             <AnimatePresence mode="wait" initial={false}>
@@ -206,8 +206,8 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
                   >
                     {/* Shine effect on hover */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none z-10" />
-                    {/* Below 640: fixed 400×600 (2:3); tablet: 40vh; lg: 16:9, 68vh */}
-                    <div className="relative w-full aspect-[2/3] max-sm:max-w-[400px] max-sm:max-h-[600px] sm:aspect-[16/9] sm:max-h-[38vh] lg:max-h-[68vh] max-h-[70vh] max-w-[calc(100%-1rem)] sm:max-w-none mx-auto bg-secondary-100 overflow-hidden rounded-2xl sm:rounded-3xl">
+                    {/* Mobile: 2:3 (e.g. 800×1200); tablet: 16:9, 38vh; large: 16:9, max height 560px (matches admin recommendation) */}
+                    <div className="relative w-full aspect-[2/3] max-sm:max-w-[400px] max-sm:max-h-[600px] sm:aspect-[16/9] sm:max-h-[38vh] lg:aspect-[16/9] lg:max-h-[560px] max-w-[calc(100%-1rem)] sm:max-w-none mx-auto bg-secondary-100 overflow-hidden rounded-2xl sm:rounded-3xl">
                       <motion.picture
                         className="block size-full"
                         initial={{ scale: 1.1 }}

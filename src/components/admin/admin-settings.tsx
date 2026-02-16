@@ -782,7 +782,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                 <div className="rounded-lg bg-secondary-100 p-3 text-sm text-secondary-700">
                   <p className="font-medium mb-1">Banner image sizes</p>
                   <p><strong>Small screens (mobile):</strong> Use a <strong>tall/portrait</strong> image (e.g. 800×1200px).</p>
-                  <p><strong>Large screens (desktop):</strong> Use a <strong>wide/landscape</strong> image (e.g. 1600×900px).</p>
+                  <p><strong>Large screens (desktop):</strong> Use a <strong>wide/landscape</strong> image. Recommended size: <strong>1600×560px</strong> (width × height; max height on site is 560px).</p>
                   <p className="mt-1">You must add <strong>two images per banner</strong> — one for small and one for large. You can paste a URL or upload from your device.</p>
                 </div>
 

@@ -785,9 +785,15 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
             <h2 className="text-lg sm:text-2xl font-heading font-bold text-secondary-900 mb-5 sm:mb-8">
               Related Products
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Mobile: horizontal left-right scroll; Desktop: grid */}
+            <div className="flex overflow-x-auto gap-4 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 sm:overflow-visible snap-x snap-mandatory hide-scrollbar">
               {relatedProducts.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
+                <div
+                  key={product.id}
+                  className="flex-shrink-0 w-[44vw] min-w-[140px] max-w-[180px] sm:w-auto sm:min-w-0 sm:max-w-none snap-center"
+                >
+                  <ProductCard product={product} index={index} compact />
+                </div>
               ))}
             </div>
           </motion.section>

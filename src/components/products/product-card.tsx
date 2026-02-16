@@ -28,6 +28,8 @@ interface Product {
 interface ProductCardProps {
   product: Product
   index?: number
+  /** When true, renders a smaller card for horizontal scroll strips (e.g. related products) */
+  compact?: boolean
 }
 
 function parseImages(imagesJson: string): string[] {
@@ -39,7 +41,7 @@ function parseImages(imagesJson: string): string[] {
   }
 }
 
-export default function ProductCard({ product, index = 0 }: ProductCardProps) {
+export default function ProductCard({ product, index = 0, compact = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const [imageIndex, setImageIndex] = useState(0)
@@ -131,19 +133,21 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      initial={{ opacity: 0, y: compact ? 10 : 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ 
-        duration: 0.5, 
-        delay: index * 0.08,
+      transition={{
+        duration: compact ? 0.3 : 0.5,
+        delay: compact ? index * 0.04 : index * 0.08,
         ease: [0.25, 0.46, 0.45, 0.94]
       }}
-      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+      whileHover={compact ? {} : { y: -8, transition: { duration: 0.3 } }}
       className="group relative"
     >
       <Link href={`/products/${product.slug}`}>
         <motion.div
-          className="relative bg-gradient-to-br from-white to-secondary-50/30 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500"
+          className={`relative bg-gradient-to-br from-white to-secondary-50/30 overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 ${
+            compact ? 'rounded-xl' : 'rounded-2xl sm:rounded-3xl'
+          }`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -157,7 +161,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           />
 
           {/* Image Container */}
-          <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary-100 to-secondary-50">
+          <div
+            className={`relative overflow-hidden bg-gradient-to-br from-secondary-100 to-secondary-50 ${
+              compact ? 'aspect-[3/4]' : 'aspect-[3/4] sm:aspect-[4/5]'
+            }`}
+          >
             {/* Animated Background Glow */}
             <motion.div
               className="absolute inset-0 bg-gradient-to-tr from-primary-500/20 via-transparent to-primary-300/20"
@@ -179,7 +187,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                   src={mainImage}
                   alt={product.name}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes={compact ? '(max-width: 640px) 44vw, 25vw' : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'}
                   className="object-cover"
                   priority={index < 4}
                 />
@@ -214,7 +222,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             )}
 
             {/* Badges - Top Left */}
-            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-col gap-1.5 z-10">
+            <div className={`absolute flex flex-col gap-1 z-10 ${compact ? 'top-1.5 left-1.5' : 'top-2 sm:top-3 left-2 sm:left-3 gap-1.5'}`}>
               {discount > 0 && (
                 <motion.div
                   initial={{ x: -50, opacity: 0 }}
@@ -223,14 +231,18 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                   className="relative"
                 >
                   <div className="absolute inset-0 bg-red-500 blur-md opacity-50" />
-                  <div className="relative bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] sm:text-xs font-black px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-xl flex items-center gap-1">
-                    <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
+                  <div className={`relative bg-gradient-to-r from-red-600 to-red-500 text-white font-black rounded-full shadow-xl flex items-center gap-0.5 ${
+                    compact ? 'text-[9px] px-1.5 py-0.5' : 'text-[10px] sm:text-xs px-2 py-1 sm:px-3 sm:py-1.5 gap-1'
+                  }`}>
+                    <Zap className={compact ? 'w-2 h-2 fill-current' : 'w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current'} />
                     -{discount}%
                   </div>
                 </motion.div>
               )}
               {product.stock === 0 && (
-                <span className="bg-gradient-to-r from-secondary-700 to-secondary-600 text-white text-[9px] sm:text-xs font-bold px-2 py-1 sm:px-2.5 sm:py-1 rounded-full shadow-lg">
+                <span className={`bg-gradient-to-r from-secondary-700 to-secondary-600 text-white font-bold rounded-full shadow-lg ${
+                  compact ? 'text-[8px] px-1.5 py-0.5' : 'text-[9px] sm:text-xs px-2 py-1 sm:px-2.5 sm:py-1'
+                }`}>
                   Sold Out
                 </span>
               )}
@@ -240,7 +252,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <motion.button
               onClick={handleWishlistToggle}
               disabled={isWishlistLoading}
-              className={`absolute top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-xl backdrop-blur-md transition-all z-20 ${
+              className={`absolute rounded-full flex items-center justify-center shadow-xl backdrop-blur-md transition-all z-20 ${
+                compact ? 'top-1.5 right-1.5 w-6 h-6' : 'top-2 sm:top-3 right-2 sm:right-3 w-8 h-8 sm:w-10 sm:h-10'
+              } ${
                 isLiked
                   ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white scale-100'
                   : 'bg-white/90 text-secondary-600 hover:bg-white hover:scale-110'
@@ -258,9 +272,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               )}
             </motion.button>
 
-            {/* Hover Overlay - Desktop */}
+            {/* Hover Overlay - Desktop (hidden when compact) */}
             <motion.div
-              className="hidden sm:block absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10"
+              className={compact ? 'hidden' : 'hidden sm:block absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10'}
               initial={{ opacity: 0 }}
               animate={{ opacity: isHovered ? 1 : 0 }}
               transition={{ duration: 0.3 }}
@@ -274,7 +288,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 y: isHovered ? 0 : 20 
               }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="hidden sm:block absolute bottom-4 left-4 right-4 z-20"
+              className={compact ? 'hidden' : 'hidden sm:block absolute bottom-4 left-4 right-4 z-20'}
             >
               <motion.button
                 onClick={handleAddToCart}
@@ -296,65 +310,71 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           </div>
 
           {/* Content */}
-          <div className="relative p-3 sm:p-5 bg-white">
+          <div className={`relative bg-white ${compact ? 'p-2' : 'p-3 sm:p-5'}`}>
             {/* Shine Effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30"
-              initial={{ x: '-100%' }}
-              animate={{ x: isHovered ? '200%' : '-100%' }}
-              transition={{ duration: 0.8, ease: 'easeInOut' }}
-            />
+            {!compact && (
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30"
+                initial={{ x: '-100%' }}
+                animate={{ x: isHovered ? '200%' : '-100%' }}
+                transition={{ duration: 0.8, ease: 'easeInOut' }}
+              />
+            )}
 
             <div className="relative">
               {/* Category */}
               <motion.div
-                className="flex items-center gap-1.5 mb-1.5 sm:mb-2"
-                whileHover={{ x: 3 }}
+                className={`flex items-center gap-1 mb-1 ${compact ? '' : 'mb-1.5 sm:mb-2 gap-1.5'}`}
+                whileHover={compact ? {} : { x: 3 }}
               >
-                <div className="w-1 h-1 rounded-full bg-primary-500" />
-                <p className="text-[9px] sm:text-xs text-primary-600 font-bold uppercase tracking-wider">
+                <div className={`rounded-full bg-primary-500 ${compact ? 'w-0.5 h-0.5' : 'w-1 h-1'}`} />
+                <p className={`text-primary-600 font-bold uppercase tracking-wider ${compact ? 'text-[8px]' : 'text-[9px] sm:text-xs'}`}>
                   {product.category.name}
                 </p>
               </motion.div>
 
               {/* Product Name */}
-              <h3 className="text-xs sm:text-base font-bold text-secondary-900 group-hover:text-primary-600 transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem] leading-tight mb-2 sm:mb-3">
+              <h3 className={`font-bold text-secondary-900 group-hover:text-primary-600 transition-colors line-clamp-2 leading-tight ${
+                compact ? 'text-[11px] min-h-[2rem] mb-1' : 'text-xs sm:text-base min-h-[2.5rem] sm:min-h-[3rem] mb-2 sm:mb-3'
+              }`}>
                 {product.name}
               </h3>
 
               {/* Price */}
               <div className="flex items-center justify-between">
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-1 sm:gap-2">
                   {product.salePrice ? (
                     <>
-                      <motion.span 
-                        className="text-sm sm:text-xl font-black text-primary-600"
+                      <motion.span
+                        className={`font-black text-primary-600 ${compact ? 'text-xs' : 'text-sm sm:text-xl'}`}
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring' }}
                       >
                         PKR {product.salePrice.toLocaleString()}
                       </motion.span>
-                      <span className="text-[10px] sm:text-sm text-secondary-400 line-through font-medium">
+                      <span className={`text-secondary-400 line-through font-medium ${compact ? 'text-[9px]' : 'text-[10px] sm:text-sm'}`}>
                         {product.price.toLocaleString()}
                       </span>
                     </>
                   ) : (
-                    <span className="text-sm sm:text-xl font-black text-secondary-900">
+                    <span className={`font-black text-secondary-900 ${compact ? 'text-xs' : 'text-sm sm:text-xl'}`}>
                       PKR {product.price.toLocaleString()}
                     </span>
                   )}
                 </div>
 
-                {/* Rating Placeholder */}
-                <div className="hidden sm:flex items-center gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-3 h-3 ${i < 4 ? 'fill-amber-400 text-amber-400' : 'text-secondary-200'}`} 
-                    />
-                  ))}
-                </div>
+                {/* Rating Placeholder - hide when compact */}
+                {!compact && (
+                  <div className="hidden sm:flex items-center gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3 h-3 ${i < 4 ? 'fill-amber-400 text-amber-400' : 'text-secondary-200'}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Mobile Add to Cart Button */}
@@ -362,9 +382,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
                 whileTap={{ scale: 0.95 }}
-                className="sm:hidden w-full mt-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+                className={`w-full mt-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg ${
+                  compact ? 'text-[10px] py-2 sm:hidden' : 'sm:hidden mt-3 text-xs py-2.5 gap-2'
+                }`}
               >
-                <ShoppingCart className="w-3.5 h-3.5" />
+                <ShoppingCart className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
                 {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
               </motion.button>
             </div>
