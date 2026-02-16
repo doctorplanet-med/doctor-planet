@@ -308,12 +308,14 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
           <span className="text-secondary-900 font-medium">{product.name}</span>
         </motion.nav>
 
-        <div className="grid lg:grid-cols-2 gap-6 sm:gap-12">
-          {/* Image Gallery */}
+        {/* Small screen: flex order = 1.Images 2.Title/Price/Colors/Size/Buttons 3.Description. Large: grid 2 cols, col1 = images+description, col2 = info */}
+        <div className="flex flex-col gap-6 sm:gap-8 lg:grid lg:grid-cols-2 lg:gap-12">
+          {/* 1. Image Gallery - order 1 on mobile */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
+            className="order-1 lg:col-start-1 lg:row-start-1"
           >
             {/* Main Image */}
             <div className="relative aspect-square rounded-xl sm:rounded-3xl overflow-hidden bg-secondary-100 mb-3 sm:mb-4">
@@ -424,7 +426,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </div>
             )}
 
-            {/* View Size Chart - on small screen only: show here (after images, before description) */}
+            {/* View Size Chart - on small screen only: after images, before product info */}
             {product.sizeChartImage && (
               <div className="mt-4 sm:hidden">
                 <button
@@ -437,24 +439,14 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 </button>
               </div>
             )}
-            
-            {/* Description - Moved to left column; on small screen appears after View Size Chart */}
-            <div className="mt-6 sm:mt-8">
-              <h2 className="text-lg sm:text-xl font-heading font-semibold text-secondary-900 mb-3 sm:mb-4">
-                Product Description
-              </h2>
-              <div className="text-secondary-600 text-sm sm:text-base leading-relaxed">
-                <RichTextDisplay content={product.description} />
-              </div>
-            </div>
           </motion.div>
 
-          {/* Product Info */}
+          {/* 2. Product Info (Title, Price, Colors, Size, Buttons) - order 2 on mobile */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="lg:py-4"
+            className="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:py-4"
           >
             <span className="text-primary-600 text-xs sm:text-base font-medium">{product.category.name}</span>
             <h1 className="text-xl sm:text-3xl md:text-4xl font-heading font-bold text-secondary-900 mt-1 sm:mt-2 mb-3 sm:mb-4">
@@ -745,7 +737,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </div>
             </div>
 
-            {/* Size Chart - only when product has a size chart image; hidden on small screen (shown above description in left column) */}
+            {/* Size Chart - only when product has a size chart image; hidden on small screen (shown after images in left column) */}
             {product.sizeChartImage && (
               <div className="mt-5 sm:mt-6 mb-5 sm:mb-8 hidden sm:block">
                 <button
@@ -756,6 +748,40 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                   <Ruler className="w-4 h-4 sm:w-5 sm:h-5" />
                   View Size Chart
                 </button>
+              </div>
+            )}
+          </motion.div>
+
+          {/* 3. Description + Size Chart (inline, no popup) - order 3 on mobile (last); on large: left column below images */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="order-3 lg:col-start-1 lg:row-start-2"
+          >
+            <h2 className="text-lg sm:text-xl font-heading font-semibold text-secondary-900 mb-3 sm:mb-4">
+              Product Description
+            </h2>
+            <div className="text-secondary-600 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8">
+              <RichTextDisplay content={product.description} />
+            </div>
+
+            {/* Size Chart - inline after description (no popup) */}
+            {product.sizeChartImage && (
+              <div className="mt-6 sm:mt-8">
+                <h2 className="text-lg sm:text-xl font-heading font-semibold text-secondary-900 mb-3 sm:mb-4">
+                  Size Chart
+                </h2>
+                <div className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden bg-secondary-100 border border-secondary-200">
+                  <Image
+                    src={product.sizeChartImage}
+                    alt={`${product.name} size chart`}
+                    width={800}
+                    height={600}
+                    className="w-full h-auto"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                  />
+                </div>
               </div>
             )}
           </motion.div>
