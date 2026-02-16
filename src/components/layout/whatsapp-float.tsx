@@ -1,19 +1,38 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 export default function WhatsAppFloat() {
-  // Your WhatsApp number - Update this with your actual number
-  // Format: Country code + number (no + or spaces)
-  // Example: For +92 300 1234567, use: 923001234567
-  const whatsappNumber = '923001234567' // ⚠️ CHANGE THIS TO YOUR NUMBER
+  const [whatsappNumber, setWhatsappNumber] = useState<string | null>(null)
   const message = 'Hello! I need assistance with Doctor Planet products.'
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings')
+        if (res.ok) {
+          const data = await res.json()
+          const num = data.whatsappNumber
+          if (num && typeof num === 'string' && num.trim()) {
+            setWhatsappNumber(num.trim().replace(/\D/g, ''))
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch WhatsApp number:', e)
+      }
+    }
+    fetchSettings()
+  }, [])
+
   const handleClick = () => {
+    if (!whatsappNumber) return
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank')
   }
+
+  if (!whatsappNumber) return null
 
   return (
     <>
