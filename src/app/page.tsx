@@ -142,6 +142,7 @@ async function getHeroBanners(): Promise<HeroBannerItem[]> {
     const now = new Date()
     const dbBanners = await prisma.heroBanner.findMany({
       where: {
+        isActive: true,
         AND: [
           { OR: [{ startDate: null }, { startDate: { lte: now } }] },
           { OR: [{ endDate: null }, { endDate: { gte: now } }] },

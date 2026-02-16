@@ -28,12 +28,28 @@ export async function ensureHeroBannerTable(): Promise<void> {
       "backgroundColor" TEXT,
       "images" TEXT NOT NULL,
       "order" INTEGER NOT NULL DEFAULT 0,
+      "isActive" INTEGER NOT NULL DEFAULT 1,
       "startDate" TEXT,
       "endDate" TEXT,
       "createdAt" TEXT NOT NULL DEFAULT (datetime('now')),
       "updatedAt" TEXT NOT NULL
     );
   `)
+}
+
+/** Ensure HeroBanner has isActive column (for DBs created before this field). Idempotent. */
+export async function ensureHeroBannerIsActiveColumn(): Promise<void> {
+  try {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE HeroBanner ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1;`
+    )
+  } catch (e) {
+    const msg = (e instanceof Error ? e.message : String(e)).toLowerCase()
+    if (msg.includes('duplicate column') || msg.includes('already exists')) {
+      return
+    }
+    throw e
+  }
 }
 
 /** Ensure Product has sizeChartImage column (for DBs created before this field). Idempotent. */

@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   try {
     const banners = await prisma.heroBanner.findMany({
+      where: { isActive: true },
       orderBy: { order: 'asc' },
     })
     return NextResponse.json(banners)

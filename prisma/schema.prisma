@@ -423,6 +423,7 @@ model HeroBanner {
   backgroundColor     String?   // Tailwind class e.g. "bg-[#0f3460]"
   images              String    // JSON: { mobile, tablet?, desktop }
   order               Int       @default(0)
+  isActive            Boolean   @default(true) // Inactive banners are hidden on the home page
   startDate           DateTime? // Optional: show banner only after this date
   endDate             DateTime? // Optional: show banner only until this date
   createdAt           DateTime  @default(now())

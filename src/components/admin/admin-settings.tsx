@@ -37,6 +37,7 @@ interface HeroBannerRow {
   backgroundColor: string | null
   images: string
   order: number
+  isActive: boolean
   startDate: string | null
   endDate: string | null
 }
@@ -190,7 +191,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
     endDate: '',
   })
   const [editingBanner, setEditingBanner] = useState<(HeroBannerRow & { _fromCode?: boolean }) | null>(null)
-  const [editForm, setEditForm] = useState({ ctaText: '', ctaLink: '', backgroundGradient: '', mobileImage: '', tabletImage: '', desktopImage: '', startDate: '', endDate: '' })
+  const [editForm, setEditForm] = useState({ ctaText: '', ctaLink: '', backgroundGradient: '', mobileImage: '', tabletImage: '', desktopImage: '', startDate: '', endDate: '', isActive: true })
   const [uploadingField, setUploadingField] = useState<string | null>(null)
   const [saveEditLoading, setSaveEditLoading] = useState(false)
   const [previewImages, setPreviewImages] = useState<{ mobile?: string; desktop?: string }>({})
@@ -238,6 +239,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
       backgroundColor: b.backgroundColor ?? null,
       images: JSON.stringify(b.images),
       order: 0,
+      isActive: true,
       startDate: null,
       endDate: null,
       _fromCode: true,
@@ -445,6 +447,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
       desktopImage: imgs.desktop || '',
       startDate: banner.startDate ? banner.startDate.slice(0, 16) : '',
       endDate: banner.endDate ? banner.endDate.slice(0, 16) : '',
+      isActive: '_fromCode' in banner && banner._fromCode ? true : (banner as HeroBannerRow).isActive !== false,
     })
   }
 
@@ -465,6 +468,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
       desktopImage: editForm.desktopImage,
       startDate: editForm.startDate || null,
       endDate: editForm.endDate || null,
+      isActive: editForm.isActive,
     }
     try {
       if (editingBanner._fromCode) {
@@ -508,7 +512,8 @@ export default function AdminSettings({ settings: initialSettings, categories = 
     }
   }
 
-  const getBannerStatus = (b: HeroBannerRow) => {
+  const getBannerStatus = (b: HeroBannerRow & { _fromCode?: boolean }) => {
+    if (!('_fromCode' in b) && (b as HeroBannerRow).isActive === false) return 'Inactive'
     const now = new Date()
     const start = b.startDate ? new Date(b.startDate) : null
     const end = b.endDate ? new Date(b.endDate) : null
@@ -1064,7 +1069,7 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                                 <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                                   <p className="text-sm text-secondary-600 truncate">CTA: {banner.ctaText} → {banner.ctaLink}</p>
                                   <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                    fromCode ? 'bg-amber-100 text-amber-800' : status === 'Active' ? 'bg-green-100 text-green-800' : status === 'Scheduled' ? 'bg-amber-100 text-amber-800' : 'bg-secondary-200 text-secondary-600'
+                                    fromCode ? 'bg-amber-100 text-amber-800' : status === 'Inactive' ? 'bg-red-100 text-red-800' : status === 'Active' ? 'bg-green-100 text-green-800' : status === 'Scheduled' ? 'bg-amber-100 text-amber-800' : 'bg-secondary-200 text-secondary-600'
                                   }`}>
                                     {status}
                                   </span>
@@ -1225,6 +1230,18 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                                   />
                                 </label>
                               </div>
+                            </div>
+                            <div>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={editForm.isActive}
+                                  onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                                  className="w-4 h-4 text-primary-600 border-secondary-300 rounded focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm font-medium text-secondary-700">Active (show on home page)</span>
+                              </label>
+                              <p className="text-xs text-secondary-500 mt-1 ml-6">Uncheck to hide this banner from the home page without deleting it.</p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>

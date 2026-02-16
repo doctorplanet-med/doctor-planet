@@ -53,6 +53,7 @@ export async function PUT(
         ...(data.order !== undefined && { order: data.order }),
         ...(data.startDate !== undefined && { startDate: data.startDate ? new Date(data.startDate) : null }),
         ...(data.endDate !== undefined && { endDate: data.endDate ? new Date(data.endDate) : null }),
+        ...(data.isActive !== undefined && { isActive: !!data.isActive }),
       },
     })
     return NextResponse.json(banner)
