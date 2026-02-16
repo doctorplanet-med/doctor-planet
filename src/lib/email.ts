@@ -793,6 +793,110 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData): Promise<
   return sendOrderStatusEmail('ORDER_PLACED', data)
 }
 
+// Send admin notification email when a new order is placed
+export async function sendAdminOrderNotificationEmail(data: OrderEmailData & { orderId?: string }): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (!adminEmail) {
+    console.log('ADMIN_EMAIL not set, skipping admin order notification email')
+    return false
+  }
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log('Gmail credentials not configured, skipping admin order notification email')
+    return false
+  }
+
+  try {
+    const transporter = createTransporter()
+    const adminOrdersUrl = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/admin/orders`
+      : null
+
+    const mailOptions = {
+      from: `"Doctor Planet" <${process.env.GMAIL_USER}>`,
+      to: adminEmail,
+      subject: `[Doctor Planet] New order #${data.orderNumber} - PKR ${data.total.toFixed(0)}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }
+            .header h1 { color: white; margin: 0; font-size: 24px; }
+            .content { background: #fff; padding: 24px; border: 1px solid #e0e0e0; }
+            .badge { background: #2563eb; color: white; padding: 8px 16px; border-radius: 50px; display: inline-block; font-weight: bold; margin-bottom: 16px; font-size: 14px; }
+            .order-details { background: #f8f9fa; padding: 16px; border-radius: 10px; margin: 16px 0; }
+            .item { padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+            .item:last-child { border-bottom: none; }
+            .item-name { font-weight: bold; color: #333; }
+            .item-details { color: #666; font-size: 13px; }
+            .item-price { font-weight: bold; color: #8B0000; }
+            .total-section { margin-top: 16px; padding-top: 16px; border-top: 2px solid #8B0000; }
+            .total-row { display: flex; justify-content: space-between; padding: 6px 0; }
+            .grand-total { font-size: 18px; font-weight: bold; color: #8B0000; }
+            .address-box { background: #f0f0f0; padding: 16px; border-radius: 10px; margin: 16px 0; font-size: 14px; }
+            .btn { display: inline-block; background: #8B0000; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px; }
+            .footer { text-align: center; padding: 16px; color: #666; font-size: 13px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🏥 Doctor Planet – New Order</h1>
+            </div>
+            <div class="content">
+              <div class="badge">New order received</div>
+              <p><strong>Order #${data.orderNumber}</strong></p>
+              <p>Customer: <strong>${data.customerName}</strong> &lt;${data.customerEmail}&gt;</p>
+              
+              <div class="order-details">
+                <h3 style="margin-top: 0; color: #8B0000;">Items (${data.items.length})</h3>
+                ${data.items.map(item => `
+                  <div class="item">
+                    <div class="item-name">${item.product.name}</div>
+                    ${item.size || item.color ? `<div class="item-details">${item.size ? `Size: ${item.size}` : ''} ${item.color ? `| Color: ${item.color}` : ''}</div>` : ''}
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                      <span class="item-details">Qty: ${item.quantity}</span>
+                      <span class="item-price">PKR ${(item.price * item.quantity).toFixed(0)}</span>
+                    </div>
+                  </div>
+                `).join('')}
+                <div class="total-section">
+                  <div class="total-row"><span>Subtotal</span><span>PKR ${data.subtotal.toFixed(0)}</span></div>
+                  <div class="total-row"><span>Shipping</span><span>${data.shippingFee === 0 ? 'FREE' : `PKR ${data.shippingFee.toFixed(0)}`}</span></div>
+                  <div class="total-row grand-total"><span>Total (COD)</span><span>PKR ${data.total.toFixed(0)}</span></div>
+                </div>
+              </div>
+              
+              <div class="address-box">
+                <strong>Shipping address</strong><br>
+                ${data.shippingAddress.name}<br>
+                ${data.shippingAddress.phone}<br>
+                ${data.shippingAddress.address}<br>
+                ${data.shippingAddress.city}${data.shippingAddress.state ? `, ${data.shippingAddress.state}` : ''} ${data.shippingAddress.postalCode}<br>
+                ${data.shippingAddress.country}
+              </div>
+              ${adminOrdersUrl ? `<p><a href="${adminOrdersUrl}" class="btn">View orders in Admin</a></p>` : ''}
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Doctor Planet. Admin notification.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    }
+
+    await transporter.sendMail(mailOptions)
+    return true
+  } catch (error) {
+    console.error('Failed to send admin order notification email:', error)
+    return false
+  }
+}
+
 // Send verification code email for password reset
 export async function sendVerificationCodeEmail(
   email: string,

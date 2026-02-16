@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { sendOrderConfirmationEmail } from '@/lib/email'
+import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -103,27 +103,32 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    const parsedAddress = JSON.parse(shippingAddress)
+    const orderEmailData = {
+      orderNumber: order.orderNumber,
+      customerName: customer?.name || 'Valued Customer',
+      customerEmail: customer?.email || '',
+      items: order.items.map(item => ({
+        product: { name: item.product.name },
+        quantity: item.quantity,
+        price: item.price,
+        size: item.size,
+        color: item.color,
+      })),
+      subtotal,
+      shippingFee: shippingFee || 0,
+      total,
+      shippingAddress: parsedAddress,
+      status: 'PENDING',
+    }
+
     // Send confirmation email to customer
     if (customer?.email) {
-      const parsedAddress = JSON.parse(shippingAddress)
-      await sendOrderConfirmationEmail({
-        orderNumber: order.orderNumber,
-        customerName: customer.name || 'Valued Customer',
-        customerEmail: customer.email,
-        items: order.items.map(item => ({
-          product: { name: item.product.name },
-          quantity: item.quantity,
-          price: item.price,
-          size: item.size,
-          color: item.color,
-        })),
-        subtotal,
-        shippingFee: shippingFee || 0,
-        total,
-        shippingAddress: parsedAddress,
-        status: 'PENDING',
-      })
+      await sendOrderConfirmationEmail(orderEmailData)
     }
+
+    // Notify admin by email when someone places an order
+    await sendAdminOrderNotificationEmail({ ...orderEmailData, orderId: order.id })
 
     return NextResponse.json({
       message: 'Order placed successfully',
