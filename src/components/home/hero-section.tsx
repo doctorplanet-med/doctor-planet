@@ -171,7 +171,7 @@ export default function HeroSection({ settings: initialSettings, randomProducts 
         <div
           className="relative z-10 pt-0 sm:pt-20 sm:min-h-[40vh] lg:min-h-0"
         >
-          <motion.div className="relative min-h-0 max-sm:min-h-[52vh] sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-6 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
+          <motion.div className="relative min-h-0 sm:min-h-[40vh] sm:h-[40vh] lg:min-h-0 lg:h-auto flex items-start justify-center pt-6 sm:pt-2 px-4 sm:px-5 lg:px-6 xl:px-8 2xl:px-10">
           {/* Clickable image - on mobile: larger, subtle corners; from sm: rounded card */}
           {current && (
             <AnimatePresence mode="wait" initial={false}>
