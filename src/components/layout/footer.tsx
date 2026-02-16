@@ -96,75 +96,124 @@ export default function Footer() {
     <footer className="bg-secondary-950 text-white pb-20 lg:pb-0">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
-        {/* Mobile: Compact Footer */}
-        <div className="sm:hidden">
-          {/* Brand */}
-          <div className="flex items-center justify-center mb-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="relative w-8 h-8">
+        {/* Mobile: Full footer content, small text (logo same size as desktop) */}
+        <div className="sm:hidden grid grid-cols-2 gap-4 sm:gap-6">
+          {/* Brand Column - full width, logo as-is */}
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center space-x-3 mb-3">
+              <div className="relative w-12 h-12">
                 <Image
                   src="/logos/logo.png"
                   alt="Doctor Planet"
                   fill
-                  sizes="32px"
+                  sizes="48px"
                   className="object-contain"
                 />
               </div>
-              <span className="font-heading font-bold text-base">
+              <span className="font-heading font-bold text-xl">
                 <span className="text-primary-500">doctor</span>
                 <span className="text-white">planet</span>
               </span>
             </Link>
-          </div>
-
-          {/* Contact Info - Compact */}
-          <div className="flex flex-wrap justify-center gap-3 text-xs text-secondary-400 mb-4">
-            <a href={`mailto:${settings?.contactEmail || 'info@doctorplanet.com'}`} className="flex items-center gap-1">
-              <Mail className="w-3 h-3" />
-              <span>{settings?.contactEmail || 'info@doctorplanet.com'}</span>
-            </a>
-            <a href={`tel:${settings?.contactPhone || '+923001234567'}`} className="flex items-center gap-1">
-              <Phone className="w-3 h-3" />
-              <span>{settings?.contactPhone || '+92 300 1234567'}</span>
-            </a>
-          </div>
-
-          {/* Quick Links - 2 Column Grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-center mb-4">
-            {[...footerLinks.shop.slice(0, 2), ...footerLinks.support.slice(0, 2)].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-xs text-secondary-400 hover:text-primary-400 transition-colors py-1"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Social Links */}
-          {socialLinks.length > 0 && (
-            <div className="flex justify-center gap-3 mb-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-8 h-8 rounded-full bg-secondary-800 flex items-center justify-center text-secondary-400 ${social.color} hover:text-white transition-colors`}
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-4 h-4" />
-                </a>
-              ))}
+            <p className="text-secondary-300 text-[11px] leading-snug mb-3">
+              {settings?.footerText || 'Your trusted partner for premium medical apparel and equipment. Providing healthcare professionals with quality products.'}
+            </p>
+            <div className="space-y-1.5 text-[11px]">
+              <a href={`mailto:${settings?.contactEmail || 'info@doctorplanet.com'}`} className="flex items-center text-secondary-300 hover:text-primary-400 transition-colors">
+                <Mail className="w-3.5 h-3.5 mr-2 flex-shrink-0" />
+                <span className="truncate">{settings?.contactEmail || 'info@doctorplanet.com'}</span>
+              </a>
+              <a href={`tel:${settings?.contactPhone || '+923001234567'}`} className="flex items-center text-secondary-300 hover:text-primary-400 transition-colors">
+                <Phone className="w-3.5 h-3.5 mr-2 flex-shrink-0" />
+                {settings?.contactPhone || '+92 300 1234567'}
+              </a>
+              <p className="flex items-start text-secondary-300">
+                <MapPin className="w-3.5 h-3.5 mr-2 flex-shrink-0 mt-0.5" />
+                <span className="text-[11px]">{settings?.contactAddress || 'Medical Plaza, Healthcare City'}</span>
+              </p>
             </div>
-          )}
+          </div>
 
-          {/* Copyright */}
-          <p className="text-secondary-500 text-[10px] text-center flex items-center justify-center gap-1">
-            © {new Date().getFullYear()} Doctor Planet. Made with
-            <Heart className="w-3 h-3 text-primary-500 fill-current" />
-          </p>
+          {/* Shop */}
+          <div>
+            <h3 className="font-heading font-semibold text-xs mb-2">Shop</h3>
+            <ul className="space-y-1">
+              {footerLinks.shop.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-[11px] text-secondary-300 hover:text-primary-400 transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h3 className="font-heading font-semibold text-xs mb-2">Company</h3>
+            <ul className="space-y-1">
+              {footerLinks.company.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-[11px] text-secondary-300 hover:text-primary-400 transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h3 className="font-heading font-semibold text-xs mb-2">Support</h3>
+            <ul className="space-y-1">
+              {footerLinks.support.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-[11px] text-secondary-300 hover:text-primary-400 transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="font-heading font-semibold text-xs mb-2">Legal</h3>
+            <ul className="space-y-1">
+              {footerLinks.legal.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-[11px] text-secondary-300 hover:text-primary-400 transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Social + Copyright - full width */}
+          <div className="col-span-2 pt-2 border-t border-secondary-800">
+            {socialLinks.length > 0 && (
+              <div className="flex justify-center gap-2 mb-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-7 h-7 rounded-full bg-secondary-800 flex items-center justify-center text-secondary-400 ${social.color} hover:text-white transition-colors`}
+                    aria-label={social.label}
+                  >
+                    <social.icon className="w-3.5 h-3.5" />
+                  </a>
+                ))}
+              </div>
+            )}
+            <p className="text-secondary-500 text-[10px] text-center flex items-center justify-center gap-1">
+              © {new Date().getFullYear()} Doctor Planet. Made with
+              <Heart className="w-3 h-3 text-primary-500 fill-current" />
+              for healthcare heroes.
+            </p>
+          </div>
         </div>
 
         {/* Desktop: Full Footer */}

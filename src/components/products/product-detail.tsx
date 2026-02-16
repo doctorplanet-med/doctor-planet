@@ -423,8 +423,22 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 ))}
               </div>
             )}
+
+            {/* View Size Chart - on small screen only: show here (after images, before description) */}
+            {product.sizeChartImage && (
+              <div className="mt-4 sm:hidden">
+                <button
+                  type="button"
+                  onClick={() => setSizeChartOpen(true)}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 border border-primary-200 hover:border-primary-300 px-4 py-2.5 rounded-xl transition-colors"
+                >
+                  <Ruler className="w-4 h-4" />
+                  View Size Chart
+                </button>
+              </div>
+            )}
             
-            {/* Description - Moved to left column */}
+            {/* Description - Moved to left column; on small screen appears after View Size Chart */}
             <div className="mt-6 sm:mt-8">
               <h2 className="text-lg sm:text-xl font-heading font-semibold text-secondary-900 mb-3 sm:mb-4">
                 Product Description
@@ -731,9 +745,9 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </div>
             </div>
 
-            {/* Size Chart - only when product has a size chart image */}
+            {/* Size Chart - only when product has a size chart image; hidden on small screen (shown above description in left column) */}
             {product.sizeChartImage && (
-              <div className="mt-5 sm:mt-6 mb-5 sm:mb-8">
+              <div className="mt-5 sm:mt-6 mb-5 sm:mb-8 hidden sm:block">
                 <button
                   type="button"
                   onClick={() => setSizeChartOpen(true)}
