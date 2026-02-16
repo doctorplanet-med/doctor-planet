@@ -57,7 +57,7 @@ export default function AddProductPage() {
   const [isUploadingSizeChart, setIsUploadingSizeChart] = useState(false)
   const [sizes, setSizes] = useState<string[]>([])
   const [colors, setColors] = useState<string[]>([])
-  const [colorImages, setColorImages] = useState<Record<string, string>>({})
+  const [colorImages, setColorImages] = useState<Record<string, string[]>>({})
   const [colorSizeStock, setColorSizeStock] = useState<Record<string, Record<string, number>>>({})
   const [newSize, setNewSize] = useState('')
   const [newColor, setNewColor] = useState('')
@@ -287,8 +287,13 @@ export default function AddProductPage() {
     setColorSizeStock(newStock)
   }
 
-  const setColorImage = (color: string, imageUrl: string) => {
-    setColorImages({ ...colorImages, [color]: imageUrl })
+  /** Toggle an image in/out of a color's image list (multi-select per color) */
+  const toggleColorImage = (color: string, imageUrl: string) => {
+    const current = colorImages[color] || []
+    const next = current.includes(imageUrl)
+      ? current.filter((u) => u !== imageUrl)
+      : [...current, imageUrl]
+    setColorImages({ ...colorImages, [color]: next })
   }
 
   const updateColorSizeStock = (color: string, size: string, quantity: number) => {
@@ -684,7 +689,7 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            {/* Color-Image Mapping */}
+            {/* Color-Image Mapping (multiple images per color) */}
             {colors.length > 0 && images.length > 0 && (
               <div className="mt-6 pt-6 border-t border-secondary-200">
                 <h3 className="text-sm font-medium text-secondary-900 mb-4 flex items-center gap-2">
@@ -692,34 +697,43 @@ export default function AddProductPage() {
                   Assign Images to Colors
                 </h3>
                 <p className="text-xs text-secondary-500 mb-4">
-                  Select which image should display when a customer selects each color
+                  Select one or more images for each color; customers will see these when they choose that color
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {colors.map((color) => (
-                    <div key={color} className="flex items-center gap-4 p-3 bg-secondary-50 rounded-xl">
-                      <span className="font-medium text-secondary-900 min-w-[80px]">{color}</span>
-                      <select
-                        value={colorImages[color] || ''}
-                        onChange={(e) => setColorImage(color, e.target.value)}
-                        className="input-field flex-1 text-sm"
-                      >
-                        <option value="">Select image for {color}</option>
-                        {images.map((img, idx) => (
-                          <option key={idx} value={img}>
-                            Image {idx + 1} {idx === 0 ? '(Main)' : ''}
-                          </option>
-                        ))}
-                      </select>
-                      {colorImages[color] && (
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-secondary-100 flex-shrink-0">
-                          <Image
-                            src={colorImages[color]}
-                            alt={color}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      )}
+                    <div key={color} className="p-4 bg-secondary-50 rounded-xl">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="font-medium text-secondary-900">{color}</span>
+                        {(colorImages[color]?.length ?? 0) > 0 && (
+                          <span className="text-xs text-secondary-500">
+                            ({(colorImages[color]?.length ?? 0)} selected)
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {images.map((img, idx) => {
+                          const selected = (colorImages[color] || []).includes(img)
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => toggleColorImage(color, img)}
+                              className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                                selected ? 'ring-2 ring-primary-500 border-primary-500' : 'border-secondary-200 hover:border-primary-300'
+                              }`}
+                            >
+                              <Image src={img} alt={`Image ${idx + 1}`} fill className="object-cover" />
+                              {selected && (
+                                <span className="absolute inset-0 bg-primary-600/30 flex items-center justify-center">
+                                  <span className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold">
+                                    {(colorImages[color] || []).indexOf(img) + 1}
+                                  </span>
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -966,10 +980,10 @@ export default function AddProductPage() {
                     {colors.map((color, colorIdx) => (
                       <tr key={color} className={colorIdx % 2 === 0 ? 'bg-white' : 'bg-secondary-50/50'}>
                         <td className="p-3 font-medium text-secondary-900 flex items-center gap-2">
-                          {colorImages[color] && (
+                          {colorImages[color]?.[0] && (
                             <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-secondary-200">
                               <Image
-                                src={colorImages[color]}
+                                src={colorImages[color][0]}
                                 alt={color}
                                 fill
                                 className="object-cover"

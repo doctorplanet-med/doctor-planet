@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -67,11 +67,22 @@ interface ProductDetailProps {
   relatedProducts: Product[]
 }
 
+/** Normalize colorImages from API: value can be string (legacy) or string[] */
+function normalizeColorImages(raw: Record<string, string | string[]> | null): Record<string, string[]> {
+  if (!raw) return {}
+  const out: Record<string, string[]> = {}
+  for (const [color, val] of Object.entries(raw)) {
+    out[color] = Array.isArray(val) ? val : (val ? [val] : [])
+  }
+  return out
+}
+
 export default function ProductDetail({ product, relatedProducts }: ProductDetailProps) {
   const images = JSON.parse(product.images)
   const sizes = product.sizes ? JSON.parse(product.sizes) : []
   const colors = product.colors ? JSON.parse(product.colors) : []
-  const colorImages: Record<string, string> = product.colorImages ? JSON.parse(product.colorImages) : {}
+  const colorImagesRaw = product.colorImages ? JSON.parse(product.colorImages) : {}
+  const colorImages = normalizeColorImages(colorImagesRaw as Record<string, string | string[]>)
   const colorSizeStock: Record<string, Record<string, number>> = product.colorSizeStock 
     ? JSON.parse(product.colorSizeStock) 
     : {}
@@ -79,10 +90,22 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   // Check if using variant stock management
   const hasVariantStock = Object.keys(colorSizeStock).length > 0
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [currentImage, setCurrentImage] = useState(images[0])
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedColor, setSelectedColor] = useState(colors[0] || null)
+  // Images to show in gallery: when a color with assigned images is selected, use those; else use main product images
+  const displayImages = (selectedColor && colorImages[selectedColor]?.length)
+    ? colorImages[selectedColor]
+    : images
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const safeImageIndex = displayImages.length ? Math.min(currentImageIndex, displayImages.length - 1) : 0
+  const currentImage = displayImages[safeImageIndex] ?? displayImages[0]
+
+  useEffect(() => {
+    if (displayImages.length && currentImageIndex >= displayImages.length) {
+      setCurrentImageIndex(displayImages.length - 1)
+    }
+  }, [displayImages.length, currentImageIndex])
+
   const [quantity, setQuantity] = useState(1)
   const [isWishlistLoading, setIsWishlistLoading] = useState(false)
   const [sizeChartOpen, setSizeChartOpen] = useState(false)
@@ -179,20 +202,13 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
     return getSizeStock(size) > 0
   }
 
-  // Handle color selection with image change
+  // Handle color selection with image change (switch to that color's images)
   const handleColorSelect = (color: string) => {
     setSelectedColor(color)
     setSelectedSize(null) // Reset size when color changes
     setQuantity(1)
-    if (colorImages[color]) {
-      setCurrentImage(colorImages[color])
-      setImageAnimationKey(prev => prev + 1)
-      // Find index of this image in the images array
-      const imgIndex = images.indexOf(colorImages[color])
-      if (imgIndex !== -1) {
-        setCurrentImageIndex(imgIndex)
-      }
-    }
+    setCurrentImageIndex(0) // Show first image of the selected color (or main images)
+    setImageAnimationKey(prev => prev + 1)
   }
 
   // Handle size selection
@@ -205,7 +221,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   // Handle thumbnail click
   const handleThumbnailClick = (index: number) => {
     setCurrentImageIndex(index)
-    setCurrentImage(images[index])
     setImageAnimationKey(prev => prev + 1)
   }
 
@@ -251,16 +266,18 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
   }
 
   const nextImage = () => {
-    const nextIndex = (currentImageIndex + 1) % images.length
+    const len = displayImages.length
+    if (!len) return
+    const nextIndex = (currentImageIndex + 1) % len
     setCurrentImageIndex(nextIndex)
-    setCurrentImage(images[nextIndex])
     setImageAnimationKey(prev => prev + 1)
   }
 
   const prevImage = () => {
-    const prevIndex = (currentImageIndex - 1 + images.length) % images.length
+    const len = displayImages.length
+    if (!len) return
+    const prevIndex = (currentImageIndex - 1 + len) % len
     setCurrentImageIndex(prevIndex)
-    setCurrentImage(images[prevIndex])
     setImageAnimationKey(prev => prev + 1)
   }
 
@@ -324,7 +341,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               </AnimatePresence>
 
               {/* Navigation Arrows */}
-              {images.length > 1 && (
+              {displayImages.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -382,16 +399,16 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
             </div>
 
             {/* Thumbnails */}
-            {images.length > 1 && (
+            {displayImages.length > 1 && (
               <div className="flex gap-2 sm:gap-3 overflow-x-auto hide-scrollbar mt-2 sm:mt-0">
-                {images.map((image: string, index: number) => (
+                {displayImages.map((image: string, index: number) => (
                   <motion.button
-                    key={index}
+                    key={`${image}-${index}`}
                     onClick={() => handleThumbnailClick(index)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className={`relative w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden transition-all ${
-                      currentImage === image
+                      index === safeImageIndex
                         ? 'ring-2 ring-primary-600 ring-offset-2'
                         : 'opacity-60 hover:opacity-100'
                     }`}
@@ -512,10 +529,10 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                         }`}
                       >
                         <span className="flex items-center gap-2">
-                          {colorImages[color] && (
+                          {colorImages[color]?.[0] && (
                             <span className="relative w-6 h-6 rounded-full overflow-hidden border border-secondary-200">
                               <Image
-                                src={colorImages[color]}
+                                src={colorImages[color][0]}
                                 alt={color}
                                 fill
                                 className="object-cover"

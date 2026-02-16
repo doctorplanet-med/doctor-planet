@@ -122,7 +122,7 @@ model Product {
   stock       Int         @default(0)  // Total stock (auto-calculated from variants)
   sizes       String?     // JSON array for clothes/shoes sizes
   colors      String?     // JSON array of available colors
-  colorImages String?     // JSON object mapping color names to image URLs e.g. {"Black": "/img1.jpg", "White": "/img2.jpg"}
+  colorImages String?     // JSON: color name -> image URL(s). e.g. {"Black": ["/img1.jpg","/img2.jpg"], "White": ["/img3.jpg"]}. Legacy: value can be single string.
   colorSizeStock String?  // JSON object for stock per color-size e.g. {"Black": {"S": 10, "M": 15}, "White": {"S": 5}}
   sizeChartImage String?  // Optional URL to size chart image (shown on product page for some products)
   hasCustomization Boolean @default(false)  // Product supports custom measurements (e.g. stitching)

@@ -188,12 +188,12 @@ export default function DealDetailPage() {
         const product = item.product
         const selection = getProductSelection(item.productId)
         const images = product.images ? JSON.parse(product.images) : []
-        const colorImages = product.colorImages ? JSON.parse(product.colorImages) : {}
-        
-        // Get the appropriate image based on color selection
-        const image = selection?.color && colorImages[selection.color] 
-          ? colorImages[selection.color] 
-          : images[0] || ''
+        const colorImagesRaw = product.colorImages ? JSON.parse(product.colorImages) : {}
+        const colorImg = selection?.color && colorImagesRaw[selection.color]
+        const colorFirst = colorImg
+          ? (Array.isArray(colorImg) ? colorImg[0] : colorImg)
+          : null
+        const image = colorFirst ?? images[0] ?? ''
         
         // Calculate proportional deal price for this product
         const originalProductTotal = product.price * item.quantity
@@ -413,15 +413,15 @@ export default function DealDetailPage() {
             const images = product.images ? JSON.parse(product.images) : []
             const sizes = product.sizes ? JSON.parse(product.sizes) : []
             const colors = product.colors ? JSON.parse(product.colors) : []
-            const colorImages = product.colorImages ? JSON.parse(product.colorImages) : {}
+            const colorImagesRaw = product.colorImages ? JSON.parse(product.colorImages) : {}
             const selection = getProductSelection(item.productId)
             const isComplete = isProductComplete(item)
             const isActive = activeProductId === item.productId
             const needsSelection = sizes.length > 0 || colors.length > 0
-            
-            // Get current display image
-            const displayImage = selection?.color && colorImages[selection.color] 
-              ? colorImages[selection.color] 
+
+            const colorImg = selection?.color ? colorImagesRaw[selection.color] : null
+            const displayImage = colorImg
+              ? (Array.isArray(colorImg) ? colorImg[0] : colorImg)
               : images[0]
 
             return (
