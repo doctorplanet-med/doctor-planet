@@ -22,6 +22,8 @@ import {
   Edit,
   Package,
   Mail,
+  Briefcase,
+  Building2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cart-store'
@@ -36,6 +38,7 @@ interface UserProfile {
   postalCode: string
   country: string
   profession: string
+  workplace: string
   isProfileComplete: boolean
 }
 
@@ -53,8 +56,23 @@ interface CheckoutFormData {
   state: string
   postalCode: string
   country: string
+  profession: string
+  workplace: string
   saveForNextTime: boolean
 }
+
+const professions = [
+  'Doctor',
+  'Nurse',
+  'Pharmacist',
+  'Student',
+  'Medical Student',
+  'Lab Technician',
+  'Paramedic',
+  'Healthcare Administrator',
+  'Other Healthcare Professional',
+  'Other',
+]
 
 // Mobile Product Item Component with dropdown details
 function MobileProductItem({ item }: { item: any }) {
@@ -203,6 +221,8 @@ export default function CheckoutPage() {
     state: '',
     postalCode: '',
     country: 'Pakistan',
+    profession: '',
+    workplace: '',
     saveForNextTime: false,
   })
 
@@ -236,6 +256,8 @@ export default function CheckoutPage() {
                 state: data.user.state || '',
                 postalCode: data.user.postalCode || '',
                 country: data.user.country || 'Pakistan',
+                profession: data.user.profession || '',
+                workplace: data.user.workplace || '',
                 saveForNextTime: false,
               })
             }
@@ -296,7 +318,7 @@ export default function CheckoutPage() {
     )
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
     
@@ -327,6 +349,10 @@ export default function CheckoutPage() {
       toast.error('Please enter your city')
       return false
     }
+    if (!formData.profession.trim()) {
+      toast.error('Please select your profession')
+      return false
+    }
     return true
   }
 
@@ -354,6 +380,8 @@ export default function CheckoutPage() {
               state: formData.state,
               postalCode: formData.postalCode,
               country: formData.country,
+              profession: formData.profession,
+              workplace: formData.workplace,
             }),
           })
         } catch (err) {
@@ -597,6 +625,55 @@ export default function CheckoutPage() {
                         Save this information for next time
                       </span>
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Information */}
+              <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-primary-100 rounded-lg">
+                    <Briefcase className="w-5 h-5 text-primary-600" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-heading font-semibold">Professional Information</h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="profession" className="block text-sm font-medium text-secondary-700 mb-1">
+                      Profession *
+                    </label>
+                    <select
+                      id="profession"
+                      name="profession"
+                      value={formData.profession}
+                      onChange={handleInputChange}
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Select your profession</option>
+                      {professions.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="workplace" className="block text-sm font-medium text-secondary-700 mb-1">
+                      Workplace / Hospital
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="workplace"
+                        name="workplace"
+                        value={formData.workplace}
+                        onChange={handleInputChange}
+                        placeholder="City General Hospital"
+                        className="input-field pl-12"
+                      />
+                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                    </div>
                   </div>
                 </div>
               </div>

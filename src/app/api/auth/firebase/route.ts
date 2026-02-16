@@ -60,8 +60,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Firebase auth error:', error)
+    const message = error instanceof Error ? error.message : 'Authentication failed'
     return NextResponse.json(
-      { error: 'Authentication failed' },
+      { error: process.env.NODE_ENV === 'development' ? message : 'Authentication failed. Please try again or use email/password.' },
       { status: 500 }
     )
   }
