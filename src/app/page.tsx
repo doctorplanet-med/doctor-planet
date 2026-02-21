@@ -14,127 +14,167 @@ import type { HeroBannerItem } from '@/data/heroBanners'
 
 // Revalidate every 60 seconds for faster performance
 export const revalidate = 60
+export const maxDuration = 60 // Maximum execution time
 
 async function getCategories() {
-  return await prisma.category.findMany({
-    include: {
-      _count: {
-        select: { products: true }
-      }
-    }
-  })
+  try {
+    return await prisma.category.findMany({
+      include: {
+        _count: {
+          select: { products: true }
+        }
+      },
+      take: 20 // Limit categories
+    })
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    return []
+  }
 }
 
 async function getFeaturedProducts() {
-  return await prisma.product.findMany({
-    where: { 
-      featured: true,
-      isActive: true 
-    },
-    include: {
-      category: {
-        select: {
-          name: true,
-          slug: true
+  try {
+    return await prisma.product.findMany({
+      where: { 
+        featured: true,
+        isActive: true 
+      },
+      include: {
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
         }
-      }
-    },
-    take: 8
-  })
+      },
+      take: 8
+    })
+  } catch (error) {
+    console.error('Error fetching featured products:', error)
+    return []
+  }
 }
 
 async function getProductsOnSale() {
-  return await prisma.product.findMany({
-    where: { 
-      isActive: true,
-      salePrice: { not: null }
-    },
-    include: {
-      category: {
-        select: {
-          name: true,
-          slug: true
+  try {
+    return await prisma.product.findMany({
+      where: { 
+        isActive: true,
+        salePrice: { not: null }
+      },
+      include: {
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
         }
-      }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 8
-  })
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 8
+    })
+  } catch (error) {
+    console.error('Error fetching sale products:', error)
+    return []
+  }
 }
 
 async function getSettings() {
-  const settings = await prisma.siteSettings.findFirst()
-  return settings
+  try {
+    const settings = await prisma.siteSettings.findFirst()
+    return settings
+  } catch (error) {
+    console.error('Error fetching settings:', error)
+    return null
+  }
 }
 
 async function getRandomProducts() {
-  const allProducts = await prisma.product.findMany({
-    where: { isActive: true },
-    include: {
-      category: {
-        select: {
-          name: true,
-          slug: true
+  try {
+    // Instead of loading all and shuffling, use RANDOM() with limit
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      include: {
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
         }
-      }
-    }
-  })
-  const shuffled = allProducts.sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, 7)
+      },
+      take: 7,
+      orderBy: { createdAt: 'desc' } // Fallback to recent if RANDOM not available
+    })
+    return products.sort(() => Math.random() - 0.5).slice(0, 7)
+  } catch (error) {
+    console.error('Error fetching random products:', error)
+    return []
+  }
 }
 
 async function getAllProducts() {
-  return await prisma.product.findMany({
-    where: { isActive: true },
-    include: {
-      category: {
-        select: {
-          name: true,
-          slug: true
+  try {
+    return await prisma.product.findMany({
+      where: { isActive: true },
+      include: {
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
         }
-      }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 8
-  })
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 8
+    })
+  } catch (error) {
+    console.error('Error fetching all products:', error)
+    return []
+  }
 }
 
 async function getActiveDeals() {
-  const now = new Date()
-  const allDeals = await prisma.deal.findMany({
-    where: { isActive: true },
-    include: { items: true },
-    orderBy: { createdAt: 'desc' },
-  })
-  const filtered = allDeals.filter((deal) => {
-    if (deal.startDate && new Date(deal.startDate) > now) return false
-    if (deal.endDate && new Date(deal.endDate) < now) return false
-    return true
-  }).slice(0, 8)
-  if (filtered.length === 0) return []
-  const productIds = Array.from(new Set(filtered.flatMap((d) => d.items.map((i) => i.productId))))
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      price: true,
-      salePrice: true,
-      images: true,
-      stock: true,
-    },
-  })
-  const productMap = Object.fromEntries(products.map((p) => [p.id, p]))
-  return filtered.map((deal) => ({
-    ...deal,
-    startDate: deal.startDate ? deal.startDate.toISOString() : null,
-    endDate: deal.endDate ? deal.endDate.toISOString() : null,
-    items: deal.items.map((item) => ({
-      ...item,
-      product: productMap[item.productId] ?? null,
-    })),
-  }))
+  try {
+    const now = new Date()
+    const allDeals = await prisma.deal.findMany({
+      where: { isActive: true },
+      include: { items: true },
+      orderBy: { createdAt: 'desc' },
+      take: 20 // Limit deals
+    })
+    const filtered = allDeals.filter((deal) => {
+      if (deal.startDate && new Date(deal.startDate) > now) return false
+      if (deal.endDate && new Date(deal.endDate) < now) return false
+      return true
+    }).slice(0, 8)
+    if (filtered.length === 0) return []
+    const productIds = Array.from(new Set(filtered.flatMap((d) => d.items.map((i) => i.productId))))
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        salePrice: true,
+        images: true,
+        stock: true,
+      },
+    })
+    const productMap = Object.fromEntries(products.map((p) => [p.id, p]))
+    return filtered.map((deal) => ({
+      ...deal,
+      startDate: deal.startDate ? deal.startDate.toISOString() : null,
+      endDate: deal.endDate ? deal.endDate.toISOString() : null,
+      items: deal.items.map((item) => ({
+        ...item,
+        product: productMap[item.productId] ?? null,
+      })),
+    }))
+  } catch (error) {
+    console.error('Error fetching deals:', error)
+    return []
+  }
 }
 
 async function getHeroBanners(): Promise<HeroBannerItem[]> {

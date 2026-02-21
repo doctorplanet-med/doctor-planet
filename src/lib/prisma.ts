@@ -12,13 +12,20 @@ function createPrismaClient() {
     const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
+      // Add timeout and connection settings for better performance
+      syncInterval: 60,
     })
     const adapter = new PrismaLibSQL(libsql)
-    return new PrismaClient({ adapter })
+    return new PrismaClient({ 
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    })
   }
   
   // Fallback to local SQLite for development
-  return new PrismaClient()
+  return new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  })
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
