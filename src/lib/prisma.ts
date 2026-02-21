@@ -12,8 +12,6 @@ function createPrismaClient() {
     const libsql = createClient({
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
-      // Add timeout and connection settings for better performance
-      syncInterval: 60,
     })
     const adapter = new PrismaLibSQL(libsql)
     return new PrismaClient({ 
