@@ -50,6 +50,7 @@ async function getDashboardStats() {
       }
     }),
     prisma.pOSSale.findMany({
+      where: { isReturned: false },
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -62,8 +63,9 @@ async function getDashboardStats() {
       where: { status: { notIn: ['CANCELLED'] } },
       _sum: { total: true }
     }),
-    // Total POS Revenue (all time)
+    // Total POS Revenue (all time) - exclude returned sales
     prisma.pOSSale.aggregate({
+      where: { isReturned: false },
       _sum: { total: true }
     }),
     // Total Udhar Payments (all time) - counts as revenue when received
@@ -79,9 +81,12 @@ async function getDashboardStats() {
       _sum: { total: true },
       _count: true
     }),
-    // Today's POS Revenue
+    // Today's POS Revenue - exclude returned sales
     prisma.pOSSale.aggregate({
-      where: { createdAt: { gte: todayStart } },
+      where: { 
+        createdAt: { gte: todayStart },
+        isReturned: false
+      },
       _sum: { total: true },
       _count: true
     }),
@@ -100,9 +105,12 @@ async function getDashboardStats() {
       _sum: { total: true },
       _count: true
     }),
-    // This Month's POS Revenue
+    // This Month's POS Revenue - exclude returned sales
     prisma.pOSSale.aggregate({
-      where: { createdAt: { gte: monthStart } },
+      where: { 
+        createdAt: { gte: monthStart },
+        isReturned: false
+      },
       _sum: { total: true },
       _count: true
     }),

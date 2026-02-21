@@ -968,3 +968,127 @@ export async function sendSalesmanWelcomeEmail(
     return false
   }
 }
+
+// Admin emails to notify for new orders
+const ADMIN_EMAILS = [
+  'doctorplanet.dawood@gmail.com',
+  'doctorplanet.usama@gmail.com',
+  'doctorplanet.huzaifa@gmail.com',
+]
+
+// Send new order notification to all admins
+export async function sendAdminOrderNotification(data: OrderEmailData): Promise<boolean> {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log('Gmail credentials not configured, skipping admin notification')
+    return false
+  }
+
+  try {
+    const transporter = createTransporter()
+    const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/orders`
+
+    const mailOptions = {
+      from: `"Doctor Planet" <${process.env.GMAIL_USER}>`,
+      to: ADMIN_EMAILS.join(', '),
+      subject: `🔔 New Order #${data.orderNumber} - PKR ${data.total.toFixed(0)}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
+            .badge { background: #10B981; color: white; padding: 12px 24px; border-radius: 50px; display: inline-block; font-weight: bold; margin: 20px 0; }
+            .order-details { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+            .detail-row { padding: 10px 0; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; }
+            .detail-row:last-child { border-bottom: none; }
+            .detail-label { font-weight: bold; color: #666; }
+            .detail-value { color: #333; }
+            .item { padding: 15px 0; border-bottom: 1px solid #e0e0e0; }
+            .item:last-child { border-bottom: none; }
+            .btn { display: inline-block; background: #8B0000; color: white !important; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; background: #f8f9fa; border-radius: 0 0 10px 10px; }
+            .total-box { background: #FEF3C7; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; }
+            .total-amount { font-size: 32px; font-weight: bold; color: #8B0000; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🏥 Doctor Planet</h1>
+            </div>
+            <div class="content">
+              <div style="text-align: center;">
+                <div class="badge">🔔 New Order Received!</div>
+              </div>
+              
+              <h2 style="text-align: center; color: #333;">Order #${data.orderNumber}</h2>
+              
+              <div class="order-details">
+                <h3 style="margin-top: 0; color: #8B0000;">Customer Information</h3>
+                <div class="detail-row">
+                  <span class="detail-label">Name:</span>
+                  <span class="detail-value">${data.customerName}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Email:</span>
+                  <span class="detail-value">${data.customerEmail}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Phone:</span>
+                  <span class="detail-value">${data.shippingAddress.phone}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Address:</span>
+                  <span class="detail-value">
+                    ${data.shippingAddress.address}, ${data.shippingAddress.city}${data.shippingAddress.state ? `, ${data.shippingAddress.state}` : ''} ${data.shippingAddress.postalCode}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="order-details">
+                <h3 style="margin-top: 0; color: #8B0000;">Order Items (${data.items.length})</h3>
+                ${data.items.map(item => `
+                  <div class="item">
+                    <div style="font-weight: bold;">${item.product.name}</div>
+                    ${item.size || item.color ? `<div style="color: #666; font-size: 14px;">${item.size ? `Size: ${item.size}` : ''} ${item.color ? `| Color: ${item.color}` : ''}</div>` : ''}
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                      <span style="color: #666;">Qty: ${item.quantity}</span>
+                      <span style="font-weight: bold; color: #8B0000;">PKR ${(item.price * item.quantity).toFixed(0)}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              
+              <div class="total-box">
+                <div style="color: #666; margin-bottom: 10px;">Order Total</div>
+                <div class="total-amount">PKR ${data.total.toFixed(0)}</div>
+                <div style="color: #666; margin-top: 10px; font-size: 14px;">💵 Payment: Cash on Delivery (COD)</div>
+              </div>
+              
+              <div style="text-align: center;">
+                <a href="${adminUrl}" class="btn">View in Admin Panel</a>
+              </div>
+            </div>
+            <div class="footer">
+              <p>This is an automated notification sent to all administrators.</p>
+              <p>© ${new Date().getFullYear()} Doctor Planet. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    }
+
+    const result = await transporter.sendMail(mailOptions)
+    console.log(`Admin notification sent for order ${data.orderNumber} to: ${ADMIN_EMAILS.join(', ')}`, result.messageId)
+    return true
+  } catch (error) {
+    console.error('Failed to send admin notification:', error)
+    return false
+  }
+}

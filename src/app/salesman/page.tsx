@@ -43,15 +43,17 @@ export default function SalesmanDashboard() {
 
       let allRevenue: { amount: number; createdAt: string; type: string }[] = []
 
-      // Add POS sales
+      // Add POS sales (exclude returned sales)
       if (salesRes.ok) {
         const salesData = await salesRes.json()
         allRevenue = allRevenue.concat(
-          salesData.sales.map((s: any) => ({
-            amount: s.total,
-            createdAt: s.createdAt,
-            type: 'POS'
-          }))
+          salesData.sales
+            .filter((s: any) => !s.isReturned)
+            .map((s: any) => ({
+              amount: s.total,
+              createdAt: s.createdAt,
+              type: 'POS'
+            }))
         )
       }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { sendOrderConfirmationEmail } from '@/lib/email'
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -124,6 +124,26 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
       })
     }
+
+    // Send notification email to all admins
+    const parsedAddress = JSON.parse(shippingAddress)
+    await sendAdminOrderNotification({
+      orderNumber: order.orderNumber,
+      customerName: customer?.name || 'Valued Customer',
+      customerEmail: customer?.email || 'No email provided',
+      items: order.items.map(item => ({
+        product: { name: item.product.name },
+        quantity: item.quantity,
+        price: item.price,
+        size: item.size,
+        color: item.color,
+      })),
+      subtotal,
+      shippingFee: shippingFee || 0,
+      total,
+      shippingAddress: parsedAddress,
+      status: 'PENDING',
+    })
 
     return NextResponse.json({
       message: 'Order placed successfully',
