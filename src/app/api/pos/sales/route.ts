@@ -153,6 +153,25 @@ export async function POST(request: NextRequest) {
 
     const total = subtotal - discount
 
+    // For shop customers with credit
+    if (data.customerType === 'SHOP' && data.shopId) {
+      const shop = await prisma.shop.findUnique({ where: { id: data.shopId } })
+      if (!shop || !shop.isActive) {
+        return NextResponse.json({ error: 'Shop not found or inactive' }, { status: 400 })
+      }
+      
+      // Check credit limit if not paid in full
+      if (!data.isPaid && shop.allowCredit) {
+        const remainingAmount = data.remainingAmount || total
+        const newCreditTotal = shop.currentCredit + remainingAmount
+        if (shop.creditLimit && newCreditTotal > shop.creditLimit) {
+          return NextResponse.json({ 
+            error: `Credit limit exceeded. Limit: ${shop.creditLimit}, Current: ${shop.currentCredit}, New: ${remainingAmount}` 
+          }, { status: 400 })
+        }
+      }
+    }
+
     // Create sale
     const sale = await prisma.pOSSale.create({
       data: {
@@ -164,9 +183,14 @@ export async function POST(request: NextRequest) {
         total,
         paymentMethod: data.paymentMethod || 'CASH',
         amountReceived: data.amountReceived || null,
-        changeGiven: data.amountReceived ? data.amountReceived - total : null,
+        changeGiven: data.amountReceived && data.isPaid !== false ? data.amountReceived - total : null,
         customerName: data.customerName || null,
         customerPhone: data.customerPhone || null,
+        customerType: data.customerType || 'WALKIN',
+        shopId: data.shopId || null,
+        isPaid: data.isPaid !== false,
+        paidAmount: data.paidAmount || null,
+        remainingAmount: data.remainingAmount || null,
         notes: data.notes || null,
         items: {
           create: saleItems,
@@ -175,8 +199,22 @@ export async function POST(request: NextRequest) {
       include: {
         items: true,
         salesman: { select: { name: true } },
+        shop: { select: { name: true } },
       },
     })
+
+    // Update shop credit if applicable
+    if (data.customerType === 'SHOP' && data.shopId && !data.isPaid) {
+      const remainingAmount = data.remainingAmount || total
+      await prisma.shop.update({
+        where: { id: data.shopId },
+        data: {
+          currentCredit: {
+            increment: remainingAmount
+          }
+        }
+      })
+    }
 
     return NextResponse.json(sale)
   } catch (error) {

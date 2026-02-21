@@ -8,11 +8,8 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
-
-// Using Turso (SQLite) for both development and production
-// In production, the libsql adapter connects to Turso cloud
 
 model Account {
   id                String  @id @default(cuid())
@@ -303,11 +300,18 @@ model POSSale {
   discount        Float         @default(0)
   discountType    String?       // PERCENTAGE or FIXED
   total           Float
-  paymentMethod   String        @default("CASH") // CASH, CARD, MIXED
+  paymentMethod   String        @default("CASH") // CASH, CARD, MIXED, CREDIT
   amountReceived  Float?        // Cash received from customer
   changeGiven     Float?        // Change returned
   customerName    String?       // Optional customer info for POS
   customerPhone   String?
+  customerType    String        @default("WALKIN") // WALKIN or SHOP
+  shopId          String?       // Reference to Shop if customerType is SHOP
+  shop            Shop?         @relation(fields: [shopId], references: [id])
+  isPaid          Boolean       @default(true) // false for credit/pay-later
+  paidAmount      Float?        // Partial payment amount
+  remainingAmount Float?        // Amount still owed
+  dueDate         DateTime?     // Payment due date for credit
   notes           String?
   isReturned      Boolean       @default(false)
   returnReason    String?
@@ -498,4 +502,56 @@ model SizeGuide {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Shop model for business customers (other shops buying from us)
+model Shop {
+  id               String    @id @default(cuid())
+  name             String
+  ownerName        String?
+  phone            String?
+  address          String?
+  city             String?
+  cnic             String?   // National ID
+  allowCredit      Boolean   @default(false) // Can buy on credit/pay later
+  creditLimit      Float?    // Maximum credit allowed
+  currentCredit    Float     @default(0) // Current outstanding amount
+  isActive         Boolean   @default(true)
+  notes            String?
+  sales            POSSale[] // All sales to this shop
+  udharTransactions UdharTransaction[] // Credit transactions (Udhar account)
+  udharPayments    UdharPayment[] // Payments received for Udhar
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// Udhar Transaction - Items taken on credit by shopkeepers
+model UdharTransaction {
+  id              String   @id @default(cuid())
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  items           String   // JSON array of items with details
+  totalAmount     Float    // Total credit amount for this transaction
+  paidAmount      Float    @default(0) // Amount paid so far for this transaction
+  remainingAmount Float    // Amount still owed
+  status          String   @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE
+  dueDate         DateTime? // Optional due date
+  notes           String?
+  payments        UdharPayment[] // Individual payments for this transaction
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Udhar Payment - Payments received against Udhar transactions
+model UdharPayment {
+  id              String   @id @default(cuid())
+  transactionId   String
+  transaction     UdharTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id])
+  amount          Float
+  paymentMethod   String   @default("CASH") // CASH, BANK, CHEQUE, etc.
+  notes           String?
+  createdBy       String?  // User who recorded this payment
+  createdAt       DateTime @default(now())
 }

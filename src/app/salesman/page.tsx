@@ -30,29 +30,60 @@ export default function SalesmanDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/pos/sales?limit=5')
-      if (res.ok) {
-        const data = await res.json()
-        
-        const now = new Date()
-        const today = new Date(now.setHours(0, 0, 0, 0))
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+      // Fetch POS sales and Udhar payments
+      const [salesRes, udharPaymentsRes] = await Promise.all([
+        fetch('/api/pos/sales?limit=1000'),
+        fetch('/api/udhar/payments')
+      ])
+      
+      const now = new Date()
+      const today = new Date(now.setHours(0, 0, 0, 0))
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-        const todaySalesData = data.sales.filter((s: any) => new Date(s.createdAt) >= today)
-        const weekSalesData = data.sales.filter((s: any) => new Date(s.createdAt) >= weekAgo)
-        const monthSalesData = data.sales.filter((s: any) => new Date(s.createdAt) >= monthAgo)
+      let allRevenue: { amount: number; createdAt: string; type: string }[] = []
 
-        setStats({
-          todaySales: todaySalesData.reduce((sum: number, s: any) => sum + s.total, 0),
-          todayTransactions: todaySalesData.length,
-          weekSales: weekSalesData.reduce((sum: number, s: any) => sum + s.total, 0),
-          weekTransactions: weekSalesData.length,
-          monthSales: monthSalesData.reduce((sum: number, s: any) => sum + s.total, 0),
-          monthTransactions: monthSalesData.length,
-          recentSales: data.sales.slice(0, 5),
-        })
+      // Add POS sales
+      if (salesRes.ok) {
+        const salesData = await salesRes.json()
+        allRevenue = allRevenue.concat(
+          salesData.sales.map((s: any) => ({
+            amount: s.total,
+            createdAt: s.createdAt,
+            type: 'POS'
+          }))
+        )
       }
+
+      // Add Udhar payments (count as revenue when received)
+      if (udharPaymentsRes.ok) {
+        const udharData = await udharPaymentsRes.json()
+        allRevenue = allRevenue.concat(
+          udharData.map((p: any) => ({
+            amount: p.amount,
+            createdAt: p.createdAt,
+            type: 'UDHAR'
+          }))
+        )
+      }
+
+      // Calculate stats from combined revenue
+      const todayRevenue = allRevenue.filter(r => new Date(r.createdAt) >= today)
+      const weekRevenue = allRevenue.filter(r => new Date(r.createdAt) >= weekAgo)
+      const monthRevenue = allRevenue.filter(r => new Date(r.createdAt) >= monthAgo)
+
+      // Get recent transactions for display
+      const recentSales = salesRes.ok ? (await salesRes.json()).sales.slice(0, 5) : []
+
+      setStats({
+        todaySales: todayRevenue.reduce((sum, r) => sum + r.amount, 0),
+        todayTransactions: todayRevenue.length,
+        weekSales: weekRevenue.reduce((sum, r) => sum + r.amount, 0),
+        weekTransactions: weekRevenue.length,
+        monthSales: monthRevenue.reduce((sum, r) => sum + r.amount, 0),
+        monthTransactions: monthRevenue.length,
+        recentSales,
+      })
     } catch (error) {
       console.error('Failed to fetch stats')
     } finally {

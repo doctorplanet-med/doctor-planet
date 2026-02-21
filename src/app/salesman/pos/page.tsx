@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Plus, Minus, Trash2, ShoppingCart, Receipt,
   DollarSign, Percent, User, Phone, CreditCard, Banknote,
-  X, Check, Printer, Package, AlertCircle, Barcode, Tag
+  X, Check, Printer, Package, AlertCircle, Barcode, Tag, Building2
 } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
@@ -114,6 +114,11 @@ export default function SalesmanPOSPage() {
   // Checkout form
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+  const [customerType, setCustomerType] = useState<'WALKIN' | 'SHOP'>('WALKIN')
+  const [selectedShopId, setSelectedShopId] = useState('')
+  const [shops, setShops] = useState<any[]>([])
+  const [isPaid, setIsPaid] = useState(true)
+  const [paidAmount, setPaidAmount] = useState<number | ''>('')
   const [discount, setDiscount] = useState(0)
   const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FIXED'>('FIXED')
   const [paymentMethod, setPaymentMethod] = useState('CASH')
@@ -138,6 +143,7 @@ export default function SalesmanPOSPage() {
     fetchProducts()
     fetchDeals()
     fetchBillSettings()
+    fetchShops()
   }, [])
 
   // Close suggestions when clicking outside
@@ -178,6 +184,18 @@ export default function SalesmanPOSPage() {
       }
     } catch (error) {
       console.error('Failed to load deals')
+    }
+  }
+
+  const fetchShops = async () => {
+    try {
+      const res = await fetch('/api/shops')
+      if (res.ok) {
+        const data = await res.json()
+        setShops(data)
+      }
+    } catch (error) {
+      console.error('Failed to load shops')
     }
   }
 
@@ -558,6 +576,21 @@ export default function SalesmanPOSPage() {
       toast.error('Cart is empty')
       return
     }
+    if (customerType === 'SHOP' && !selectedShopId) {
+      toast.error('Please select a shop')
+      return
+    }
+
+    // If it's an Udhar transaction (not paid), create Udhar instead of POS sale
+    if (customerType === 'SHOP' && !isPaid) {
+      return handleUdharCheckout()
+    }
+
+    // Regular POS checkout (paid or partial payment)
+    if (paymentMethod === 'CASH' && isPaid && typeof amountReceived === 'number' && amountReceived < total) {
+      toast.error('Insufficient amount received')
+      return
+    }
 
     setProcessing(true)
     try {
@@ -567,18 +600,29 @@ export default function SalesmanPOSPage() {
         body: JSON.stringify({
           items: cart.map(item => ({
             productId: item.productId,
+            productName: item.product.name,
             quantity: item.quantity,
+            price: item.price,
+            costPrice: item.costPrice,
             size: item.size,
             color: item.color,
             customization: item.customization ? JSON.stringify(item.customization) : null,
             customizationPrice: item.customizationPrice || null,
           })),
-          customerName: customerName || null,
-          customerPhone: customerPhone || null,
-          discount: discount,
+          subtotal,
+          discount,
           discountType: discount > 0 ? discountType : null,
-          paymentMethod,
-          amountReceived: typeof amountReceived === 'number' ? amountReceived : null,
+          total,
+          paymentMethod: isPaid ? paymentMethod : 'CREDIT',
+          amountReceived: isPaid && paymentMethod === 'CASH' && typeof amountReceived === 'number' ? amountReceived : null,
+          changeGiven: isPaid && paymentMethod === 'CASH' ? change : null,
+          customerName: customerType === 'WALKIN' ? customerName : null,
+          customerPhone: customerType === 'WALKIN' ? customerPhone : null,
+          customerType,
+          shopId: customerType === 'SHOP' ? selectedShopId : null,
+          isPaid,
+          paidAmount: !isPaid && typeof paidAmount === 'number' ? paidAmount : null,
+          remainingAmount: !isPaid ? (typeof paidAmount === 'number' ? total - paidAmount : total) : null,
           notes: notes || null,
         }),
       })
@@ -592,11 +636,16 @@ export default function SalesmanPOSPage() {
         setCart([])
         setCustomerName('')
         setCustomerPhone('')
+        setCustomerType('WALKIN')
+        setSelectedShopId('')
+        setIsPaid(true)
+        setPaidAmount('')
         setDiscount(0)
         setAmountReceived('')
         setNotes('')
         
         fetchProducts()
+        fetchShops()
         toast.success('Sale completed!')
       } else {
         const error = await res.json()
@@ -609,7 +658,110 @@ export default function SalesmanPOSPage() {
     }
   }
 
+  const handleUdharCheckout = async () => {
+    setProcessing(true)
+    try {
+      // Prepare items for Udhar transaction
+      const udharItems = cart.map(item => ({
+        description: `${item.product.name}${item.size ? ` (${item.size})` : ''}${item.color ? ` - ${item.color}` : ''}`,
+        quantity: item.quantity,
+        price: item.price
+      }))
+
+      const udharTotal = total // After discount
+      const paidNow = typeof paidAmount === 'number' ? paidAmount : 0
+
+      // Create Udhar transaction
+      const udharRes = await fetch('/api/udhar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shopId: selectedShopId,
+          items: udharItems,
+          totalAmount: udharTotal,
+          notes: notes || `POS Udhar - ${cart.length} items`
+        })
+      })
+
+      if (!udharRes.ok) {
+        throw new Error('Failed to create Udhar transaction')
+      }
+
+      const udharTransaction = await udharRes.json()
+
+      // If partial payment was made, record it
+      if (paidNow > 0) {
+        await fetch(`/api/udhar/${udharTransaction.id}/payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: paidNow,
+            paymentMethod: paymentMethod || 'CASH',
+            notes: 'Initial payment'
+          })
+        })
+      }
+
+      // Update product stock (same as POS sale)
+      for (const item of cart) {
+        const product = item.product
+        if (item.size && item.color && product.colorSizeStock) {
+          const colorSizeStock = JSON.parse(product.colorSizeStock)
+          if (colorSizeStock[item.color] && colorSizeStock[item.color][item.size] !== undefined) {
+            colorSizeStock[item.color][item.size] = Math.max(0, colorSizeStock[item.color][item.size] - item.quantity)
+            
+            let newTotalStock = 0
+            for (const color of Object.keys(colorSizeStock)) {
+              for (const size of Object.keys(colorSizeStock[color])) {
+                newTotalStock += colorSizeStock[color][size]
+              }
+            }
+
+            await fetch(`/api/admin/products/${product.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                colorSizeStock: JSON.stringify(colorSizeStock),
+                stock: newTotalStock
+              })
+            })
+          }
+        } else {
+          await fetch(`/api/admin/products/${product.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              stock: Math.max(0, product.stock - item.quantity)
+            })
+          })
+        }
+      }
+
+      toast.success(`Udhar transaction created! ${paidNow > 0 ? 'Payment recorded.' : ''}`)
+      setShowCheckout(false)
+      
+      // Reset form
+      setCart([])
+      setCustomerType('WALKIN')
+      setSelectedShopId('')
+      setIsPaid(true)
+      setPaidAmount('')
+      setDiscount(0)
+      setAmountReceived('')
+      setNotes('')
+      
+      fetchProducts()
+      fetchShops()
+    } catch (error) {
+      toast.error('Failed to create Udhar transaction')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const formatCurrency = (amount: number) => `PKR ${amount.toLocaleString()}`
+  // Plain number for cost/profit (no PKR)
+  const formatAmount = (amount: number) => amount.toLocaleString()
 
   const getStockStatus = (stock: number) => {
     if (stock <= 0) return { text: 'Out of Stock', color: 'text-red-600 bg-red-50' }
@@ -782,10 +934,10 @@ export default function SalesmanPOSPage() {
                                   {product.costPrice > 0 && (
                                     <div className="flex items-center gap-2 mt-1">
                                       <span className="text-xs text-secondary-500 bg-secondary-100 px-1.5 py-0.5 rounded">
-                                        Cost: {formatCurrency(product.costPrice)}
+                                        Batch number: {formatAmount(product.costPrice)}
                                       </span>
                                       <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded font-semibold">
-                                        +{formatCurrency(price - product.costPrice)} ({Math.round(((price - product.costPrice) / product.costPrice) * 100)}%)
+                                        +{formatAmount(price - product.costPrice)} ({Math.round(((price - product.costPrice) / product.costPrice) * 100)}%)
                                       </span>
                                     </div>
                                   )}
@@ -947,8 +1099,8 @@ export default function SalesmanPOSPage() {
                     </div>
                     {product.costPrice > 0 && (
                       <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-secondary-400">C: {formatCurrency(product.costPrice)}</span>
-                        <span className="text-green-600 font-semibold">+{formatCurrency(price - product.costPrice)}</span>
+                        <span className="text-secondary-400">Batch: {formatAmount(product.costPrice)}</span>
+                        <span className="text-green-600 font-semibold">+{formatAmount(price - product.costPrice)}</span>
                       </div>
                     )}
                   </div>
@@ -1112,7 +1264,7 @@ export default function SalesmanPOSPage() {
                         </p>
                         {(item.costPrice || 0) > 0 && (
                           <p className="text-xs text-green-600">
-                            Profit: +{formatCurrency((item.price - (item.costPrice || 0)) * item.quantity)}
+                            Profit: +{formatAmount((item.price - (item.costPrice || 0)) * item.quantity)}
                           </p>
                         )}
                       </div>
@@ -1158,7 +1310,7 @@ export default function SalesmanPOSPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-green-600">Est. Profit</span>
                 <span className="font-medium text-green-600">
-                  +{formatCurrency(cart.reduce((sum, item) => sum + ((item.price - (item.costPrice || 0)) * item.quantity), 0))}
+                  +{formatAmount(cart.reduce((sum, item) => sum + ((item.price - (item.costPrice || 0)) * item.quantity), 0))}
                 </span>
               </div>
             )}
@@ -1586,32 +1738,186 @@ export default function SalesmanPOSPage() {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Customer Info */}
+                {/* Customer Type Selection */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-secondary-900">Customer (Optional)</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
-                      <input
-                        type="text"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Customer name"
-                        className="w-full pl-10 pr-4 py-3 border border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-                      />
-                    </div>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
-                      <input
-                        type="tel"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="Phone number"
-                        className="w-full pl-10 pr-4 py-3 border border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-                      />
-                    </div>
+                  <h3 className="font-semibold text-secondary-900">Customer Type</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerType('WALKIN')
+                        setSelectedShopId('')
+                      }}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        customerType === 'WALKIN'
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-secondary-200 hover:border-secondary-300'
+                      }`}
+                    >
+                      <User className={`w-6 h-6 mx-auto mb-2 ${customerType === 'WALKIN' ? 'text-primary-600' : 'text-secondary-400'}`} />
+                      <p className={`text-sm font-medium ${customerType === 'WALKIN' ? 'text-primary-600' : 'text-secondary-600'}`}>
+                        Walk-in Customer
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCustomerType('SHOP')}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        customerType === 'SHOP'
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-secondary-200 hover:border-secondary-300'
+                      }`}
+                    >
+                      <Building2 className={`w-6 h-6 mx-auto mb-2 ${customerType === 'SHOP' ? 'text-primary-600' : 'text-secondary-400'}`} />
+                      <p className={`text-sm font-medium ${customerType === 'SHOP' ? 'text-primary-600' : 'text-secondary-600'}`}>
+                        Shop Customer
+                      </p>
+                    </button>
                   </div>
                 </div>
+
+                {/* Customer Info */}
+                {customerType === 'WALKIN' ? (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-secondary-900">Customer (Optional)</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="Customer name"
+                          className="w-full pl-10 pr-4 py-3 border border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                        />
+                      </div>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
+                        <input
+                          type="tel"
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value)}
+                          placeholder="Phone number"
+                          className="w-full pl-10 pr-4 py-3 border border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-secondary-900">Select Shop *</h3>
+                    <select
+                      value={selectedShopId}
+                      onChange={(e) => setSelectedShopId(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 border border-secondary-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    >
+                      <option value="">-- Select Shop --</option>
+                      {shops.filter(s => s.isActive).map(shop => {
+                        const udharAmount = shop.udharOutstanding || 0
+                        const udharDisplay = udharAmount > 0 ? ` [Udhar: PKR ${udharAmount.toLocaleString()}]` : ''
+                        return (
+                          <option key={shop.id} value={shop.id}>
+                            {shop.name} {shop.ownerName ? `(${shop.ownerName})` : ''}{udharDisplay}
+                          </option>
+                        )
+                      })}
+                    </select>
+                    
+                    {/* Show selected shop's Udhar info */}
+                    {selectedShopId && (() => {
+                      const selectedShop = shops.find(s => s.id === selectedShopId)
+                      const udharAmount = selectedShop?.udharOutstanding || 0
+                      const posAmount = selectedShop?.posOutstanding || 0
+                      if (udharAmount > 0 || posAmount > 0) {
+                        return (
+                          <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <p className="text-xs font-medium text-orange-700 mb-1">Outstanding Balance:</p>
+                            <div className="space-y-1">
+                              {udharAmount > 0 && (
+                                <p className="text-sm text-orange-600">
+                                  Udhar: PKR {udharAmount.toLocaleString()}
+                                </p>
+                              )}
+                              {posAmount > 0 && (
+                                <p className="text-sm text-blue-600">
+                                  POS: PKR {posAmount.toLocaleString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      }
+                      return null
+                    })()}
+                    
+                    {/* Payment Status for Shop */}
+                    {selectedShopId && shops.find(s => s.id === selectedShopId)?.allowCredit && (
+                      <div className="space-y-3 p-4 bg-primary-50 rounded-xl border border-primary-200">
+                        <div className="space-y-3">
+                          {/* Payment Type Selection */}
+                          <div>
+                            <label className="block text-sm font-medium text-secondary-700 mb-2">
+                              Payment Type
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsPaid(true)
+                                  setPaidAmount('')
+                                }}
+                                className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                                  isPaid
+                                    ? 'border-green-600 bg-green-50 text-green-700'
+                                    : 'border-secondary-200 hover:border-secondary-300'
+                                }`}
+                              >
+                                Full Payment Now
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsPaid(false)
+                                  setPaidAmount('')
+                                  setPaymentMethod('CREDIT')
+                                }}
+                                className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                                  !isPaid
+                                    ? 'border-orange-600 bg-orange-50 text-orange-700'
+                                    : 'border-secondary-200 hover:border-secondary-300'
+                                }`}
+                              >
+                                Udhar (Credit)
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Partial Payment for Credit */}
+                          {!isPaid && (
+                            <div>
+                              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                                Partial Payment (Optional)
+                              </label>
+                              <input
+                                type="number"
+                                value={paidAmount}
+                                onChange={(e) => setPaidAmount(e.target.value ? Number(e.target.value) : '')}
+                                placeholder="Enter amount paid now"
+                                min="0"
+                                max={total}
+                                className="w-full px-4 py-2 border border-secondary-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                              />
+                              <p className="text-xs text-orange-600 mt-1 font-medium">
+                                Udhar Amount: PKR {(typeof paidAmount === 'number' ? total - paidAmount : total).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Discount */}
                 <div className="space-y-4">
@@ -1650,31 +1956,33 @@ export default function SalesmanPOSPage() {
                 </div>
 
                 {/* Payment Method */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-secondary-900">Payment Method</h3>
-                  <div className="flex gap-3">
-                    {[
-                      { value: 'CASH', label: 'Cash', icon: Banknote },
-                      { value: 'CARD', label: 'Card', icon: CreditCard },
-                    ].map((method) => (
-                      <button
-                        key={method.value}
-                        onClick={() => setPaymentMethod(method.value)}
-                        className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl border-2 transition-all ${
-                          paymentMethod === method.value
-                            ? 'border-primary-600 bg-primary-50 text-primary-700'
-                            : 'border-secondary-200 hover:border-secondary-300'
-                        }`}
-                      >
-                        <method.icon className="w-6 h-6" />
-                        <span className="font-semibold">{method.label}</span>
-                      </button>
-                    ))}
+                {(customerType === 'WALKIN' || (customerType === 'SHOP' && isPaid)) && (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-secondary-900">Payment Method</h3>
+                    <div className="flex gap-3">
+                      {[
+                        { value: 'CASH', label: 'Cash', icon: Banknote },
+                        { value: 'CARD', label: 'Card', icon: CreditCard },
+                      ].map((method) => (
+                        <button
+                          key={method.value}
+                          onClick={() => setPaymentMethod(method.value)}
+                          className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl border-2 transition-all ${
+                            paymentMethod === method.value
+                              ? 'border-primary-600 bg-primary-50 text-primary-700'
+                              : 'border-secondary-200 hover:border-secondary-300'
+                          }`}
+                        >
+                          <method.icon className="w-6 h-6" />
+                          <span className="font-semibold">{method.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Cash Received */}
-                {paymentMethod === 'CASH' && (
+                {paymentMethod === 'CASH' && (customerType === 'WALKIN' || (customerType === 'SHOP' && isPaid)) && (
                   <div className="space-y-4">
                     <h3 className="font-semibold text-secondary-900">Cash Received</h3>
                     <div className="relative">
@@ -1747,7 +2055,11 @@ export default function SalesmanPOSPage() {
                   ) : (
                     <>
                       <Check className="w-6 h-6" />
-                      Complete Sale - {formatCurrency(total)}
+                      {customerType === 'SHOP' && !isPaid ? (
+                        `Record Udhar - ${formatCurrency(total)}`
+                      ) : (
+                        `Complete Sale - ${formatCurrency(total)}`
+                      )}
                     </>
                   )}
                 </button>

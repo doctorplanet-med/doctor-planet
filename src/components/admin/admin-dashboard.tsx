@@ -23,11 +23,14 @@ interface DashboardData {
     totalCustomers: number
     webRevenue: number
     posRevenue: number
+    udharRevenue: number
     totalRevenue: number
     todayWeb: { revenue: number; count: number }
     todayPOS: { revenue: number; count: number }
+    todayUdhar: { revenue: number; count: number }
     monthWeb: { revenue: number; count: number }
     monthPOS: { revenue: number; count: number }
+    monthUdhar: { revenue: number; count: number }
   }
   lowStockProducts: Array<{
     id: string
@@ -69,8 +72,8 @@ const formatCurrency = (amount: number) => `PKR ${amount.toLocaleString()}`
 export default function AdminDashboard({ data }: AdminDashboardProps) {
   const { stats, lowStockProducts, recentOrders, recentPOSSales } = data
 
-  const todayTotal = stats.todayWeb.revenue + stats.todayPOS.revenue
-  const monthTotal = stats.monthWeb.revenue + stats.monthPOS.revenue
+  const todayTotal = stats.todayWeb.revenue + stats.todayPOS.revenue + stats.todayUdhar.revenue
+  const monthTotal = stats.monthWeb.revenue + stats.monthPOS.revenue + stats.monthUdhar.revenue
 
   return (
     <div className="space-y-8">
@@ -96,14 +99,18 @@ export default function AdminDashboard({ data }: AdminDashboardProps) {
           </div>
           <p className="text-white/80 text-sm">Total Revenue</p>
           <p className="text-3xl font-bold mt-1">{formatCurrency(stats.totalRevenue)}</p>
-          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4">
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-3 gap-4">
             <div>
-              <p className="text-white/60 text-xs">Web Orders</p>
+              <p className="text-white/60 text-xs">Web</p>
               <p className="font-semibold">{formatCurrency(stats.webRevenue)}</p>
             </div>
             <div>
-              <p className="text-white/60 text-xs">POS Sales</p>
+              <p className="text-white/60 text-xs">POS</p>
               <p className="font-semibold">{formatCurrency(stats.posRevenue)}</p>
+            </div>
+            <div>
+              <p className="text-white/60 text-xs">Udhar</p>
+              <p className="font-semibold">{formatCurrency(stats.udharRevenue)}</p>
             </div>
           </div>
         </motion.div>
@@ -123,7 +130,7 @@ export default function AdminDashboard({ data }: AdminDashboardProps) {
           </div>
           <p className="text-secondary-500 text-sm">Today's Revenue</p>
           <p className="text-3xl font-bold text-secondary-900 mt-1">{formatCurrency(todayTotal)}</p>
-          <div className="mt-4 pt-4 border-t border-secondary-100 grid grid-cols-2 gap-4">
+          <div className="mt-4 pt-4 border-t border-secondary-100 grid grid-cols-3 gap-2">
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-500" />
               <div>
@@ -136,6 +143,13 @@ export default function AdminDashboard({ data }: AdminDashboardProps) {
               <div>
                 <p className="text-secondary-500 text-xs">POS ({stats.todayPOS.count})</p>
                 <p className="font-semibold text-sm">{formatCurrency(stats.todayPOS.revenue)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-orange-500" />
+              <div>
+                <p className="text-secondary-500 text-xs">Udhar ({stats.todayUdhar.count})</p>
+                <p className="font-semibold text-sm">{formatCurrency(stats.todayUdhar.revenue)}</p>
               </div>
             </div>
           </div>
@@ -156,7 +170,7 @@ export default function AdminDashboard({ data }: AdminDashboardProps) {
           </div>
           <p className="text-secondary-500 text-sm">Monthly Revenue</p>
           <p className="text-3xl font-bold text-secondary-900 mt-1">{formatCurrency(monthTotal)}</p>
-          <div className="mt-4 pt-4 border-t border-secondary-100 grid grid-cols-2 gap-4">
+          <div className="mt-4 pt-4 border-t border-secondary-100 grid grid-cols-3 gap-2">
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-500" />
               <div>
@@ -169,6 +183,13 @@ export default function AdminDashboard({ data }: AdminDashboardProps) {
               <div>
                 <p className="text-secondary-500 text-xs">POS ({stats.monthPOS.count})</p>
                 <p className="font-semibold text-sm">{formatCurrency(stats.monthPOS.revenue)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-orange-500" />
+              <div>
+                <p className="text-secondary-500 text-xs">Udhar ({stats.monthUdhar.count})</p>
+                <p className="font-semibold text-sm">{formatCurrency(stats.monthUdhar.revenue)}</p>
               </div>
             </div>
           </div>

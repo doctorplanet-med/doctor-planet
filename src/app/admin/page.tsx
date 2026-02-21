@@ -23,10 +23,13 @@ async function getDashboardStats() {
     recentPOSSales,
     webRevenue,
     posRevenue,
+    udharRevenue,
     todayWebRevenue,
     todayPOSRevenue,
+    todayUdharRevenue,
     monthWebRevenue,
     monthPOSRevenue,
+    monthUdharRevenue,
   ] = await Promise.all([
     prisma.product.count(),
     prisma.order.count(),
@@ -63,6 +66,10 @@ async function getDashboardStats() {
     prisma.pOSSale.aggregate({
       _sum: { total: true }
     }),
+    // Total Udhar Payments (all time) - counts as revenue when received
+    prisma.udharPayment.aggregate({
+      _sum: { amount: true }
+    }),
     // Today's Web Revenue
     prisma.order.aggregate({
       where: { 
@@ -76,6 +83,12 @@ async function getDashboardStats() {
     prisma.pOSSale.aggregate({
       where: { createdAt: { gte: todayStart } },
       _sum: { total: true },
+      _count: true
+    }),
+    // Today's Udhar Payments
+    prisma.udharPayment.aggregate({
+      where: { createdAt: { gte: todayStart } },
+      _sum: { amount: true },
       _count: true
     }),
     // This Month's Web Revenue
@@ -93,10 +106,17 @@ async function getDashboardStats() {
       _sum: { total: true },
       _count: true
     }),
+    // This Month's Udhar Payments
+    prisma.udharPayment.aggregate({
+      where: { createdAt: { gte: monthStart } },
+      _sum: { amount: true },
+      _count: true
+    }),
   ])
 
   const totalWebRevenue = webRevenue._sum.total || 0
   const totalPOSRevenue = posRevenue._sum.total || 0
+  const totalUdharRevenue = udharRevenue._sum.amount || 0
 
   return {
     stats: {
@@ -107,7 +127,8 @@ async function getDashboardStats() {
       // Revenue breakdown
       webRevenue: totalWebRevenue,
       posRevenue: totalPOSRevenue,
-      totalRevenue: totalWebRevenue + totalPOSRevenue,
+      udharRevenue: totalUdharRevenue,
+      totalRevenue: totalWebRevenue + totalPOSRevenue + totalUdharRevenue,
       // Today's stats
       todayWeb: {
         revenue: todayWebRevenue._sum.total || 0,
@@ -117,6 +138,10 @@ async function getDashboardStats() {
         revenue: todayPOSRevenue._sum.total || 0,
         count: todayPOSRevenue._count
       },
+      todayUdhar: {
+        revenue: todayUdharRevenue._sum.amount || 0,
+        count: todayUdharRevenue._count
+      },
       // This month's stats
       monthWeb: {
         revenue: monthWebRevenue._sum.total || 0,
@@ -125,6 +150,10 @@ async function getDashboardStats() {
       monthPOS: {
         revenue: monthPOSRevenue._sum.total || 0,
         count: monthPOSRevenue._count
+      },
+      monthUdhar: {
+        revenue: monthUdharRevenue._sum.amount || 0,
+        count: monthUdharRevenue._count
       },
     },
     lowStockProducts,
