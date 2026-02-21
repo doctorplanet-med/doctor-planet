@@ -4,21 +4,30 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  // Create admin user
+  // Create admin users
   const hashedPassword = await bcrypt.hash('Admin@123', 12)
   
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@doctorplanet.com' },
-    update: {},
-    create: {
-      email: 'admin@doctorplanet.com',
-      name: 'Admin',
-      password: hashedPassword,
-      role: 'ADMIN',
-    },
-  })
+  const admins = [
+    { email: 'admin@doctorplanet.com', name: 'Admin' },
+    { email: 'doctorplanet.dawood@gmail.com', name: 'Dawood Admin' },
+    { email: 'doctorplanet.usama@gmail.com', name: 'Usama Admin' },
+    { email: 'doctorplanet.huzaifa@gmail.com', name: 'Huzaifa Admin' },
+  ]
 
-  console.log('Admin user created:', admin.email)
+  for (const adminData of admins) {
+    const admin = await prisma.user.upsert({
+      where: { email: adminData.email },
+      update: { role: 'ADMIN' }, // Ensure they have ADMIN role
+      create: {
+        email: adminData.email,
+        name: adminData.name,
+        password: hashedPassword,
+        role: 'ADMIN',
+        isActive: true,
+      },
+    })
+    console.log('Admin user created/updated:', admin.email)
+  }
 
   // Create categories
   const categories = await Promise.all([
