@@ -555,3 +555,16 @@ model UdharPayment {
   createdBy       String?  // User who recorded this payment
   createdAt       DateTime @default(now())
 }
+
+// Global Discount - Site-wide discount that overrides individual sale prices
+model GlobalDiscount {
+  id          String    @id @default("main")
+  isActive    Boolean   @default(false)
+  percentage  Float     @default(0) // Discount percentage (e.g., 5 for 5%)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+

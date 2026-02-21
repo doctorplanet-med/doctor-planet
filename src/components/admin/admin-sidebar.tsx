@@ -26,6 +26,7 @@ import {
   Tag,
   Wallet,
   ChevronDown,
+  Percent,
 } from 'lucide-react'
 
 interface MenuItem {
@@ -56,6 +57,7 @@ const menuGroups: MenuGroup[] = [
     label: 'Sales & Orders',
     icon: ShoppingCart,
     items: [
+      { href: '/admin/global-discount', label: 'Global Discount', icon: Percent },
       { href: '/admin/deals', label: 'Deals', icon: Tag },
       { href: '/admin/barcodes', label: 'Barcodes', icon: Barcode },
       { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },

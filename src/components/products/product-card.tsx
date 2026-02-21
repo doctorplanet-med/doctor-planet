@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 import { useSession } from 'next-auth/react'
 import { useCartStore } from '@/store/cart-store'
 import { useWishlistStore } from '@/store/wishlist-store'
+import { useGlobalDiscount } from '@/hooks/useGlobalDiscount'
 
 interface Product {
   id: string
@@ -49,14 +50,16 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
   const { isInWishlist, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore()
   const { data: session } = useSession()
   const router = useRouter()
+  const { calculatePrice, getDiscountPercentage, isGlobalDiscountActive } = useGlobalDiscount()
   
   const isLiked = isInWishlist(product.id)
 
   const images = parseImages(product.images)
   const mainImage = images[imageIndex] ?? images[0] ?? ''
-  const discount = product.salePrice
-    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
-    : 0
+  
+  // Use global discount or sale price discount
+  const discount = getDiscountPercentage(product.price, product.salePrice)
+  const finalPrice = calculatePrice(product.price, product.salePrice)
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -66,7 +69,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
       productId: product.id,
       name: product.name,
       price: product.price,
-      salePrice: product.salePrice || undefined,
+      salePrice: isGlobalDiscountActive ? finalPrice : (product.salePrice || undefined),
       image: mainImage,
       quantity: 1,
     })
@@ -343,7 +346,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
               {/* Price */}
               <div className="flex items-center justify-between">
                 <div className="flex items-baseline gap-1 sm:gap-2">
-                  {product.salePrice ? (
+                  {discount > 0 ? (
                     <>
                       <motion.span
                         className={`font-black text-primary-600 ${compact ? 'text-xs' : 'text-sm sm:text-xl'}`}
@@ -351,7 +354,7 @@ export default function ProductCard({ product, index = 0, compact = false }: Pro
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring' }}
                       >
-                        PKR {product.salePrice.toLocaleString()}
+                        PKR {finalPrice.toLocaleString()}
                       </motion.span>
                       <span className={`text-secondary-400 line-through font-medium ${compact ? 'text-[9px]' : 'text-[10px] sm:text-sm'}`}>
                         {product.price.toLocaleString()}

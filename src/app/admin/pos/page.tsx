@@ -75,6 +75,11 @@ export default function AdminPOSSalesPage() {
   const [returnReason, setReturnReason] = useState('')
   const [isProcessingReturn, setIsProcessingReturn] = useState(false)
 
+  // Clear all data state
+  const [showClearModal, setShowClearModal] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [isClearingData, setIsClearingData] = useState(false)
+
   useEffect(() => {
     fetchSales()
     fetchBillSettings()
@@ -207,6 +212,36 @@ export default function AdminPOSSalesPage() {
     return `PKR ${amount.toLocaleString()}`
   }
 
+  const handleClearAllData = async () => {
+    if (confirmText !== 'DELETE ALL') {
+      toast.error('Please type DELETE ALL to confirm')
+      return
+    }
+
+    setIsClearingData(true)
+    try {
+      const res = await fetch('/api/admin/pos/clear-all', {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        toast.success('All POS sales data cleared successfully')
+        setShowClearModal(false)
+        setConfirmText('')
+        setSales([])
+        setPage(1)
+        setTotalPages(1)
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Failed to clear data')
+      }
+    } catch (error) {
+      toast.error('Failed to clear data')
+    } finally {
+      setIsClearingData(false)
+    }
+  }
+
   const filteredSales = sales.filter(sale => 
     sale.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     sale.salesman.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -237,13 +272,22 @@ export default function AdminPOSSalesPage() {
           <h1 className="text-2xl font-bold text-secondary-900">POS Sales</h1>
           <p className="text-secondary-600">View and manage in-store point of sale transactions</p>
         </div>
-        <a
-          href="/salesman/pos"
-          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-        >
-          <Store className="w-5 h-5" />
-          Open POS
-        </a>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowClearModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            <Trash2 className="w-5 h-5" />
+            Clear All Data
+          </button>
+          <a
+            href="/salesman/pos"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+          >
+            <Store className="w-5 h-5" />
+            Open POS
+          </a>
+        </div>
       </div>
 
       {/* Stats */}
@@ -684,6 +728,99 @@ export default function AdminPOSSalesPage() {
                     <>
                       <Trash2 className="w-5 h-5" />
                       Process Return
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Clear All Data Modal */}
+      <AnimatePresence>
+        {showClearModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => !isClearingData && setShowClearModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-secondary-900">Clear All POS Data</h3>
+                  <p className="text-sm text-red-500">This action cannot be undone!</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-red-700 mb-2">
+                    <strong>⚠️ Warning:</strong> This will permanently delete:
+                  </p>
+                  <ul className="text-sm text-red-600 space-y-1 ml-4">
+                    <li>• All POS sales records ({sales.length} transactions)</li>
+                    <li>• All sale items and details</li>
+                    <li>• Sales history and revenue data</li>
+                  </ul>
+                  <p className="text-xs text-red-500 mt-3">
+                    ⚠️ Note: Product stock will NOT be affected
+                  </p>
+                </div>
+
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Type <code className="bg-red-100 text-red-700 px-2 py-1 rounded font-mono">DELETE ALL</code> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="Type DELETE ALL"
+                  disabled={isClearingData}
+                  className="w-full px-4 py-3 border-2 border-secondary-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-100 disabled:opacity-50 font-mono"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowClearModal(false)
+                    setConfirmText('')
+                  }}
+                  disabled={isClearingData}
+                  className="flex-1 py-3 border-2 border-secondary-200 rounded-xl font-medium hover:bg-secondary-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleClearAllData}
+                  disabled={confirmText !== 'DELETE ALL' || isClearingData}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isClearingData ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Clearing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Clear All Data
                     </>
                   )}
                 </button>
