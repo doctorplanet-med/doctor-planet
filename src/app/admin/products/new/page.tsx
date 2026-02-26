@@ -61,6 +61,8 @@ export default function AddProductPage() {
   const [colorSizeStock, setColorSizeStock] = useState<Record<string, Record<string, number>>>({})
   const [newSize, setNewSize] = useState('')
   const [newColor, setNewColor] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [newTag, setNewTag] = useState('')
   // Customization (optional) - categories with options (CustomizationCategory / CustomizationOption in DB)
   const [hasCustomization, setHasCustomization] = useState(false)
   const [customizationCategories, setCustomizationCategories] = useState<{ name: string; options: string[]; newOption: string }[]>([])
@@ -287,6 +289,23 @@ export default function AddProductPage() {
     setColorSizeStock(newStock)
   }
 
+  // Tags Management
+  const addTag = () => {
+    const trimmedTag = newTag.trim()
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      if (tags.length >= 15) {
+        toast.error('Maximum 15 tags allowed')
+        return
+      }
+      setTags([...tags, trimmedTag])
+      setNewTag('')
+    }
+  }
+
+  const removeTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag))
+  }
+
   /** Toggle an image in/out of a color's image list (multi-select per color) */
   const toggleColorImage = (color: string, imageUrl: string) => {
     const current = colorImages[color] || []
@@ -351,6 +370,7 @@ export default function AddProductPage() {
           barcode: formData.barcode || null,  // Auto-generate on server if null
           sku: formData.sku || null,
           company: formData.company || null,
+          tags: tags.length > 0 ? JSON.stringify(tags) : null,
           hasCustomization,
           customizationFields: null,
           customizationPrice: hasCustomization && customizationPrice.trim() ? parseFloat(customizationPrice) : null,
@@ -816,6 +836,68 @@ export default function AddProductPage() {
                 </p>
               </div>
             )}
+          </motion.div>
+
+          {/* SEO Tags */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.21 }}
+            className="bg-white rounded-2xl shadow-sm p-6"
+          >
+            <h2 className="text-lg font-heading font-semibold text-secondary-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              SEO Tags (Max 15)
+            </h2>
+            <p className="text-sm text-secondary-500 mb-4">
+              Add tags for better SEO. Tags will be displayed at the bottom of product page.
+            </p>
+            
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                placeholder="e.g. medical scrubs, doctor clothes, healthcare"
+                className="input-field flex-1"
+                maxLength={50}
+              />
+              <button 
+                type="button" 
+                onClick={addTag} 
+                className="btn-primary px-4"
+                disabled={tags.length >= 15}
+              >
+                Add Tag
+              </button>
+            </div>
+            
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 border border-primary-200 rounded-full text-sm text-primary-700"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="hover:text-primary-900 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            <p className="text-xs text-secondary-400 mt-3">
+              {tags.length} / 15 tags added
+            </p>
           </motion.div>
 
           {/* Customization (Optional) - admin adds field names; user enters values (e.g. inches) */}

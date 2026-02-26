@@ -123,6 +123,7 @@ model Product {
   hasCustomization Boolean @default(false)  // Product supports custom measurements (e.g. stitching)
   customizationFields String?  // Legacy: JSON array of field names (use customizationCategories for new data)
   customizationPrice  Float?   // Extra price (PKR) when customer selects customize
+  tags        String?     // JSON array of SEO tags (max 15 tags per product)
   featured    Boolean     @default(false)
   isActive    Boolean     @default(true)
   customizationCategories CustomizationCategory[]
