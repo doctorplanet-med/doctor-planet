@@ -38,6 +38,8 @@ next-env.d.ts
 # Prisma
 prisma/dev.db
 prisma/dev.db-journal
+dev.db
+dev.db-journal
 
 # Migration scripts (contain sensitive info)
 scripts/migrate-turso.js
