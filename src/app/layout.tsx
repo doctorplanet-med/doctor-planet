@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import AuthProvider from '@/components/providers/auth-provider'
 import WishlistProvider from '@/components/providers/wishlist-provider'
 import LayoutWrapper from '@/components/layout/layout-wrapper'
+import GoogleAnalytics from '@/components/analytics/google-analytics'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -41,6 +42,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
+      <head>
+        <GoogleAnalytics />
+      </head>
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <WishlistProvider>
