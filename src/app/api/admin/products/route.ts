@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       barcode,
       sku,
       company,
+      tags,
     } = body
 
     // Check if slug already exists
@@ -135,6 +136,7 @@ export async function POST(request: NextRequest) {
         barcode: finalBarcode,
         sku: sku || null,
         company: company || null,
+        tags: tags || null,
         customizationCategories: categoriesData.length > 0
           ? { create: categoriesData }
           : undefined,

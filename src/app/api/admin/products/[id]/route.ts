@@ -114,7 +114,7 @@ export async function PUT(
       sizeChartImage,
       hasCustomization, customizationFields, customizationPrice,
       customizationCategories,
-      barcode, sku, company
+      barcode, sku, company, tags
     } = body
 
     // Check barcode uniqueness if being updated
@@ -165,6 +165,7 @@ export async function PUT(
       barcode: barcode || null,
       sku: sku || null,
       company: company || null,
+      tags: tags || null,
     }
     if (sizeChartImage !== undefined) data.sizeChartImage = sizeChartImage || null
 
