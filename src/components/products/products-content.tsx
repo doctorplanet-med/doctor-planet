@@ -280,14 +280,11 @@ export default function ProductsContent({
 
               {/* Sort with Gradient */}
               <div className="relative flex-1 sm:flex-none">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="relative"
-                >
+                <div className="relative">
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full px-4 py-2.5 sm:py-3 pr-10 text-xs sm:text-sm font-semibold border-2 border-secondary-200 rounded-xl sm:rounded-2xl appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white/90 backdrop-blur-sm"
+                    className="w-full px-4 py-2.5 sm:py-3 pr-10 text-xs sm:text-sm font-semibold border-2 border-secondary-200 rounded-xl sm:rounded-2xl appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white/90 backdrop-blur-sm relative z-10"
                   >
                     {sortOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -295,13 +292,8 @@ export default function ProductsContent({
                       </option>
                     ))}
                   </select>
-                  <motion.div
-                    animate={{ y: [0, 3, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-500 pointer-events-none" />
-                  </motion.div>
-                </motion.div>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-500 pointer-events-none z-0" />
+                </div>
               </div>
 
               {/* View Mode - Desktop with Gradient Background */}
@@ -348,8 +340,16 @@ export default function ProductsContent({
                   <h3 className="font-medium text-secondary-900 text-xs mb-2">Categories</h3>
                   <div className="flex flex-wrap gap-1.5">
                     <button
-                      onClick={() => handleCategoryChange(null)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      onClick={() => {
+                        handleCategoryChange(null)
+                        setIsFilterOpen(false)
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault()
+                        handleCategoryChange(null)
+                        setIsFilterOpen(false)
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors active:scale-95 ${
                         !currentCategory
                           ? 'bg-primary-600 text-white'
                           : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
@@ -360,8 +360,16 @@ export default function ProductsContent({
                     {categories.map((category) => (
                       <button
                         key={category.id}
-                        onClick={() => handleCategoryChange(category.slug)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        onClick={() => {
+                          handleCategoryChange(category.slug)
+                          setIsFilterOpen(false)
+                        }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault()
+                          handleCategoryChange(category.slug)
+                          setIsFilterOpen(false)
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors active:scale-95 ${
                           currentCategory === category.slug
                             ? 'bg-primary-600 text-white'
                             : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
