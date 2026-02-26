@@ -1,5 +1,6 @@
 import HeroSection from '@/components/home/hero-section'
 import CategoryCirclesSection from '@/components/home/category-circles-section'
+import ScrollingTextBanner from '@/components/home/scrolling-text-banner'
 import PromoBannerSection from '@/components/home/promo-banner-section'
 import ExclusiveOffersSection from '@/components/home/exclusive-offers-section'
 import DealsOffersSection from '@/components/home/deals-offers-section'
@@ -231,6 +232,7 @@ export default async function HomePage() {
       <HeroSection settings={settings} randomProducts={randomProducts} banners={heroBanners}>
         <CategoryCirclesSection categories={categories} />
       </HeroSection>
+      <ScrollingTextBanner />
       <PromoBannerSection />
       <ExclusiveOffersSection products={productsOnSale} />
       <DealsOffersSection deals={activeDeals} />
