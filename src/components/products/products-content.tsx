@@ -344,12 +344,7 @@ export default function ProductsContent({
                         handleCategoryChange(null)
                         setIsFilterOpen(false)
                       }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault()
-                        handleCategoryChange(null)
-                        setIsFilterOpen(false)
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors active:scale-95 ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors active:scale-95 touch-manipulation ${
                         !currentCategory
                           ? 'bg-primary-600 text-white'
                           : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
@@ -364,12 +359,7 @@ export default function ProductsContent({
                           handleCategoryChange(category.slug)
                           setIsFilterOpen(false)
                         }}
-                        onTouchEnd={(e) => {
-                          e.preventDefault()
-                          handleCategoryChange(category.slug)
-                          setIsFilterOpen(false)
-                        }}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors active:scale-95 ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors active:scale-95 touch-manipulation ${
                           currentCategory === category.slug
                             ? 'bg-primary-600 text-white'
                             : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
