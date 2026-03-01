@@ -282,8 +282,44 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
     setImageAnimationKey(prev => prev + 1)
   }
 
+  // Generate JSON-LD structured data for SEO
+  const currentPrice = product.salePrice || product.price
+  const productTags = product.tags ? (() => {
+    try {
+      return JSON.parse(product.tags)
+    } catch {
+      return []
+    }
+  })() : []
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description,
+    image: images,
+    brand: {
+      '@type': 'Brand',
+      name: 'Doctor Planet',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: currentPrice,
+      priceCurrency: 'PKR',
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    },
+    category: product.category.name,
+    ...(productTags.length > 0 && { keywords: productTags.join(', ') }),
+  }
+
   return (
     <div className="min-h-screen pt-14 sm:pt-20 bg-white">
+      {/* JSON-LD Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Breadcrumb */}
         <motion.nav

@@ -59,6 +59,14 @@ async function getRelatedProducts(categoryId: string, productId: string) {
 export async function generateMetadata({ params }: ProductPageProps) {
   const product = await prisma.product.findUnique({
     where: { slug: params.slug },
+    include: {
+      category: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+    },
   })
 
   if (!product) {
@@ -68,14 +76,48 @@ export async function generateMetadata({ params }: ProductPageProps) {
   }
 
   const images = JSON.parse(product.images)
+  
+  // Parse tags for SEO keywords
+  let keywords: string[] = [product.name, product.category.name, 'Doctor Planet']
+  if (product.tags) {
+    try {
+      const productTags = JSON.parse(product.tags)
+      if (Array.isArray(productTags)) {
+        keywords = [...keywords, ...productTags]
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
+  }
+
+  // Create enhanced description with tags
+  const descriptionText = product.description.substring(0, 155)
+  const enhancedDescription = product.tags 
+    ? `${descriptionText}... Keywords: ${keywords.join(', ')}`
+    : descriptionText
 
   return {
     title: `${product.name} | Doctor Planet`,
-    description: product.description,
+    description: enhancedDescription,
+    keywords: keywords.join(', '),
     openGraph: {
       title: product.name,
       description: product.description,
       images: [images[0]],
+      type: 'product',
+      siteName: 'Doctor Planet',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description: product.description,
+      images: [images[0]],
+    },
+    other: {
+      'product:price:amount': product.salePrice || product.price,
+      'product:price:currency': 'PKR',
+      'product:availability': product.stock > 0 ? 'in stock' : 'out of stock',
+      'product:category': product.category.name,
     },
   }
 }
