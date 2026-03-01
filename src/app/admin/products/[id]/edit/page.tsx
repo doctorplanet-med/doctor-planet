@@ -402,10 +402,6 @@ export default function EditProductPage() {
   const addTag = () => {
     const trimmedTag = newTag.trim()
     if (trimmedTag && !tags.includes(trimmedTag)) {
-      if (tags.length >= 15) {
-        toast.error('Maximum 15 tags allowed')
-        return
-      }
       setTags([...tags, trimmedTag])
       setNewTag('')
     }
@@ -956,10 +952,10 @@ export default function EditProductPage() {
               <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              SEO Tags (Max 15)
+              SEO Tags
             </h2>
             <p className="text-sm text-secondary-500 mb-4">
-              Add tags for better SEO. Tags will be displayed at the bottom of product page.
+              Add unlimited tags for better SEO. Tags will be displayed at the bottom of product page.
             </p>
             
             <div className="flex gap-2 mb-3">
@@ -976,7 +972,6 @@ export default function EditProductPage() {
                 type="button" 
                 onClick={addTag} 
                 className="btn-primary px-4"
-                disabled={tags.length >= 15}
               >
                 Add Tag
               </button>
@@ -1003,7 +998,7 @@ export default function EditProductPage() {
             )}
             
             <p className="text-xs text-secondary-400 mt-3">
-              {tags.length} / 15 tags added
+              {tags.length} tag{tags.length !== 1 ? 's' : ''} added
             </p>
           </motion.div>
 
