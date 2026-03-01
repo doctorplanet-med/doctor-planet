@@ -104,8 +104,8 @@ export async function generateMetadata({ params }: ProductPageProps) {
       title: product.name,
       description: product.description,
       images: [images[0]],
-      type: 'product',
       siteName: 'Doctor Planet',
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${params.slug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -114,7 +114,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
       images: [images[0]],
     },
     other: {
-      'product:price:amount': product.salePrice || product.price,
+      'product:price:amount': String(product.salePrice || product.price),
       'product:price:currency': 'PKR',
       'product:availability': product.stock > 0 ? 'in stock' : 'out of stock',
       'product:category': product.category.name,
