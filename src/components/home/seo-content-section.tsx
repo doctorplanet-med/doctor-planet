@@ -14,45 +14,64 @@ export default function SEOContentSection() {
           className="bg-white rounded-3xl shadow-lg border border-secondary-100 p-6 sm:p-10"
         >
           <h2 className="text-2xl sm:text-3xl font-heading font-bold text-secondary-900 mb-6 text-center">
-            Premium Medical Scrubs & Healthcare Apparel in Pakistan
+            Premium Medical Scrubs, Crocs & Medical Equipment in Pakistan
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-8 text-secondary-700">
+          <div className="grid md:grid-cols-3 gap-8 text-secondary-700">
             <div>
               <h3 className="text-xl font-semibold text-primary-600 mb-4">
-                Medical Scrubs for Healthcare Professionals
+                Medical Scrubs & Uniforms
               </h3>
               <p className="mb-4 leading-relaxed">
                 Doctor Planet is Pakistan's leading provider of high-quality <strong>medical scrubs</strong>, <strong>nursing scrubs</strong>, and professional <strong>medical apparel</strong>. 
                 We offer an extensive collection of <strong>scrubs uniforms</strong> designed for comfort, durability, and style.
               </p>
               <p className="leading-relaxed">
-                Our <strong>scrubs for women</strong> and <strong>scrubs for men</strong> are crafted from premium fabrics, ensuring all-day comfort during long shifts. 
-                Whether you need <strong>nursing scrubs</strong>, <strong>dr scrubs</strong>, or <strong>medicine scrubs</strong>, we have the perfect fit for every healthcare professional.
+                Our <strong>scrubs for women</strong> and <strong>scrubs for men</strong> are crafted from premium fabrics. 
+                From <strong>ladies scrubs</strong>, <strong>female medical scrubs</strong>, <strong>scrubs women's</strong>, <strong>scrubs uniform for ladies</strong> to 
+                <strong>men's scrubs clothing</strong>, <strong>scrubs men</strong>, <strong>scrub for men</strong>, we have it all!
               </p>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold text-primary-600 mb-4">
-                Men's & Women's Medical Scrubs Collection
+                Medical Crocs & Footwear
               </h3>
               <p className="mb-4 leading-relaxed">
-                Explore our diverse range of <strong>men's scrubs clothing</strong> and <strong>ladies scrubs</strong> designed specifically for Pakistani healthcare workers. 
-                Our <strong>scrubs men</strong> collection features modern cuts and professional designs, while our <strong>scrubs ladies</strong> line offers stylish and comfortable options.
+                Shop our premium collection of <strong>crocs</strong>, <strong>medical crocs</strong>, and <strong>crocs shoes</strong> designed for healthcare professionals. 
+                Our <strong>doctor crocs</strong> and <strong>nurse crocs</strong> provide all-day comfort during long shifts.
               </p>
               <p className="leading-relaxed">
-                From <strong>female medical scrubs</strong> to <strong>men's scrubs</strong>, <strong>scrub for men</strong> to <strong>scrubs women's</strong> collection, 
-                we provide <strong>scrubs uniform for ladies</strong> and gentlemen that meet international quality standards. Shop our <strong>scrub medical</strong> wear today!
+                We offer <strong>crocs clogs</strong>, <strong>medical shoes</strong>, <strong>nursing shoes</strong>, <strong>healthcare footwear</strong>, 
+                <strong>medical clogs</strong>, <strong>crocs for nurses</strong>, and <strong>crocs for doctors</strong>. 
+                Slip-resistant, comfortable, and professional!
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-primary-600 mb-4">
+                Medical Equipment & Supplies
+              </h3>
+              <p className="mb-4 leading-relaxed">
+                Browse our extensive range of <strong>medical equipment</strong>, <strong>medical supplies</strong>, including <strong>stethoscopes</strong>, 
+                <strong>blood pressure monitors</strong>, <strong>thermometers</strong>, and <strong>medical instruments</strong>.
+              </p>
+              <p className="leading-relaxed">
+                We stock <strong>diagnostic equipment</strong>, <strong>surgical equipment</strong>, <strong>medical devices</strong>, 
+                <strong>healthcare equipment</strong>, <strong>nursing equipment</strong>, <strong>doctor equipment</strong>, <strong>medical tools</strong>, 
+                <strong>hospital equipment</strong>, and professional <strong>medical gear</strong> for all healthcare needs.
               </p>
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { title: 'Medical Scrubs', desc: 'Premium quality scrubs' },
-              { title: 'Nursing Scrubs', desc: 'Comfortable uniforms' },
-              { title: 'Men\'s Scrubs', desc: 'Professional wear' },
-              { title: 'Women\'s Scrubs', desc: 'Stylish & practical' },
+              { title: 'Medical Scrubs', desc: 'Premium uniforms' },
+              { title: 'Nursing Scrubs', desc: 'Comfortable wear' },
+              { title: 'Crocs Shoes', desc: 'Medical footwear' },
+              { title: 'Medical Clogs', desc: 'Doctor crocs' },
+              { title: 'Medical Equipment', desc: 'Healthcare supplies' },
+              { title: 'Medical Devices', desc: 'Professional tools' },
             ].map((item, index) => (
               <motion.div
                 key={index}
@@ -62,7 +81,7 @@ export default function SEOContentSection() {
                 transition={{ delay: index * 0.1 }}
                 className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 text-center border border-primary-200"
               >
-                <h4 className="font-bold text-primary-700 mb-1">{item.title}</h4>
+                <h4 className="font-bold text-primary-700 mb-1 text-sm">{item.title}</h4>
                 <p className="text-xs text-primary-600">{item.desc}</p>
               </motion.div>
             ))}
@@ -70,10 +89,12 @@ export default function SEOContentSection() {
 
           <div className="mt-8 text-center">
             <p className="text-sm text-secondary-600 leading-relaxed">
-              <strong>Keywords:</strong> scrubs, medical apparel, men's scrubs clothing, ladies scrubs, scrubs ladies, 
-              female medical scrubs, scrubs women's, scrubs uniform for ladies, men's scrubs, scrubs men, medical scrubs, 
-              nursing scrubs, scrub for men, scrubs for women, medicine scrubs, nurse scrubs, scrub medical, scrubs for men, 
-              scrubs uniforms, dr scrubs, medical scrubs Pakistan, healthcare apparel, nursing uniforms, doctor scrubs
+              <strong>Keywords:</strong> scrubs, medical apparel, men's scrubs, ladies scrubs, female medical scrubs, nursing scrubs, 
+              medical scrubs, scrubs uniforms, dr scrubs, crocs, medical crocs, crocs shoes, doctor crocs, nurse crocs, 
+              crocs clogs, medical shoes, nursing shoes, medical clogs, crocs for nurses, crocs for doctors, 
+              medical equipment, medical supplies, stethoscope, blood pressure monitor, thermometer, medical instruments, 
+              diagnostic equipment, surgical equipment, medical devices, healthcare equipment, nursing equipment, 
+              doctor equipment, medical tools, hospital equipment, medical gear, Pakistan medical supplies
             </p>
           </div>
         </motion.div>

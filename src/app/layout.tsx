@@ -20,25 +20,25 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: 'Doctor Planet - Medical Scrubs, Nursing Uniforms & Healthcare Apparel',
-  description: 'Shop premium medical scrubs, nursing uniforms, doctor scrubs, and healthcare apparel in Pakistan. Men\'s scrubs, women\'s scrubs, medical equipment, and professional medical clothing for nurses and doctors.',
-  keywords: 'scrubs, medical apparel, men\'s scrubs clothing, ladies scrubs, scrubs ladies, female medical scrubs, scrubs women\'s, scrubs uniform for ladies, men\'s scrubs, scrubs men, medical scrubs, nursing scrubs, scrub for men, scrubs for women, medicine scrubs, nurse scrubs, scrub medical, scrubs for men, scrubs uniforms, dr scrubs, medical scrubs Pakistan, nursing uniforms, doctor scrubs, healthcare apparel, medical clothing, hospital uniforms',
+  title: 'Doctor Planet - Medical Scrubs, Crocs, Medical Equipment & Healthcare Apparel Pakistan',
+  description: 'Shop premium medical scrubs, crocs shoes, medical equipment, nursing uniforms, doctor scrubs, and healthcare apparel in Pakistan. Men\'s scrubs, women\'s scrubs, medical clogs, stethoscopes, and professional medical supplies for nurses and doctors.',
+  keywords: 'scrubs, medical apparel, men\'s scrubs clothing, ladies scrubs, scrubs ladies, female medical scrubs, scrubs women\'s, scrubs uniform for ladies, men\'s scrubs, scrubs men, medical scrubs, nursing scrubs, scrub for men, scrubs for women, medicine scrubs, nurse scrubs, scrub medical, scrubs for men, scrubs uniforms, dr scrubs, crocs, medical crocs, crocs shoes, doctor crocs, nurse crocs, crocs clogs, medical shoes, nursing shoes, healthcare footwear, medical clogs, crocs for nurses, crocs for doctors, medical equipment, medical supplies, stethoscope, blood pressure monitor, thermometer, medical instruments, diagnostic equipment, surgical equipment, medical devices, healthcare equipment, nursing equipment, doctor equipment, medical tools, hospital equipment, medical gear, Pakistan medical supplies',
   icons: {
     icon: '/logos/logo.png',
     shortcut: '/logos/logo.png',
     apple: '/logos/logo.png',
   },
   openGraph: {
-    title: 'Doctor Planet - Medical Scrubs & Nursing Uniforms in Pakistan',
-    description: 'Premium medical scrubs, nursing uniforms, and healthcare apparel. Shop men\'s scrubs, women\'s scrubs, and professional medical clothing.',
+    title: 'Doctor Planet - Medical Scrubs, Crocs & Equipment in Pakistan',
+    description: 'Premium medical scrubs, crocs shoes, medical equipment, nursing uniforms, and healthcare apparel. Shop men\'s scrubs, women\'s scrubs, medical clogs, and professional medical supplies.',
     images: ['/logos/Full Logo.png'],
     siteName: 'Doctor Planet',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Doctor Planet - Medical Scrubs & Healthcare Apparel',
-    description: 'Premium medical scrubs, nursing uniforms, and professional healthcare clothing.',
+    title: 'Doctor Planet - Medical Scrubs, Crocs & Healthcare Equipment',
+    description: 'Premium medical scrubs, crocs shoes, medical equipment, nursing uniforms, and professional healthcare supplies.',
   },
 }
 
