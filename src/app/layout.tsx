@@ -20,18 +20,25 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: 'Doctor Planet - Professional Medical Boutique',
-  description: 'Your one-stop shop for premium medical clothes, shoes, and equipment. Quality products for healthcare professionals.',
-  keywords: 'medical scrubs, lab coats, nursing shoes, medical equipment, healthcare uniforms',
+  title: 'Doctor Planet - Medical Scrubs, Nursing Uniforms & Healthcare Apparel',
+  description: 'Shop premium medical scrubs, nursing uniforms, doctor scrubs, and healthcare apparel in Pakistan. Men\'s scrubs, women\'s scrubs, medical equipment, and professional medical clothing for nurses and doctors.',
+  keywords: 'scrubs, medical apparel, men\'s scrubs clothing, ladies scrubs, scrubs ladies, female medical scrubs, scrubs women\'s, scrubs uniform for ladies, men\'s scrubs, scrubs men, medical scrubs, nursing scrubs, scrub for men, scrubs for women, medicine scrubs, nurse scrubs, scrub medical, scrubs for men, scrubs uniforms, dr scrubs, medical scrubs Pakistan, nursing uniforms, doctor scrubs, healthcare apparel, medical clothing, hospital uniforms',
   icons: {
     icon: '/logos/logo.png',
     shortcut: '/logos/logo.png',
     apple: '/logos/logo.png',
   },
   openGraph: {
-    title: 'Doctor Planet - Professional Medical Boutique',
-    description: 'Your one-stop shop for premium medical clothes, shoes, and equipment.',
+    title: 'Doctor Planet - Medical Scrubs & Nursing Uniforms in Pakistan',
+    description: 'Premium medical scrubs, nursing uniforms, and healthcare apparel. Shop men\'s scrubs, women\'s scrubs, and professional medical clothing.',
     images: ['/logos/Full Logo.png'],
+    siteName: 'Doctor Planet',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Doctor Planet - Medical Scrubs & Healthcare Apparel',
+    description: 'Premium medical scrubs, nursing uniforms, and professional healthcare clothing.',
   },
 }
 

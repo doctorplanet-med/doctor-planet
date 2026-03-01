@@ -9,6 +9,7 @@ import AllProductsSection from '@/components/home/all-products-section'
 import FeaturesSection from '@/components/home/features-section'
 import TestimonialsSection from '@/components/home/testimonials-section'
 import NewsletterSection from '@/components/home/newsletter-section'
+import SEOContentSection from '@/components/home/seo-content-section'
 import prisma from '@/lib/prisma'
 import { heroBanners as fallbackBanners } from '@/data/heroBanners'
 import type { HeroBannerItem } from '@/data/heroBanners'
@@ -238,6 +239,7 @@ export default async function HomePage() {
       <DealsOffersSection deals={activeDeals} />
       <FeaturedProducts products={featuredProducts} />
       <AllProductsSection products={allProducts} />
+      <SEOContentSection />
       <FeaturesSection />
       <TestimonialsSection />
       <NewsletterSection />
