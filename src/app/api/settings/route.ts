@@ -12,7 +12,7 @@ export async function GET() {
       // Return default settings if none exist
       return NextResponse.json({
         siteName: 'Doctor Planet',
-        siteTagline: 'Professional Medical Boutique',
+        siteTagline: 'Medical Scrubs, Crocs & Healthcare Equipment',
         contactEmail: 'info@doctorplanet.com',
         contactPhone: '+92 300 1234567',
         contactAddress: 'Medical Plaza, Healthcare City',

@@ -79,7 +79,7 @@ const emailTemplates = {
         <div class="container">
           <div class="header">
             <h1>🏥 Doctor Planet</h1>
-            <p>Professional Medical Boutique</p>
+            <p>Medical Scrubs, Crocs & Healthcare Equipment</p>
           </div>
           <div class="content">
             <div style="text-align: center;">
@@ -913,7 +913,7 @@ export async function sendSalesmanWelcomeEmail(
           <div class="container">
             <div class="header">
               <h1>🏥 Doctor Planet</h1>
-              <p>Professional Medical Boutique</p>
+              <p>Medical Scrubs, Crocs & Healthcare Equipment</p>
             </div>
             <div class="content">
               <div style="text-align: center;">

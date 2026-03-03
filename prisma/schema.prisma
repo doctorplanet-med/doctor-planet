@@ -450,7 +450,7 @@ model SiteSettings {
   
   // Branding
   siteName            String   @default("Doctor Planet")
-  siteTagline         String   @default("Professional Medical Boutique")
+  siteTagline         String   @default("Medical Scrubs, Crocs & Healthcare Equipment")
   
   // Hero Section (legacy single hero - kept for backwards compatibility)
   heroTitle           String   @default("Professional Medical Apparel")
