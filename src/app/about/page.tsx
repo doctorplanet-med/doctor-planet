@@ -52,17 +52,26 @@ const stats = [
 
 export default function AboutPage() {
   const [team, setTeam] = useState<TeamMember[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTeam = async () => {
       try {
+        setLoading(true)
         const res = await fetch('/api/team')
         if (res.ok) {
           const data = await res.json()
+          console.log('Team data loaded:', data) // Debug log
           setTeam(data)
+        } else {
+          setError('Failed to load team members')
         }
       } catch (error) {
         console.error('Failed to fetch team:', error)
+        setError('Failed to load team members')
+      } finally {
+        setLoading(false)
       }
     }
     fetchTeam()
@@ -142,7 +151,7 @@ export default function AboutPage() {
       </section>
 
       {/* Meet Our Team */}
-      {team.length > 0 && (
+      {(team.length > 0 || loading) && (
         <section className="py-20 bg-gradient-to-br from-secondary-900 to-secondary-950">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -162,8 +171,26 @@ export default function AboutPage() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {team.map((member, index) => (
+            {loading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 animate-pulse">
+                    <div className="h-72 bg-white/10"></div>
+                    <div className="p-6 space-y-3">
+                      <div className="h-6 bg-white/10 rounded w-3/4"></div>
+                      <div className="h-4 bg-white/10 rounded w-1/2"></div>
+                      <div className="h-16 bg-white/10 rounded"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-400 py-12">
+                <p>{error}</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {team.map((member, index) => (
                 <motion.div
                   key={member.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -173,24 +200,28 @@ export default function AboutPage() {
                   className="group relative bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-primary-500/50 transition-all duration-300"
                 >
                   {/* Image */}
-                  <div className="relative h-72 overflow-hidden">
+                  <div className="relative h-72 overflow-hidden bg-secondary-800">
                     {member.image ? (
-                      <Image
-                        src={member.image}
-                        alt={member.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <>
+                        <Image
+                          src={member.image}
+                          alt={member.name}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          priority={index < 3}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-secondary-950 via-transparent to-transparent" />
+                      </>
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center">
                         <User className="w-24 h-24 text-white/50" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-secondary-950 via-transparent to-transparent" />
                     
                     {/* Founder Badge */}
                     {member.isFounder && (
-                      <div className="absolute top-4 left-4 px-3 py-1.5 bg-yellow-500 text-secondary-900 text-xs font-bold rounded-full flex items-center gap-1.5 shadow-lg">
+                      <div className="absolute top-4 left-4 px-3 py-1.5 bg-yellow-500 text-secondary-900 text-xs font-bold rounded-full flex items-center gap-1.5 shadow-lg z-10">
                         <Award className="w-3.5 h-3.5" />
                         Founder
                       </div>
@@ -198,69 +229,81 @@ export default function AboutPage() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
-                    <p className="text-primary-400 font-medium text-sm mb-3">{member.role}</p>
-                    <p className="text-secondary-400 text-sm leading-relaxed">{member.bio}</p>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
+                      <p className="text-primary-400 font-medium text-sm">{member.role}</p>
+                    </div>
+                    
+                    {member.bio && (
+                      <p className="text-secondary-300 text-sm leading-relaxed">{member.bio}</p>
+                    )}
+
+                    {/* Contact Info - Display as text if available */}
+                    {(member.email || member.phone) && (
+                      <div className="space-y-2 text-xs">
+                        {member.email && (
+                          <div className="flex items-center gap-2 text-secondary-300">
+                            <Mail className="w-3.5 h-3.5 text-primary-400 flex-shrink-0" />
+                            <a href={`mailto:${member.email}`} className="hover:text-primary-400 transition-colors truncate">
+                              {member.email}
+                            </a>
+                          </div>
+                        )}
+                        {member.phone && (
+                          <div className="flex items-center gap-2 text-secondary-300">
+                            <Phone className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                            <a href={`tel:${member.phone}`} className="hover:text-green-400 transition-colors">
+                              {member.phone}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Social Links */}
-                    <div className="flex gap-3 mt-4 pt-4 border-t border-white/10">
-                      {member.email && (
-                        <a
-                          href={`mailto:${member.email}`}
-                          className="p-2 bg-white/5 hover:bg-primary-600 text-secondary-400 hover:text-white rounded-lg transition-all duration-200"
-                          title="Email"
-                        >
-                          <Mail className="w-4 h-4" />
-                        </a>
-                      )}
-                      {member.phone && (
-                        <a
-                          href={`tel:${member.phone}`}
-                          className="p-2 bg-white/5 hover:bg-green-600 text-secondary-400 hover:text-white rounded-lg transition-all duration-200"
-                          title="Call"
-                        >
-                          <Phone className="w-4 h-4" />
-                        </a>
-                      )}
-                      {member.linkedin && (
-                        <a
-                          href={member.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 bg-white/5 hover:bg-blue-600 text-secondary-400 hover:text-white rounded-lg transition-all duration-200"
-                          title="LinkedIn"
-                        >
-                          <Linkedin className="w-4 h-4" />
-                        </a>
-                      )}
-                      {member.instagram && (
-                        <a
-                          href={member.instagram}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 bg-white/5 hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 text-secondary-400 hover:text-white rounded-lg transition-all duration-200"
-                          title="Instagram"
-                        >
-                          <Instagram className="w-4 h-4" />
-                        </a>
-                      )}
-                      {member.facebook && (
-                        <a
-                          href={member.facebook}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 bg-white/5 hover:bg-blue-700 text-secondary-400 hover:text-white rounded-lg transition-all duration-200"
-                          title="Facebook"
-                        >
-                          <Facebook className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
+                    {(member.linkedin || member.instagram || member.facebook) && (
+                      <div className="flex gap-2 pt-3 border-t border-white/10">
+                        {member.linkedin && (
+                          <a
+                            href={member.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/5 hover:bg-blue-600 text-secondary-300 hover:text-white rounded-lg transition-all duration-200"
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="w-4 h-4" />
+                          </a>
+                        )}
+                        {member.instagram && (
+                          <a
+                            href={member.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/5 hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 text-secondary-300 hover:text-white rounded-lg transition-all duration-200"
+                            title="Instagram"
+                          >
+                            <Instagram className="w-4 h-4" />
+                          </a>
+                        )}
+                        {member.facebook && (
+                          <a
+                            href={member.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/5 hover:bg-blue-700 text-secondary-300 hover:text-white rounded-lg transition-all duration-200"
+                            title="Facebook"
+                          >
+                            <Facebook className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
             </div>
+            )}
           </div>
         </section>
       )}
