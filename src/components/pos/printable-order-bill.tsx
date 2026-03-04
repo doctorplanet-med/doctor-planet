@@ -74,8 +74,8 @@ const PrintableOrderBill = forwardRef<HTMLDivElement, PrintableOrderBillProps>(
     return (
       <div 
         ref={ref}
-        className={`bg-white p-4 font-mono ${fontSizeClass} print:p-2`}
-        style={paperWidthStyle}
+        className={`bg-white p-4 ${fontSizeClass} print:p-2`}
+        style={{ ...paperWidthStyle, fontFamily: 'Arial, sans-serif' }}
       >
         {/* Store Header */}
         <div className="text-center border-b border-dashed border-black pb-3 mb-3">
