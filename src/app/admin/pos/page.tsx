@@ -115,26 +115,124 @@ export default function AdminPOSSalesPage() {
     }
 
     const logoHtml = billSettings.showLogo && billSettings.logoUrl ? '<img src="' + billSettings.logoUrl + '" alt="Logo" />' : ''
-    const addressHtml = billSettings.showStoreAddress ? '<div class="text-gray">' + billSettings.storeAddress + '</div>' : ''
-    const phoneHtml = billSettings.showStorePhone ? '<div class="text-gray">Tel: ' + billSettings.storePhone + '</div>' : ''
-    const headerHtml = billSettings.headerText ? '<div style="margin-top:8px">' + billSettings.headerText + '</div>' : ''
-    const customerNameHtml = sale.customerName ? '<div class="flex"><span>Customer:</span><span>' + sale.customerName + '</span></div>' : ''
-    const customerPhoneHtml = sale.customerPhone ? '<div class="flex"><span>Phone:</span><span>' + sale.customerPhone + '</span></div>' : ''
+    const addressHtml = billSettings.showStoreAddress ? '<div style="color:#000;font-weight:600">' + billSettings.storeAddress + '</div>' : ''
+    const phoneHtml = billSettings.showStorePhone ? '<div style="color:#000;font-weight:600">Tel: ' + billSettings.storePhone + '</div>' : ''
+    const headerHtml = billSettings.headerText ? '<div style="margin-top:8px;font-weight:bold">' + billSettings.headerText + '</div>' : ''
+    const customerNameHtml = sale.customerName ? '<div class="flex" style="font-weight:600"><span>Customer:</span><span>' + sale.customerName + '</span></div>' : ''
+    const customerPhoneHtml = sale.customerPhone ? '<div class="flex" style="font-weight:600"><span>Phone:</span><span>' + sale.customerPhone + '</span></div>' : ''
     
     const itemsHtml = sale.items.map(item => {
       const variantHtml = (item.color || item.size) 
-        ? '<div class="text-xs text-gray" style="padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>' 
+        ? '<div style="font-size:9px;color:#000;font-weight:500;padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>' 
         : ''
-      return '<div><div class="flex"><span style="flex:1">' + item.productName + '</span><span style="width:30px;text-align:center">' + item.quantity + '</span><span style="width:80px;text-align:right">PKR ' + (item.price * item.quantity).toLocaleString() + '</span></div>' + variantHtml + '</div>'
+      return '<div><div class="flex" style="font-weight:bold"><span style="flex:1">' + item.productName + '</span><span style="width:30px;text-align:center">' + item.quantity + '</span><span style="width:80px;text-align:right">PKR ' + (item.price * item.quantity).toLocaleString() + '</span></div>' + variantHtml + '</div>'
     }).join('')
 
-    const discountHtml = sale.discount > 0 ? '<div class="flex text-green"><span>Discount:</span><span>-PKR ' + sale.discount.toLocaleString() + '</span></div>' : ''
-    const cashHtml = sale.amountReceived ? '<div class="flex"><span>Cash:</span><span>PKR ' + sale.amountReceived.toLocaleString() + '</span></div><div class="flex font-bold"><span>Change:</span><span>PKR ' + (sale.changeGiven || 0).toLocaleString() + '</span></div>' : ''
-    const footerHtml = billSettings.footerText ? '<div class="font-bold">' + billSettings.footerText + '</div>' : ''
-    const returnPolicyHtml = billSettings.showReturnPolicy ? '<div class="text-xs text-gray" style="margin-top:8px">' + billSettings.returnPolicy + '</div>' : ''
-    const barcodeHtml = billSettings.showBarcode ? '<div style="margin-top:8px;height:30px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:8px;">||| ' + sale.receiptNumber + ' |||</div>' : ''
+    const discountHtml = sale.discount > 0 ? '<div class="flex" style="font-weight:bold;color:#000"><span>Discount:</span><span>-PKR ' + sale.discount.toLocaleString() + '</span></div>' : ''
+    const cashHtml = sale.amountReceived ? '<div class="flex" style="font-weight:bold"><span>Cash:</span><span>PKR ' + sale.amountReceived.toLocaleString() + '</span></div><div class="flex" style="font-weight:900"><span>Change:</span><span>PKR ' + (sale.changeGiven || 0).toLocaleString() + '</span></div>' : ''
+    const footerHtml = billSettings.footerText ? '<div style="font-weight:bold">' + billSettings.footerText + '</div>' : ''
+    const returnPolicyHtml = billSettings.showReturnPolicy ? '<div style="font-size:9px;color:#000;font-weight:600;margin-top:8px">' + billSettings.returnPolicy + '</div>' : ''
+    const barcodeHtml = billSettings.showBarcode ? '<div style="margin-top:8px;height:30px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:bold">||| ' + sale.receiptNumber + ' |||</div>' : ''
 
-    printWindow.document.write('<!DOCTYPE html><html><head><title>Receipt - ' + sale.receiptNumber + '</title><style>* { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: "Courier New", monospace; padding: 10px; font-size: ' + (fontSizeMap[billSettings.fontSize] || '12px') + '; } .bill-container { width: ' + (billSettings.paperWidth === '58mm' ? '58mm' : billSettings.paperWidth === '80mm' ? '80mm' : '100%') + '; max-width: ' + (billSettings.paperWidth === 'A4' ? '210mm' : billSettings.paperWidth) + '; margin: 0 auto; } .text-center { text-align: center; } .font-bold { font-weight: bold; } .border-dashed { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; } .border-solid { border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px; } .flex { display: flex; justify-content: space-between; } .text-green { color: green; } .text-gray { color: #666; } .text-xs { font-size: 9px; } .mb-2 { margin-bottom: 8px; } .pt-2 { padding-top: 8px; } .space-y > * + * { margin-top: 4px; } img { max-height: 40px; margin: 0 auto 8px; display: block; } .badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: bold; border-radius: 9999px; background: #f3e8ff; color: #7c3aed; } @media print { body { padding: 0; } @page { margin: 5mm; } }</style></head><body><div class="bill-container"><div class="text-center border-dashed">' + logoHtml + '<div class="font-bold" style="font-size: 14px;">' + billSettings.storeName + '</div>' + addressHtml + phoneHtml + headerHtml + '</div><div class="text-center mb-2"><span class="badge">POS SALE</span></div><div class="border-dashed space-y"><div class="flex"><span>Receipt #:</span><span class="font-bold">' + sale.receiptNumber + '</span></div><div class="flex"><span>Date:</span><span>' + new Date(sale.createdAt).toLocaleString() + '</span></div><div class="flex"><span>Cashier:</span><span>' + sale.salesman.name + '</span></div>' + customerNameHtml + customerPhoneHtml + '</div><div class="border-solid"><div class="flex font-bold"><span>Item</span><span>Qty</span><span>Amount</span></div></div><div class="border-dashed space-y">' + itemsHtml + '</div><div class="border-dashed space-y"><div class="flex"><span>Subtotal:</span><span>PKR ' + sale.subtotal.toLocaleString() + '</span></div>' + discountHtml + '<div class="flex font-bold pt-2" style="border-top: 1px solid #ccc; font-size: 14px;"><span>TOTAL:</span><span>PKR ' + sale.total.toLocaleString() + '</span></div>' + cashHtml + '</div><div class="text-center">' + footerHtml + returnPolicyHtml + barcodeHtml + '<div class="text-xs text-gray" style="margin-top:8px">Powered by Doctor Planet</div></div></div><script>window.onload = function() { window.print(); window.onafterprint = function() { window.close(); } }</script></body></html>')
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Receipt - ${sale.receiptNumber}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: Arial, sans-serif;
+              font-weight: 600;
+              padding: 10px;
+              color: #000;
+              font-size: ${fontSizeMap[billSettings.fontSize] || '12px'};
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .bill-container { 
+              width: ${billSettings.paperWidth === '58mm' ? '58mm' : billSettings.paperWidth === '80mm' ? '80mm' : '100%'};
+              max-width: ${billSettings.paperWidth === 'A4' ? '210mm' : billSettings.paperWidth};
+              margin: 0 auto;
+            }
+            .text-center { text-align: center; }
+            .font-bold { font-weight: bold !important; }
+            .font-black { font-weight: 900 !important; }
+            .border-dashed { border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+            .border-solid { border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 8px; }
+            .flex { display: flex; justify-content: space-between; font-weight: 600; }
+            .text-green { color: #000; font-weight: bold; }
+            .text-gray { color: #000; font-weight: 600; }
+            .text-xs { font-size: 9px; }
+            .mb-2 { margin-bottom: 8px; }
+            .pt-2 { padding-top: 8px; }
+            .space-y > * + * { margin-top: 4px; }
+            img { max-height: 40px; margin: 0 auto 8px; display: block; }
+            .badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 900; border-radius: 9999px; background: #dbeafe; color: #1e3a8a; }
+            h1, h2, h3 { font-weight: 900 !important; }
+            @media print {
+              body { 
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              @page { margin: 5mm; }
+              * { 
+                color: #000 !important;
+                font-family: Arial, sans-serif !important;
+              }
+              .font-bold { font-weight: bold !important; }
+              .font-black { font-weight: 900 !important; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="bill-container">
+            <div class="text-center border-dashed">
+              ${logoHtml}
+              <div class="font-black" style="font-size: 14px; font-weight: 900;">${billSettings.storeName}</div>
+              ${addressHtml}
+              ${phoneHtml}
+              ${headerHtml}
+            </div>
+            <div class="text-center mb-2">
+              <span class="badge">POS SALE</span>
+            </div>
+            <div class="border-dashed space-y">
+              <div class="flex" style="font-weight:bold"><span>Receipt #:</span><span class="font-black">${sale.receiptNumber}</span></div>
+              <div class="flex" style="font-weight:600"><span>Date:</span><span>${new Date(sale.createdAt).toLocaleString()}</span></div>
+              <div class="flex" style="font-weight:600"><span>Cashier:</span><span>${sale.salesman.name}</span></div>
+              ${customerNameHtml}
+              ${customerPhoneHtml}
+            </div>
+            <div class="border-solid">
+              <div class="flex font-black" style="font-weight:900"><span>Item</span><span>Qty</span><span>Amount</span></div>
+            </div>
+            <div class="border-dashed space-y">
+              ${itemsHtml}
+            </div>
+            <div class="border-dashed space-y">
+              <div class="flex" style="font-weight:bold"><span>Subtotal:</span><span>PKR ${sale.subtotal.toLocaleString()}</span></div>
+              ${discountHtml}
+              <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 14px; font-weight: 900;"><span>TOTAL:</span><span>PKR ${sale.total.toLocaleString()}</span></div>
+              ${cashHtml}
+            </div>
+            <div class="text-center">
+              ${footerHtml}
+              ${returnPolicyHtml}
+              ${barcodeHtml}
+              <div class="text-xs" style="margin-top:8px;color:#000;font-weight:500">Powered by Doctor Planet</div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() { window.close(); }
+            }
+          </script>
+        </body>
+      </html>
+    `)
     printWindow.document.close()
   }
 
