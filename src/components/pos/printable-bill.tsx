@@ -73,11 +73,18 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
     return (
       <div 
         ref={ref}
-        className={`bg-white p-4 ${fontSizeClass} print:p-2`}
-        style={{ ...paperWidthStyle, fontFamily: 'Arial, sans-serif' }}
+        className={`bg-white p-4 ${fontSizeClass} print:p-2 font-semibold`}
+        style={{ 
+          ...paperWidthStyle, 
+          fontFamily: 'Arial, sans-serif',
+          fontWeight: '600',
+          color: '#000',
+          WebkitPrintColorAdjust: 'exact',
+          printColorAdjust: 'exact'
+        }}
       >
         {/* Store Header */}
-        <div className="text-center border-b border-dashed border-black pb-3 mb-3">
+        <div className="text-center border-b-2 border-dashed border-black pb-3 mb-3">
           {settings.showLogo && settings.logoUrl && (
             <img 
               src={settings.logoUrl} 
@@ -85,45 +92,45 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
               className="h-10 mx-auto mb-2 print:h-8"
             />
           )}
-          <h1 className="font-bold text-base print:text-sm">{settings.storeName}</h1>
+          <h1 className="font-black text-base print:text-sm" style={{ fontWeight: '900' }}>{settings.storeName}</h1>
           {settings.showStoreAddress && settings.storeAddress && (
-            <p className="text-gray-600">{settings.storeAddress}</p>
+            <p className="text-black font-semibold">{settings.storeAddress}</p>
           )}
           {settings.showStorePhone && settings.storePhone && (
-            <p className="text-gray-600">Tel: {settings.storePhone}</p>
+            <p className="text-black font-semibold">Tel: {settings.storePhone}</p>
           )}
           {settings.taxEnabled && settings.taxNumber && (
-            <p className="text-gray-600 text-[9px]">{settings.taxName || 'Tax'} #: {settings.taxNumber}</p>
+            <p className="text-black font-semibold text-[9px]">{settings.taxName || 'Tax'} #: {settings.taxNumber}</p>
           )}
           {settings.headerText && (
-            <p className="mt-1 font-medium">{settings.headerText}</p>
+            <p className="mt-1 font-bold">{settings.headerText}</p>
           )}
         </div>
 
         {/* Receipt Info */}
-        <div className="border-b border-dashed border-black pb-3 mb-3 space-y-1">
-          <div className="flex justify-between">
+        <div className="border-b-2 border-dashed border-black pb-3 mb-3 space-y-1">
+          <div className="flex justify-between font-bold">
             <span>Receipt #:</span>
-            <span className="font-bold">{sale.receiptNumber}</span>
+            <span className="font-black">{sale.receiptNumber}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between font-semibold">
             <span>Date:</span>
             <span>{new Date(sale.createdAt).toLocaleString()}</span>
           </div>
           {sale.salesman && (
-            <div className="flex justify-between">
+            <div className="flex justify-between font-semibold">
               <span>Cashier:</span>
               <span>{sale.salesman.name}</span>
             </div>
           )}
           {sale.customerName && (
-            <div className="flex justify-between">
+            <div className="flex justify-between font-semibold">
               <span>Customer:</span>
               <span>{sale.customerName}</span>
             </div>
           )}
           {sale.customerPhone && (
-            <div className="flex justify-between">
+            <div className="flex justify-between font-semibold">
               <span>Phone:</span>
               <span>{sale.customerPhone}</span>
             </div>
@@ -131,8 +138,8 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
         </div>
 
         {/* Items Header */}
-        <div className="border-b border-black pb-1 mb-2">
-          <div className="flex justify-between font-bold">
+        <div className="border-b-2 border-black pb-1 mb-2">
+          <div className="flex justify-between font-black" style={{ fontWeight: '900' }}>
             <span className="flex-1">Item</span>
             <span className="w-10 text-center">Qty</span>
             <span className="w-20 text-right">Amount</span>
@@ -140,16 +147,16 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
         </div>
 
         {/* Items */}
-        <div className="border-b border-dashed border-black pb-3 mb-3 space-y-2">
+        <div className="border-b-2 border-dashed border-black pb-3 mb-3 space-y-2">
           {sale.items.map((item, index) => (
             <div key={index}>
-              <div className="flex justify-between">
+              <div className="flex justify-between font-bold">
                 <span className="flex-1 truncate pr-2">{item.productName}</span>
                 <span className="w-10 text-center">{item.quantity}</span>
                 <span className="w-20 text-right">{formatCurrency(item.price * item.quantity)}</span>
               </div>
               {(item.color || item.size) && (
-                <div className="text-gray-500 text-[9px] pl-2">
+                <div className="text-black font-medium text-[9px] pl-2">
                   {item.color}{item.color && item.size && ' / '}{item.size}
                   {' @ '}{formatCurrency(item.price)} each
                 </div>
@@ -159,43 +166,43 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
         </div>
 
         {/* Totals */}
-        <div className="border-b border-dashed border-black pb-3 mb-3 space-y-1">
-          <div className="flex justify-between">
+        <div className="border-b-2 border-dashed border-black pb-3 mb-3 space-y-1">
+          <div className="flex justify-between font-bold">
             <span>Subtotal:</span>
             <span>{formatCurrency(sale.subtotal)}</span>
           </div>
           {sale.discount > 0 && (
-            <div className="flex justify-between text-green-700">
+            <div className="flex justify-between font-bold text-black">
               <span>Discount{sale.discountType === 'PERCENTAGE' ? ' (%)' : ''}:</span>
               <span>-{formatCurrency(sale.discount)}</span>
             </div>
           )}
           {/* Tax Display */}
           {settings.taxEnabled && settings.showTaxBreakdown && (
-            <div className="flex justify-between">
+            <div className="flex justify-between font-bold">
               <span>{settings.taxName || 'Tax'} ({settings.taxRate || 0}%):</span>
               <span>{formatCurrency(sale.taxAmount || 0)}</span>
             </div>
           )}
-          <div className="flex justify-between font-bold text-base pt-1 border-t border-gray-300">
+          <div className="flex justify-between font-black text-base pt-1 border-t-2 border-black" style={{ fontWeight: '900', fontSize: '1.1rem' }}>
             <span>TOTAL:</span>
             <span>{formatCurrency(sale.total)}</span>
           </div>
         </div>
 
         {/* Payment Info */}
-        <div className="border-b border-dashed border-black pb-3 mb-3 space-y-1">
-          <div className="flex justify-between">
+        <div className="border-b-2 border-dashed border-black pb-3 mb-3 space-y-1">
+          <div className="flex justify-between font-bold">
             <span>Payment Method:</span>
-            <span className="font-medium">{sale.paymentMethod}</span>
+            <span className="font-black">{sale.paymentMethod}</span>
           </div>
           {sale.amountReceived && (
             <>
-              <div className="flex justify-between">
+              <div className="flex justify-between font-bold">
                 <span>Amount Received:</span>
                 <span>{formatCurrency(sale.amountReceived)}</span>
               </div>
-              <div className="flex justify-between font-bold">
+              <div className="flex justify-between font-black" style={{ fontWeight: '900' }}>
                 <span>Change:</span>
                 <span>{formatCurrency(sale.changeGiven || 0)}</span>
               </div>
@@ -206,19 +213,19 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
         {/* Footer */}
         <div className="text-center space-y-2">
           {settings.footerText && (
-            <p className="font-medium">{settings.footerText}</p>
+            <p className="font-bold">{settings.footerText}</p>
           )}
           {settings.showReturnPolicy && settings.returnPolicy && (
-            <p className="text-[9px] text-gray-500">{settings.returnPolicy}</p>
+            <p className="text-[9px] text-black font-semibold">{settings.returnPolicy}</p>
           )}
           {settings.showBarcode && (
             <div className="mt-3">
-              <div className="h-8 bg-gray-200 flex items-center justify-center text-[8px]">
+              <div className="h-8 bg-gray-200 flex items-center justify-center text-[8px] font-bold">
                 ||| {sale.receiptNumber} |||
               </div>
             </div>
           )}
-          <p className="text-[8px] text-gray-400 mt-2">
+          <p className="text-[8px] text-black font-medium mt-2">
             Powered by Doctor Planet POS
           </p>
         </div>
