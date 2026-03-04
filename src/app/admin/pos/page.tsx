@@ -115,24 +115,24 @@ export default function AdminPOSSalesPage() {
     }
 
     const logoHtml = billSettings.showLogo && billSettings.logoUrl ? '<img src="' + billSettings.logoUrl + '" alt="Logo" />' : ''
-    const addressHtml = billSettings.showStoreAddress ? '<div style="color:#000;font-weight:600">' + billSettings.storeAddress + '</div>' : ''
-    const phoneHtml = billSettings.showStorePhone ? '<div style="color:#000;font-weight:600">Tel: ' + billSettings.storePhone + '</div>' : ''
-    const headerHtml = billSettings.headerText ? '<div style="margin-top:8px;font-weight:bold">' + billSettings.headerText + '</div>' : ''
-    const customerNameHtml = sale.customerName ? '<div class="flex" style="font-weight:600"><span>Customer:</span><span>' + sale.customerName + '</span></div>' : ''
-    const customerPhoneHtml = sale.customerPhone ? '<div class="flex" style="font-weight:600"><span>Phone:</span><span>' + sale.customerPhone + '</span></div>' : ''
+    const addressHtml = billSettings.showStoreAddress ? '<div style="color:#000;font-weight:700">' + billSettings.storeAddress + '</div>' : ''
+    const phoneHtml = billSettings.showStorePhone ? '<div style="color:#000;font-weight:700">Tel: ' + billSettings.storePhone + '</div>' : ''
+    const headerHtml = billSettings.headerText ? '<div style="margin-top:8px;font-weight:800">' + billSettings.headerText + '</div>' : ''
+    const customerNameHtml = sale.customerName ? '<div class="flex" style="font-weight:700"><span>Customer:</span><span>' + sale.customerName + '</span></div>' : ''
+    const customerPhoneHtml = sale.customerPhone ? '<div class="flex" style="font-weight:700"><span>Phone:</span><span>' + sale.customerPhone + '</span></div>' : ''
     
     const itemsHtml = sale.items.map(item => {
       const variantHtml = (item.color || item.size) 
-        ? '<div style="font-size:9px;color:#000;font-weight:500;padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>' 
+        ? '<div style="font-size:10px;color:#000;font-weight:600;padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>' 
         : ''
-      return '<div><div class="flex" style="font-weight:bold"><span style="flex:1">' + item.productName + '</span><span style="width:30px;text-align:center">' + item.quantity + '</span><span style="width:80px;text-align:right">PKR ' + (item.price * item.quantity).toLocaleString() + '</span></div>' + variantHtml + '</div>'
+      return '<div><div class="flex" style="font-weight:800"><span style="flex:1">' + item.productName + '</span><span style="width:30px;text-align:center">' + item.quantity + '</span><span style="width:80px;text-align:right">PKR ' + (item.price * item.quantity).toLocaleString() + '</span></div>' + variantHtml + '</div>'
     }).join('')
 
-    const discountHtml = sale.discount > 0 ? '<div class="flex" style="font-weight:bold;color:#000"><span>Discount:</span><span>-PKR ' + sale.discount.toLocaleString() + '</span></div>' : ''
-    const cashHtml = sale.amountReceived ? '<div class="flex" style="font-weight:bold"><span>Cash:</span><span>PKR ' + sale.amountReceived.toLocaleString() + '</span></div><div class="flex" style="font-weight:900"><span>Change:</span><span>PKR ' + (sale.changeGiven || 0).toLocaleString() + '</span></div>' : ''
-    const footerHtml = billSettings.footerText ? '<div style="font-weight:bold">' + billSettings.footerText + '</div>' : ''
-    const returnPolicyHtml = billSettings.showReturnPolicy ? '<div style="font-size:9px;color:#000;font-weight:600;margin-top:8px">' + billSettings.returnPolicy + '</div>' : ''
-    const barcodeHtml = billSettings.showBarcode ? '<div style="margin-top:8px;height:30px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:bold">||| ' + sale.receiptNumber + ' |||</div>' : ''
+    const discountHtml = sale.discount > 0 ? '<div class="flex" style="font-weight:800;color:#000"><span>Discount:</span><span>-PKR ' + sale.discount.toLocaleString() + '</span></div>' : ''
+    const cashHtml = sale.amountReceived ? '<div class="flex" style="font-weight:800"><span>Cash:</span><span>PKR ' + sale.amountReceived.toLocaleString() + '</span></div><div class="flex" style="font-weight:900"><span>Change:</span><span>PKR ' + (sale.changeGiven || 0).toLocaleString() + '</span></div>' : ''
+    const footerHtml = billSettings.footerText ? '<div style="font-weight:800">' + billSettings.footerText + '</div>' : ''
+    const returnPolicyHtml = billSettings.showReturnPolicy ? '<div style="font-size:10px;color:#000;font-weight:700;margin-top:8px">' + billSettings.returnPolicy + '</div>' : ''
+    const barcodeHtml = billSettings.showBarcode ? '<div style="margin-top:8px;height:30px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">||| ' + sale.receiptNumber + ' |||</div>' : ''
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -143,10 +143,10 @@ export default function AdminPOSSalesPage() {
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
               font-family: Arial, sans-serif;
-              font-weight: 600;
+              font-weight: 700;
               padding: 10px;
               color: #000;
-              font-size: ${fontSizeMap[billSettings.fontSize] || '12px'};
+              font-size: ${fontSizeMap[billSettings.fontSize] || '13px'};
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
@@ -156,20 +156,21 @@ export default function AdminPOSSalesPage() {
               margin: 0 auto;
             }
             .text-center { text-align: center; }
-            .font-bold { font-weight: bold !important; }
+            .font-bold { font-weight: 800 !important; }
             .font-black { font-weight: 900 !important; }
             .border-dashed { border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
             .border-solid { border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 8px; }
-            .flex { display: flex; justify-content: space-between; font-weight: 600; }
-            .text-green { color: #000; font-weight: bold; }
-            .text-gray { color: #000; font-weight: 600; }
-            .text-xs { font-size: 9px; }
+            .flex { display: flex; justify-content: space-between; font-weight: 700; }
+            .text-green { color: #000; font-weight: 800; }
+            .text-gray { color: #000; font-weight: 700; }
+            .text-xs { font-size: 10px; }
             .mb-2 { margin-bottom: 8px; }
             .pt-2 { padding-top: 8px; }
             .space-y > * + * { margin-top: 4px; }
             img { max-height: 40px; margin: 0 auto 8px; display: block; }
-            .badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 900; border-radius: 9999px; background: #dbeafe; color: #1e3a8a; }
+            .badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 900; border-radius: 9999px; background: #dbeafe; color: #1e3a8a; }
             h1, h2, h3 { font-weight: 900 !important; }
+            span, p, div { font-weight: 700; color: #000; }
             @media print {
               body { 
                 padding: 0;
@@ -180,8 +181,9 @@ export default function AdminPOSSalesPage() {
               * { 
                 color: #000 !important;
                 font-family: Arial, sans-serif !important;
+                font-weight: 700 !important;
               }
-              .font-bold { font-weight: bold !important; }
+              .font-bold { font-weight: 800 !important; }
               .font-black { font-weight: 900 !important; }
             }
           </style>
@@ -190,7 +192,7 @@ export default function AdminPOSSalesPage() {
           <div class="bill-container">
             <div class="text-center border-dashed">
               ${logoHtml}
-              <div class="font-black" style="font-size: 14px; font-weight: 900;">${billSettings.storeName}</div>
+              <div class="font-black" style="font-size: 16px; font-weight: 900;">${billSettings.storeName}</div>
               ${addressHtml}
               ${phoneHtml}
               ${headerHtml}
@@ -199,9 +201,9 @@ export default function AdminPOSSalesPage() {
               <span class="badge">POS SALE</span>
             </div>
             <div class="border-dashed space-y">
-              <div class="flex" style="font-weight:bold"><span>Receipt #:</span><span class="font-black">${sale.receiptNumber}</span></div>
-              <div class="flex" style="font-weight:600"><span>Date:</span><span>${new Date(sale.createdAt).toLocaleString()}</span></div>
-              <div class="flex" style="font-weight:600"><span>Cashier:</span><span>${sale.salesman.name}</span></div>
+              <div class="flex" style="font-weight:800"><span>Receipt #:</span><span class="font-black">${sale.receiptNumber}</span></div>
+              <div class="flex" style="font-weight:700"><span>Date:</span><span>${new Date(sale.createdAt).toLocaleString()}</span></div>
+              <div class="flex" style="font-weight:700"><span>Cashier:</span><span>${sale.salesman.name}</span></div>
               ${customerNameHtml}
               ${customerPhoneHtml}
             </div>
@@ -212,16 +214,16 @@ export default function AdminPOSSalesPage() {
               ${itemsHtml}
             </div>
             <div class="border-dashed space-y">
-              <div class="flex" style="font-weight:bold"><span>Subtotal:</span><span>PKR ${sale.subtotal.toLocaleString()}</span></div>
+              <div class="flex" style="font-weight:800"><span>Subtotal:</span><span>PKR ${sale.subtotal.toLocaleString()}</span></div>
               ${discountHtml}
-              <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 14px; font-weight: 900;"><span>TOTAL:</span><span>PKR ${sale.total.toLocaleString()}</span></div>
+              <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 15px; font-weight: 900;"><span>TOTAL:</span><span>PKR ${sale.total.toLocaleString()}</span></div>
               ${cashHtml}
             </div>
             <div class="text-center">
               ${footerHtml}
               ${returnPolicyHtml}
               ${barcodeHtml}
-              <div class="text-xs" style="margin-top:8px;color:#000;font-weight:500">Powered by Doctor Planet</div>
+              <div class="text-xs" style="margin-top:8px;color:#000;font-weight:700">Powered by Doctor Planet</div>
             </div>
           </div>
           <script>

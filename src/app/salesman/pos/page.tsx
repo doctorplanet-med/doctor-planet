@@ -296,10 +296,10 @@ export default function SalesmanPOSPage() {
             }
             body { 
               font-family: Arial, sans-serif; 
-              font-weight: 600;
+              font-weight: 700;
               padding: 10px;
               color: #000;
-              font-size: ${billSettings?.fontSize === 'small' ? '10px' : billSettings?.fontSize === 'large' ? '14px' : '12px'};
+              font-size: ${billSettings?.fontSize === 'small' ? '11px' : billSettings?.fontSize === 'large' ? '15px' : '13px'};
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
@@ -308,22 +308,22 @@ export default function SalesmanPOSPage() {
               margin: 0 auto;
             }
             .text-center { text-align: center; }
-            .font-bold { font-weight: bold !important; }
-            .font-semibold { font-weight: 600 !important; }
+            .font-bold { font-weight: 800 !important; }
+            .font-semibold { font-weight: 700 !important; }
             .font-black { font-weight: 900 !important; }
             .border-dashed { border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
             .border-b-2 { border-bottom: 2px solid #000; }
-            .flex { display: flex; justify-content: space-between; }
-            .text-green { color: #000; font-weight: bold; }
-            .text-gray { color: #000; font-weight: 600; }
-            .text-black { color: #000; font-weight: 600; }
+            .flex { display: flex; justify-content: space-between; font-weight: 700; }
+            .text-green { color: #000; font-weight: 800; }
+            .text-gray { color: #000; font-weight: 700; }
+            .text-black { color: #000; font-weight: 700; }
             .text-sm { font-size: 10px; }
             .mt-2 { margin-top: 8px; }
             .mb-2 { margin-bottom: 8px; }
             img { max-height: 40px; margin: 0 auto 8px; display: block; }
             h1, h2, h3, h4, h5, h6 { font-weight: 900 !important; color: #000; }
-            span, p, div { font-weight: 600; color: #000; }
-            .font-medium { font-weight: 600; }
+            span, p, div { font-weight: 700; color: #000; }
+            .font-medium { font-weight: 700; }
             @media print {
               body { 
                 padding: 0;
@@ -334,9 +334,10 @@ export default function SalesmanPOSPage() {
               * { 
                 color: #000 !important; 
                 font-family: Arial, sans-serif !important;
+                font-weight: 700 !important;
               }
-              .font-bold { font-weight: bold !important; }
-              .font-semibold { font-weight: 600 !important; }
+              .font-bold { font-weight: 800 !important; }
+              .font-semibold { font-weight: 700 !important; }
               .font-black { font-weight: 900 !important; }
               h1, h2, h3 { font-weight: 900 !important; }
             }

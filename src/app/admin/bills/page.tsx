@@ -228,24 +228,24 @@ export default function AdminBillsPage() {
         </div>
         
         <div class="border-dashed space-y">
-          <div class="flex" style="font-weight:bold"><span>Order #:</span><span class="font-black" style="font-weight:900">${order.orderNumber}</span></div>
-          <div class="flex" style="font-weight:600"><span>Date:</span><span>${new Date(order.createdAt).toLocaleString()}</span></div>
-          <div class="flex" style="font-weight:bold"><span>Status:</span><span class="font-black" style="font-weight:900">${order.status}</span></div>
-          <div class="flex" style="font-weight:600"><span>Payment:</span><span>${order.paymentMethod} (${order.paymentStatus})</span></div>
+          <div class="flex" style="font-weight:800"><span>Order #:</span><span class="font-black" style="font-weight:900">${order.orderNumber}</span></div>
+          <div class="flex" style="font-weight:700"><span>Date:</span><span>${new Date(order.createdAt).toLocaleString()}</span></div>
+          <div class="flex" style="font-weight:800"><span>Status:</span><span class="font-black" style="font-weight:900">${order.status}</span></div>
+          <div class="flex" style="font-weight:700"><span>Payment:</span><span>${order.paymentMethod} (${order.paymentStatus})</span></div>
         </div>
         
         <div class="border-dashed">
           <div class="font-black mb-2" style="font-weight:900">Customer:</div>
-          <div style="font-weight:bold">${order.user.name || shippingAddress.name}</div>
-          ${order.user.phone ? `<div style="font-weight:600">Tel: ${order.user.phone}</div>` : ''}
+          <div style="font-weight:800">${order.user.name || shippingAddress.name}</div>
+          ${order.user.phone ? `<div style="font-weight:700">Tel: ${order.user.phone}</div>` : ''}
         </div>
         
         <div class="border-dashed">
           <div class="font-black mb-2" style="font-weight:900">Ship To:</div>
-          <div style="font-weight:bold">${shippingAddress.name}</div>
-          <div style="font-weight:600">Tel: ${shippingAddress.phone}</div>
-          <div style="font-weight:600">${shippingAddress.address}</div>
-          <div style="font-weight:600">${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}</div>
+          <div style="font-weight:800">${shippingAddress.name}</div>
+          <div style="font-weight:700">Tel: ${shippingAddress.phone}</div>
+          <div style="font-weight:700">${shippingAddress.address}</div>
+          <div style="font-weight:700">${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}</div>
         </div>
         
         <div class="border-solid">
@@ -255,7 +255,7 @@ export default function AdminBillsPage() {
         <div class="border-dashed space-y">
           ${order.items.map(item => `
             <div>
-              <div class="flex" style="font-weight:bold">
+              <div class="flex" style="font-weight:800">
                 <span style="flex:1">${item.productName}</span>
                 <span style="width:30px;text-align:center">${item.quantity}</span>
                 <span style="width:80px;text-align:right">${formatCurrency(item.price * item.quantity)}</span>
@@ -265,9 +265,9 @@ export default function AdminBillsPage() {
         </div>
         
         <div class="border-dashed space-y">
-          <div class="flex" style="font-weight:bold"><span>Subtotal:</span><span>${formatCurrency(order.subtotal)}</span></div>
-          <div class="flex" style="font-weight:bold"><span>Shipping:</span><span>${order.shippingFee === 0 ? 'FREE' : formatCurrency(order.shippingFee)}</span></div>
-          <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 14px; font-weight: 900;">
+          <div class="flex" style="font-weight:800"><span>Subtotal:</span><span>${formatCurrency(order.subtotal)}</span></div>
+          <div class="flex" style="font-weight:800"><span>Shipping:</span><span>${order.shippingFee === 0 ? 'FREE' : formatCurrency(order.shippingFee)}</span></div>
+          <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 15px; font-weight: 900;">
             <span>TOTAL:</span><span>${formatCurrency(order.total)}</span>
           </div>
         </div>
@@ -281,11 +281,11 @@ export default function AdminBillsPage() {
         </div>
         
         <div class="border-dashed space-y">
-          <div class="flex" style="font-weight:bold"><span>Receipt #:</span><span class="font-black" style="font-weight:900">${sale.receiptNumber}</span></div>
-          <div class="flex" style="font-weight:600"><span>Date:</span><span>${new Date(sale.createdAt).toLocaleString()}</span></div>
-          <div class="flex" style="font-weight:600"><span>Cashier:</span><span>${sale.salesman.name}</span></div>
-          ${sale.customerName ? `<div class="flex" style="font-weight:600"><span>Customer:</span><span>${sale.customerName}</span></div>` : ''}
-          ${sale.customerPhone ? `<div class="flex" style="font-weight:600"><span>Phone:</span><span>${sale.customerPhone}</span></div>` : ''}
+          <div class="flex" style="font-weight:800"><span>Receipt #:</span><span class="font-black" style="font-weight:900">${sale.receiptNumber}</span></div>
+          <div class="flex" style="font-weight:700"><span>Date:</span><span>${new Date(sale.createdAt).toLocaleString()}</span></div>
+          <div class="flex" style="font-weight:700"><span>Cashier:</span><span>${sale.salesman.name}</span></div>
+          ${sale.customerName ? `<div class="flex" style="font-weight:700"><span>Customer:</span><span>${sale.customerName}</span></div>` : ''}
+          ${sale.customerPhone ? `<div class="flex" style="font-weight:700"><span>Phone:</span><span>${sale.customerPhone}</span></div>` : ''}
         </div>
         
         <div class="border-solid">
@@ -295,7 +295,7 @@ export default function AdminBillsPage() {
         <div class="border-dashed space-y">
           ${sale.items.map(item => `
             <div>
-              <div class="flex" style="font-weight:bold">
+              <div class="flex" style="font-weight:800">
                 <span style="flex:1">${item.productName}</span>
                 <span style="width:30px;text-align:center">${item.quantity}</span>
                 <span style="width:80px;text-align:right">${formatCurrency(item.price * item.quantity)}</span>
@@ -305,13 +305,13 @@ export default function AdminBillsPage() {
         </div>
         
         <div class="border-dashed space-y">
-          <div class="flex" style="font-weight:bold"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
-          ${sale.discount > 0 ? `<div class="flex" style="font-weight:bold;color:#000"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
-          <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 14px; font-weight: 900;">
+          <div class="flex" style="font-weight:800"><span>Subtotal:</span><span>${formatCurrency(sale.subtotal)}</span></div>
+          ${sale.discount > 0 ? `<div class="flex" style="font-weight:800;color:#000"><span>Discount:</span><span>-${formatCurrency(sale.discount)}</span></div>` : ''}
+          <div class="flex font-black pt-2" style="border-top: 2px solid #000; font-size: 15px; font-weight: 900;">
             <span>TOTAL:</span><span>${formatCurrency(sale.total)}</span>
           </div>
           ${sale.amountReceived ? `
-            <div class="flex" style="font-weight:bold"><span>Cash:</span><span>${formatCurrency(sale.amountReceived)}</span></div>
+            <div class="flex" style="font-weight:800"><span>Cash:</span><span>${formatCurrency(sale.amountReceived)}</span></div>
             <div class="flex font-black" style="font-weight:900"><span>Change:</span><span>${formatCurrency(sale.changeGiven || 0)}</span></div>
           ` : ''}
         </div>
@@ -327,10 +327,10 @@ export default function AdminBillsPage() {
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
               font-family: Arial, sans-serif;
-              font-weight: 600;
+              font-weight: 700;
               padding: 10px;
               color: #000;
-              font-size: ${fontSizeMap[billSettings.fontSize] || '12px'};
+              font-size: ${fontSizeMap[billSettings.fontSize] || '13px'};
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
@@ -340,20 +340,21 @@ export default function AdminBillsPage() {
               margin: 0 auto;
             }
             .text-center { text-align: center; }
-            .font-bold { font-weight: bold !important; }
+            .font-bold { font-weight: 800 !important; }
             .font-black { font-weight: 900 !important; }
             .border-dashed { border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
             .border-solid { border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 8px; }
-            .flex { display: flex; justify-content: space-between; font-weight: 600; }
-            .text-green { color: #000; font-weight: bold; }
-            .text-gray { color: #000; font-weight: 600; }
-            .text-xs { font-size: 9px; }
+            .flex { display: flex; justify-content: space-between; font-weight: 700; }
+            .text-green { color: #000; font-weight: 800; }
+            .text-gray { color: #000; font-weight: 700; }
+            .text-xs { font-size: 10px; }
             .mb-2 { margin-bottom: 8px; }
             .pt-2 { padding-top: 8px; }
             .space-y > * + * { margin-top: 4px; }
             img { max-height: 40px; margin: 0 auto 8px; display: block; }
-            .badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 900; border-radius: 9999px; }
+            .badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 900; border-radius: 9999px; }
             h1, h2, h3 { font-weight: 900 !important; }
+            span, p, div { font-weight: 700; color: #000; }
             @media print {
               body { 
                 padding: 0;
@@ -364,8 +365,9 @@ export default function AdminBillsPage() {
               * { 
                 color: #000 !important;
                 font-family: Arial, sans-serif !important;
+                font-weight: 700 !important;
               }
-              .font-bold { font-weight: bold !important; }
+              .font-bold { font-weight: 800 !important; }
               .font-black { font-weight: 900 !important; }
             }
           </style>
@@ -374,18 +376,18 @@ export default function AdminBillsPage() {
           <div class="bill-container">
             <div class="text-center border-dashed">
               ${billSettings.showLogo && billSettings.logoUrl ? `<img src="${billSettings.logoUrl}" alt="Logo" />` : ''}
-              <div class="font-black" style="font-size: 14px; font-weight: 900;">${billSettings.storeName}</div>
-              ${billSettings.showStoreAddress ? `<div style="color:#000;font-weight:600">${billSettings.storeAddress}</div>` : ''}
-              ${billSettings.showStorePhone ? `<div style="color:#000;font-weight:600">Tel: ${billSettings.storePhone}</div>` : ''}
-              ${billSettings.headerText ? `<div class="mt-2" style="font-weight:bold">${billSettings.headerText}</div>` : ''}
+              <div class="font-black" style="font-size: 16px; font-weight: 900;">${billSettings.storeName}</div>
+              ${billSettings.showStoreAddress ? `<div style="color:#000;font-weight:700">${billSettings.storeAddress}</div>` : ''}
+              ${billSettings.showStorePhone ? `<div style="color:#000;font-weight:700">Tel: ${billSettings.storePhone}</div>` : ''}
+              ${billSettings.headerText ? `<div class="mt-2" style="font-weight:800">${billSettings.headerText}</div>` : ''}
             </div>
             
             ${billContent}
             
             <div class="text-center">
-              ${billSettings.footerText ? `<div style="font-weight:bold">${billSettings.footerText}</div>` : ''}
-              ${billSettings.showReturnPolicy ? `<div class="text-xs" style="margin-top:8px;color:#000;font-weight:600">${billSettings.returnPolicy}</div>` : ''}
-              <div class="text-xs" style="margin-top:8px;color:#000;font-weight:500">Powered by Doctor Planet</div>
+              ${billSettings.footerText ? `<div style="font-weight:800">${billSettings.footerText}</div>` : ''}
+              ${billSettings.showReturnPolicy ? `<div class="text-xs" style="margin-top:8px;color:#000;font-weight:700">${billSettings.returnPolicy}</div>` : ''}
+              <div class="text-xs" style="margin-top:8px;color:#000;font-weight:700">Powered by Doctor Planet</div>
             </div>
           </div>
           <script>
