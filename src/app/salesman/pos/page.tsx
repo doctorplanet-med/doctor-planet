@@ -403,6 +403,32 @@ export default function SalesmanPOSPage() {
     ? (subtotal * discount) / 100 
     : discount
   const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount)
+
+  const handleCustomItemPrice = (index: number) => {
+    const item = cart[index]
+    if (!item) return
+
+    const currentPrice = item.price
+    const input = window.prompt(
+      `Enter custom price per unit for "${item.product.name}"`,
+      String(currentPrice)
+    )
+
+    if (input === null) return
+
+    const value = Number(input.trim())
+    if (!Number.isFinite(value) || value <= 0) {
+      toast.error('Please enter a valid price.')
+      return
+    }
+
+    const newCart = [...cart]
+    newCart[index] = {
+      ...newCart[index],
+      price: Math.round(value),
+    }
+    setCart(newCart)
+  }
   
   // Calculate tax based on bill settings
   const taxRate = billSettings?.taxEnabled ? (billSettings.taxRate || 0) : 0
@@ -1287,8 +1313,16 @@ export default function SalesmanPOSPage() {
                         </div>
                       )}
                       <div className="mt-1">
-                        <p className="font-bold text-primary-600 text-sm">
+                        <button
+                          type="button"
+                          onClick={() => handleCustomItemPrice(index)}
+                          className="font-bold text-primary-600 text-sm underline decoration-dotted underline-offset-2"
+                          title="Click to change price for this customer"
+                        >
                           {formatCurrency(item.price * item.quantity)}
+                        </button>
+                        <p className="text-[11px] text-secondary-500">
+                          Unit: {formatCurrency(item.price)} (tap to change)
                         </p>
                         {(item.costPrice || 0) > 0 && (
                           <p className="text-xs text-green-600">
@@ -1445,8 +1479,16 @@ export default function SalesmanPOSPage() {
                               </div>
                             )}
                             <div className="mt-1">
-                              <p className="font-bold text-primary-600 text-sm">
+                              <button
+                                type="button"
+                                onClick={() => handleCustomItemPrice(index)}
+                                className="font-bold text-primary-600 text-sm underline decoration-dotted underline-offset-2"
+                                title="Tap to change price for this customer"
+                              >
                                 {formatCurrency(item.price * item.quantity)}
+                              </button>
+                              <p className="text-[11px] text-secondary-500">
+                                Unit: {formatCurrency(item.price)} (tap to change)
                               </p>
                               {(item.costPrice || 0) > 0 && (
                                 <p className="text-xs text-green-600">
