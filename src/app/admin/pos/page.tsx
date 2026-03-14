@@ -377,10 +377,15 @@ export default function AdminPOSSalesPage() {
 
   // Calculate stats
   const todaySales = sales.filter(s =>
+    !s.isReturned &&
     new Date(s.createdAt).toDateString() === new Date().toDateString()
   )
   const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0)
-  const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0)
+  // Exclude returned sales from total revenue so returned products
+  // are not counted in revenue KPIs.
+  const totalRevenue = sales
+    .filter(s => !s.isReturned)
+    .reduce((sum, s) => sum + s.total, 0)
   const totalCost = sales.reduce((sum, s) => {
     if (s.isReturned) return sum // Skip returned sales
     return sum + s.items.reduce((isum, item) => isum + (item.costPrice ?? 0) * item.quantity, 0)
