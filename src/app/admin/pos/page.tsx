@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Store, Receipt, User, Calendar, DollarSign, 
+import {
+  Store, Receipt, User, Calendar, DollarSign,
   Search, X, Eye, Trash2, ChevronLeft, ChevronRight,
-  ShoppingBag, Printer, AlertTriangle
+  ShoppingBag, Printer, AlertTriangle, BadgeDollarSign
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -32,6 +32,7 @@ interface POSSaleItem {
   productName: string
   quantity: number
   price: number
+  costPrice: number | null
   size: string | null
   color: string | null
   customization: string | null
@@ -68,7 +69,7 @@ export default function AdminPOSSalesPage() {
   const [selectedSale, setSelectedSale] = useState<POSSale | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [billSettings, setBillSettings] = useState<BillSettings | null>(null)
-  
+
   // Return state
   const [showReturnModal, setShowReturnModal] = useState(false)
   const [returnSaleId, setReturnSaleId] = useState<string | null>(null)
@@ -120,10 +121,10 @@ export default function AdminPOSSalesPage() {
     const headerHtml = billSettings.headerText ? '<div style="margin-top:8px;font-weight:800">' + billSettings.headerText + '</div>' : ''
     const customerNameHtml = sale.customerName ? '<div class="flex" style="font-weight:700"><span>Customer:</span><span>' + sale.customerName + '</span></div>' : ''
     const customerPhoneHtml = sale.customerPhone ? '<div class="flex" style="font-weight:700"><span>Phone:</span><span>' + sale.customerPhone + '</span></div>' : ''
-    
+
     const itemsHtml = sale.items.map(item => {
-      const variantHtml = (item.color || item.size) 
-        ? '<div style="font-size:10px;color:#000;font-weight:600;padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>' 
+      const variantHtml = (item.color || item.size)
+        ? '<div style="font-size:10px;color:#000;font-weight:600;padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>'
         : ''
       return '<div><div class="flex" style="font-weight:800"><span style="flex:1">' + item.productName + '</span><span style="width:30px;text-align:center">' + item.quantity + '</span><span style="width:80px;text-align:right">PKR ' + (item.price * item.quantity).toLocaleString() + '</span></div>' + variantHtml + '</div>'
     }).join('')
@@ -269,8 +270,8 @@ export default function AdminPOSSalesPage() {
 
       if (response.ok) {
         // Update sales list
-        setSales(sales.map(s => 
-          s.id === returnSaleId 
+        setSales(sales.map(s =>
+          s.id === returnSaleId
             ? { ...s, isReturned: true, returnReason, returnedAt: new Date().toISOString() }
             : s
         ))
@@ -342,7 +343,16 @@ export default function AdminPOSSalesPage() {
     }
   }
 
-  const filteredSales = sales.filter(sale => 
+  // Calculate sale profit for a single sale (0 if returned)
+  const calcSaleProfit = (sale: POSSale) => {
+    if (sale.isReturned) return 0
+    const totalCost = sale.items.reduce((sum, item) => {
+      return sum + (item.costPrice ?? 0) * item.quantity
+    }, 0)
+    return sale.total - totalCost
+  }
+
+  const filteredSales = sales.filter(sale =>
     sale.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     sale.salesman.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     sale.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -350,11 +360,17 @@ export default function AdminPOSSalesPage() {
   )
 
   // Calculate stats
-  const todaySales = sales.filter(s => 
+  const todaySales = sales.filter(s =>
     new Date(s.createdAt).toDateString() === new Date().toDateString()
   )
   const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0)
   const totalRevenue = sales.reduce((sum, s) => sum + s.total, 0)
+  const totalCost = sales.reduce((sum, s) => {
+    if (s.isReturned) return sum // Skip returned sales
+    return sum + s.items.reduce((isum, item) => isum + (item.costPrice ?? 0) * item.quantity, 0)
+  }, 0)
+  const totalProfitRevenue = sales.filter(s => !s.isReturned).reduce((sum, s) => sum + s.total, 0)
+  const totalProfit = totalProfitRevenue - totalCost
 
   if (loading) {
     return (
@@ -391,7 +407,7 @@ export default function AdminPOSSalesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white p-6 rounded-xl border border-secondary-200">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -411,6 +427,16 @@ export default function AdminPOSSalesPage() {
           </div>
           <p className="text-2xl font-bold text-secondary-900">{formatCurrency(totalRevenue)}</p>
           <p className="text-xs text-secondary-500">{sales.length} total sales</p>
+        </div>
+        <div className="bg-gradient-to-br from-green-600 to-emerald-700 p-6 rounded-xl text-white">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-white/20 rounded-lg">
+              <BadgeDollarSign className="w-5 h-5" />
+            </div>
+            <span className="text-sm text-white/80">Total Profit</span>
+          </div>
+          <p className="text-2xl font-bold">{formatCurrency(totalProfit)}</p>
+          <p className="text-xs text-white/70">Revenue minus cost</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-secondary-200">
           <div className="flex items-center gap-3 mb-2">
@@ -466,7 +492,8 @@ export default function AdminPOSSalesPage() {
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Salesman</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Customer</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Items</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Total</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Sale Price</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Profit</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Payment</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary-600">Date</th>
                 <th className="text-right px-6 py-4 text-sm font-medium text-secondary-600">Actions</th>
@@ -529,11 +556,21 @@ export default function AdminPOSSalesPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      sale.paymentMethod === 'CASH' ? 'bg-green-100 text-green-700' :
+                    {(() => {
+                      const profit = calcSaleProfit(sale)
+                      return (
+                        <span className={`font-semibold text-sm ${profit >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                          {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
+                        </span>
+                      )
+                    })()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${sale.paymentMethod === 'CASH' ? 'bg-green-100 text-green-700' :
                       sale.paymentMethod === 'CARD' ? 'bg-blue-100 text-blue-700' :
-                      'bg-purple-100 text-purple-700'
-                    }`}>
+                        'bg-purple-100 text-purple-700'
+                      }`}>
                       {sale.paymentMethod}
                     </span>
                   </td>
@@ -637,6 +674,24 @@ export default function AdminPOSSalesPage() {
               </div>
 
               <div className="p-6 space-y-6">
+                {/* Profit Banner */}
+                {(() => {
+                  const profit = calcSaleProfit(selectedSale)
+                  return (
+                    <div className={`p-4 rounded-xl flex items-center justify-between ${profit >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                      }`}>
+                      <div className="flex items-center gap-2">
+                        <BadgeDollarSign className={`w-6 h-6 ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                        <span className={`font-semibold ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                          Sale Profit
+                        </span>
+                      </div>
+                      <span className={`text-xl font-bold ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
+                      </span>
+                    </div>
+                  )
+                })()}
                 {/* Info */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -692,8 +747,20 @@ export default function AdminPOSSalesPage() {
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg pt-2 border-t border-secondary-200">
-                    <span>Total</span>
+                    <span>Total (Sale Price)</span>
                     <span className="text-primary-600">{formatCurrency(selectedSale.total)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-semibold pt-1 border-t border-dashed border-secondary-200">
+                    <span className="text-secondary-600">Total Cost</span>
+                    <span className="text-secondary-700">
+                      {formatCurrency(selectedSale.items.reduce((s, i) => s + (i.costPrice ?? 0) * i.quantity, 0))}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Profit</span>
+                    <span className={calcSaleProfit(selectedSale) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                      {calcSaleProfit(selectedSale) >= 0 ? '+' : ''}{formatCurrency(calcSaleProfit(selectedSale))}
+                    </span>
                   </div>
                   {selectedSale.amountReceived && (
                     <>

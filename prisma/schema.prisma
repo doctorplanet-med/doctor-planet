@@ -326,7 +326,8 @@ model POSSaleItem {
   productId           String
   productName         String   // Store product name at time of sale
   quantity            Int
-  price               Float    // Price at time of sale
+  price               Float    // Price at time of sale (selling price)
+  costPrice           Float?   // Cost price per unit at time of sale (for profit calculation)
   size                String?
   color               String?
   customization       String?  // JSON string of customization data

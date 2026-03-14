@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  History, Calendar, DollarSign, Receipt, Search, 
+import {
+  History, Calendar, DollarSign, Receipt, Search,
   ChevronLeft, ChevronRight, Eye, X, TrendingUp,
-  Filter, Printer, Trash2, AlertTriangle
+  Filter, Printer, Trash2, AlertTriangle, BadgeDollarSign
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -14,6 +14,7 @@ interface POSSaleItem {
   productName: string
   quantity: number
   price: number
+  costPrice: number | null
   size: string | null
   color: string | null
   customization: string | null
@@ -64,14 +65,14 @@ export default function SalesmanSalesHistoryPage() {
   const [loading, setLoading] = useState(true)
   const [selectedSale, setSelectedSale] = useState<POSSale | null>(null)
   const [billSettings, setBillSettings] = useState<BillSettings | null>(null)
-  
+
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
   const [selectedMonth, setSelectedMonth] = useState('')
-  
+
   // Return state
   const [showReturnModal, setShowReturnModal] = useState(false)
   const [returnSaleId, setReturnSaleId] = useState<string | null>(null)
@@ -113,11 +114,11 @@ export default function SalesmanSalesHistoryPage() {
   // Filter sales based on criteria
   const filteredSales = useMemo(() => {
     let result = [...sales]
-    
+
     // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      result = result.filter(sale => 
+      result = result.filter(sale =>
         sale.receiptNumber.toLowerCase().includes(term) ||
         sale.customerName?.toLowerCase().includes(term) ||
         sale.customerPhone?.includes(term)
@@ -166,17 +167,33 @@ export default function SalesmanSalesHistoryPage() {
     return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [sales, searchTerm, dateFilter, customStartDate, customEndDate, selectedMonth])
 
+  // Calculate sale profit for a single sale (0 if returned)
+  const calcSaleProfit = (sale: POSSale) => {
+    if (sale.isReturned) return 0
+    const totalCost = sale.items.reduce((sum, item) => {
+      const cp = item.costPrice ?? 0
+      return sum + cp * item.quantity
+    }, 0)
+    return sale.total - totalCost
+  }
+
   // Calculate statistics
   const stats = useMemo(() => {
     const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0)
     const totalTransactions = filteredSales.length
-    const totalItems = filteredSales.reduce((sum, s) => 
+    const totalItems = filteredSales.reduce((sum, s) =>
       sum + s.items.reduce((i, item) => i + item.quantity, 0), 0
     )
     const avgTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
     const totalDiscount = filteredSales.reduce((sum, s) => sum + s.discount, 0)
+    const totalCost = filteredSales.reduce((sum, s) => {
+      if (s.isReturned) return sum // Skip returned sales
+      return sum + s.items.reduce((isum, item) => isum + (item.costPrice ?? 0) * item.quantity, 0)
+    }, 0)
+    const totalProfitRevenue = filteredSales.filter(s => !s.isReturned).reduce((sum, s) => sum + s.total, 0)
+    const totalProfit = totalProfitRevenue - totalCost
 
-    return { totalRevenue, totalTransactions, totalItems, avgTransaction, totalDiscount }
+    return { totalRevenue, totalTransactions, totalItems, avgTransaction, totalDiscount, totalProfit }
   }, [filteredSales])
 
   // Get available months for dropdown
@@ -205,8 +222,8 @@ export default function SalesmanSalesHistoryPage() {
 
       if (response.ok) {
         // Update sales list
-        setSales(sales.map(s => 
-          s.id === returnSaleId 
+        setSales(sales.map(s =>
+          s.id === returnSaleId
             ? { ...s, isReturned: true, returnReason, returnedAt: new Date().toISOString() }
             : s
         ))
@@ -364,7 +381,7 @@ export default function SalesmanSalesHistoryPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -380,7 +397,20 @@ export default function SalesmanSalesHistoryPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+          transition={{ delay: 0.04 }}
+          className="bg-gradient-to-br from-green-600 to-emerald-700 p-5 rounded-xl text-white"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <BadgeDollarSign className="w-5 h-5 text-white/80" />
+            <span className="text-sm text-white/80">Total Profit</span>
+          </div>
+          <p className="text-2xl font-bold">{formatCurrency(stats.totalProfit)}</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
           className="bg-white p-5 rounded-xl border border-secondary-200"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -393,7 +423,7 @@ export default function SalesmanSalesHistoryPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.12 }}
           className="bg-white p-5 rounded-xl border border-secondary-200"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -406,7 +436,7 @@ export default function SalesmanSalesHistoryPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.16 }}
           className="bg-white p-5 rounded-xl border border-secondary-200"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -436,7 +466,7 @@ export default function SalesmanSalesHistoryPage() {
           <Filter className="w-5 h-5" />
           Filters
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
           <div className="relative">
@@ -510,7 +540,8 @@ export default function SalesmanSalesHistoryPage() {
                 <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Receipt #</th>
                 <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Customer</th>
                 <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Items</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Total</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Sale Price</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Profit</th>
                 <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Payment</th>
                 <th className="text-left px-6 py-4 text-sm font-semibold text-secondary-600">Date & Time</th>
                 <th className="text-right px-6 py-4 text-sm font-semibold text-secondary-600">Actions</th>
@@ -556,7 +587,9 @@ export default function SalesmanSalesHistoryPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <p className="font-medium text-secondary-900">{formatCurrency(sale.total)}</p>
+                      <p className={`font-medium ${sale.isReturned ? 'line-through text-secondary-400' : 'text-secondary-900'}`}>
+                        {formatCurrency(sale.total)}
+                      </p>
                       {sale.discount > 0 && (
                         <p className="text-xs text-green-600">
                           -{formatCurrency(sale.discount)} off
@@ -565,11 +598,25 @@ export default function SalesmanSalesHistoryPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      sale.paymentMethod === 'CASH' ? 'bg-green-100 text-green-700' :
+                    {sale.isReturned ? (
+                      <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs font-semibold rounded-full">
+                        Returned
+                      </span>
+                    ) : (() => {
+                      const profit = calcSaleProfit(sale)
+                      return (
+                        <span className={`font-semibold text-sm ${profit >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                          {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
+                        </span>
+                      )
+                    })()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${sale.paymentMethod === 'CASH' ? 'bg-green-100 text-green-700' :
                       sale.paymentMethod === 'CARD' ? 'bg-blue-100 text-blue-700' :
-                      'bg-purple-100 text-purple-700'
-                    }`}>
+                        'bg-purple-100 text-purple-700'
+                      }`}>
                       {sale.paymentMethod}
                     </span>
                   </td>
@@ -645,7 +692,7 @@ export default function SalesmanSalesHistoryPage() {
 
       {/* Sale Detail Modal */}
       {selectedSale && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedSale(null)}
         >
@@ -666,6 +713,24 @@ export default function SalesmanSalesHistoryPage() {
             </div>
 
             <div className="p-6 space-y-6">
+              {/* Profit Banner */}
+              {(() => {
+                const profit = calcSaleProfit(selectedSale)
+                return (
+                  <div className={`p-4 rounded-xl flex items-center justify-between ${profit >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                    }`}>
+                    <div className="flex items-center gap-2">
+                      <BadgeDollarSign className={`w-6 h-6 ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                      <span className={`font-semibold ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        Sale Profit
+                      </span>
+                    </div>
+                    <span className={`text-xl font-bold ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
+                    </span>
+                  </div>
+                )
+              })()}
               {/* Info */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -723,8 +788,20 @@ export default function SalesmanSalesHistoryPage() {
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-lg pt-2 border-t border-secondary-200">
-                  <span>Total</span>
+                  <span>Total (Sale Price)</span>
                   <span className="text-primary-600">{formatCurrency(selectedSale.total)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold pt-1 border-t border-dashed border-secondary-200">
+                  <span className="text-secondary-600">Total Cost</span>
+                  <span className="text-secondary-700">
+                    {formatCurrency(selectedSale.items.reduce((s, i) => s + (i.costPrice ?? 0) * i.quantity, 0))}
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Profit</span>
+                  <span className={calcSaleProfit(selectedSale) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {calcSaleProfit(selectedSale) >= 0 ? '+' : ''}{formatCurrency(calcSaleProfit(selectedSale))}
+                  </span>
                 </div>
                 {selectedSale.amountReceived && (
                   <>

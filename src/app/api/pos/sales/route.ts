@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Admin sees all, salesman sees only their own
-    const where = session.user?.role === 'SALESMAN' 
+    const where = session.user?.role === 'SALESMAN'
       ? { salesmanId: session.user.id }
       : {}
 
@@ -85,17 +85,23 @@ export async function POST(request: NextRequest) {
     for (const item of data.items) {
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
-        select: { id: true, name: true, price: true, salePrice: true, stock: true, colorSizeStock: true },
+        select: { id: true, name: true, price: true, salePrice: true, costPrice: true, stock: true, colorSizeStock: true },
       })
 
       if (!product) {
         return NextResponse.json({ error: `Product not found: ${item.productId}` }, { status: 400 })
       }
 
-      const price = product.salePrice || product.price
-      
-      // Add customization price to item price
-      const itemPrice = item.customizationPrice ? price + item.customizationPrice : price
+      // Use the price sent from the cart (custom price from sidebar/checkout). Must use request
+      // price so that "change price on the spot" is reflected on bill and history.
+      const rawPrice = typeof item.price === 'number' ? item.price : Number(item.price)
+      const baseProductPrice = item.customizationPrice
+        ? (product.salePrice || product.price) + item.customizationPrice
+        : (product.salePrice || product.price)
+      const itemPrice = Number.isFinite(rawPrice) && rawPrice >= 0
+        ? rawPrice
+        : baseProductPrice
+
       subtotal += itemPrice * item.quantity
 
       saleItems.push({
@@ -103,6 +109,7 @@ export async function POST(request: NextRequest) {
         productName: product.name,
         quantity: item.quantity,
         price: itemPrice,
+        costPrice: product.costPrice || 0,  // Record cost price for profit calculation
         size: item.size || null,
         color: item.color || null,
         customization: item.customization || null,
@@ -115,7 +122,7 @@ export async function POST(request: NextRequest) {
         const colorSizeStock = JSON.parse(product.colorSizeStock)
         if (colorSizeStock[item.color] && colorSizeStock[item.color][item.size] !== undefined) {
           colorSizeStock[item.color][item.size] = Math.max(0, colorSizeStock[item.color][item.size] - item.quantity)
-          
+
           // Calculate new total stock
           let newTotalStock = 0
           for (const color of Object.keys(colorSizeStock)) {
@@ -153,20 +160,35 @@ export async function POST(request: NextRequest) {
 
     const total = subtotal - discount
 
+    // When there's a sale-level discount, store the effective (post-discount) unit price
+    // in each item so Bill and history show what the customer actually paid (correct profit margin).
+    if (discount > 0 && subtotal > 0) {
+      const ratio = total / subtotal
+      let allocated = 0
+      for (let i = 0; i < saleItems.length; i++) {
+        const itemLineTotal = saleItems[i].price * saleItems[i].quantity
+        const effectiveLineTotal = i < saleItems.length - 1
+          ? Math.round(itemLineTotal * ratio * 100) / 100
+          : Math.round((total - allocated) * 100) / 100 // last item: exact remainder
+        allocated += effectiveLineTotal
+        saleItems[i].price = Math.round((effectiveLineTotal / saleItems[i].quantity) * 100) / 100
+      }
+    }
+
     // For shop customers with credit
     if (data.customerType === 'SHOP' && data.shopId) {
       const shop = await prisma.shop.findUnique({ where: { id: data.shopId } })
       if (!shop || !shop.isActive) {
         return NextResponse.json({ error: 'Shop not found or inactive' }, { status: 400 })
       }
-      
+
       // Check credit limit if not paid in full
       if (!data.isPaid && shop.allowCredit) {
         const remainingAmount = data.remainingAmount || total
         const newCreditTotal = shop.currentCredit + remainingAmount
         if (shop.creditLimit && newCreditTotal > shop.creditLimit) {
-          return NextResponse.json({ 
-            error: `Credit limit exceeded. Limit: ${shop.creditLimit}, Current: ${shop.currentCredit}, New: ${remainingAmount}` 
+          return NextResponse.json({
+            error: `Credit limit exceeded. Limit: ${shop.creditLimit}, Current: ${shop.currentCredit}, New: ${remainingAmount}`
           }, { status: 400 })
         }
       }

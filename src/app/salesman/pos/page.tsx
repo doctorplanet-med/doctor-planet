@@ -656,7 +656,7 @@ export default function SalesmanPOSPage() {
             productId: item.productId,
             productName: item.product.name,
             quantity: item.quantity,
-            price: item.price,
+            price: Number(item.price),
             costPrice: item.costPrice,
             size: item.size,
             color: item.color,
@@ -1808,6 +1808,35 @@ export default function SalesmanPOSPage() {
               </div>
 
               <div className="p-6 space-y-6">
+                {/* Current sale items – change price from checkout too */}
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-secondary-900">Sale items</h3>
+                  <div className="space-y-2 max-h-40 overflow-y-auto rounded-xl border border-secondary-200 bg-secondary-50/50 p-3">
+                    {cart.map((item, index) => (
+                      <div key={`checkout-${item.productId}-${item.size}-${item.color}-${index}`} className="flex items-center justify-between gap-2 bg-white rounded-lg p-2 border border-secondary-100">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-secondary-900 truncate">{item.product.name}</p>
+                          <p className="text-xs text-secondary-500">
+                            {item.quantity} × {formatCurrency(item.price)}
+                            {(item.color || item.size) && ` · ${[item.color, item.size].filter(Boolean).join(' / ')}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="font-semibold text-primary-600">{formatCurrency(item.price * item.quantity)}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCustomItemPrice(index)}
+                            className="text-xs font-medium text-primary-600 hover:text-primary-700 underline decoration-dotted"
+                            title="Change price for this item"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Customer Type Selection */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-secondary-900">Customer Type</h3>
