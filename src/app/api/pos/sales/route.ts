@@ -62,6 +62,21 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json()
 
+    // Ensure the salesman/admin user still exists in DB.
+    // If the user record was deleted but the session is still active,
+    // creating a sale would violate the foreign key on salesmanId.
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user?.id as string },
+      select: { id: true, role: true },
+    })
+
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: 'Salesman user not found. Please log out and log in again.' },
+        { status: 400 },
+      )
+    }
+
     if (!data.items || data.items.length === 0) {
       return NextResponse.json({ error: 'No items in sale' }, { status: 400 })
     }
@@ -198,7 +213,7 @@ export async function POST(request: NextRequest) {
     const sale = await prisma.pOSSale.create({
       data: {
         receiptNumber,
-        salesmanId: session.user?.id as string,
+        salesmanId: dbUser.id,
         subtotal,
         discount,
         discountType: data.discountType || null,
