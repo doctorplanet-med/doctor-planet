@@ -124,9 +124,10 @@ export default function AdminPOSSalesPage() {
 
     const itemsHtml = sale.items.map(item => {
       const variantHtml = (item.color || item.size)
-        ? '<div style="font-size:10px;color:#000;font-weight:600;padding-left:8px">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</div>'
+        ? '<tr><td colspan="3" style="font-size:10px;color:#000;font-weight:600;padding-left:0;padding-top:0">' + (item.color || '') + (item.color && item.size ? ' / ' : '') + (item.size || '') + '</td></tr>'
         : ''
-      return '<div><div class="flex" style="font-weight:800"><span style="flex:1">' + item.productName + '</span><span style="width:30px;text-align:center">' + item.quantity + '</span><span style="width:80px;text-align:right">PKR ' + (item.price * item.quantity).toLocaleString() + '</span></div>' + variantHtml + '</div>'
+      const nameEscaped = String(item.productName).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      return '<tr><td class="col-item" title="' + nameEscaped + '">' + nameEscaped + '</td><td class="col-qty">' + item.quantity + '</td><td class="col-amt">PKR ' + (item.price * item.quantity).toLocaleString() + '</td></tr>' + variantHtml
     }).join('')
 
     const discountHtml = sale.discount > 0 ? '<div class="flex" style="font-weight:800;color:#000"><span>Discount:</span><span>-PKR ' + sale.discount.toLocaleString() + '</span></div>' : ''
@@ -162,6 +163,10 @@ export default function AdminPOSSalesPage() {
             .border-dashed { border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
             .border-solid { border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 8px; }
             .flex { display: flex; justify-content: space-between; font-weight: 700; }
+            .bill-items { width: 100%; table-layout: fixed; border-collapse: collapse; font-weight: 800; }
+            .bill-items .col-item { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 4px; }
+            .bill-items .col-qty { text-align: center; }
+            .bill-items .col-amt { text-align: right; }
             .text-green { color: #000; font-weight: 800; }
             .text-gray { color: #000; font-weight: 700; }
             .text-xs { font-size: 10px; }
@@ -208,12 +213,23 @@ export default function AdminPOSSalesPage() {
               ${customerNameHtml}
               ${customerPhoneHtml}
             </div>
-            <div class="border-solid">
-              <div class="flex font-black" style="font-weight:900"><span>Item</span><span>Qty</span><span>Amount</span></div>
-            </div>
-            <div class="border-dashed space-y">
-              ${itemsHtml}
-            </div>
+            <table class="bill-items border-solid" style="margin-bottom: 8px">
+              <colgroup>
+                <col style="width: 55%">
+                <col style="width: 15%">
+                <col style="width: 30%">
+              </colgroup>
+              <thead>
+                <tr style="font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 4px">
+                  <th class="col-item" style="text-align: left">Item</th>
+                  <th class="col-qty">Qty</th>
+                  <th class="col-amt">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
             <div class="border-dashed space-y">
               <div class="flex" style="font-weight:800"><span>Subtotal:</span><span>PKR ${sale.subtotal.toLocaleString()}</span></div>
               ${discountHtml}

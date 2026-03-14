@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef } from 'react'
+import { forwardRef, Fragment } from 'react'
 
 interface BillSettings {
   storeName: string
@@ -137,32 +137,43 @@ const PrintableBill = forwardRef<HTMLDivElement, PrintableBillProps>(
           )}
         </div>
 
-        {/* Items Header */}
-        <div className="border-b-2 border-black pb-1 mb-2">
-          <div className="flex justify-between font-black" style={{ fontWeight: '900' }}>
-            <span className="flex-1">Item</span>
-            <span className="w-10 text-center">Qty</span>
-            <span className="w-20 text-right">Amount</span>
-          </div>
-        </div>
-
-        {/* Items */}
-        <div className="border-b-2 border-dashed border-black pb-3 mb-3 space-y-2">
-          {sale.items.map((item, index) => (
-            <div key={index}>
-              <div className="flex justify-between font-bold">
-                <span className="flex-1 truncate pr-2">{item.productName}</span>
-                <span className="w-10 text-center">{item.quantity}</span>
-                <span className="w-20 text-right">{formatCurrency(item.price * item.quantity)}</span>
-              </div>
-              {(item.color || item.size) && (
-                <div className="text-black font-medium text-[9px] pl-2">
-                  {item.color}{item.color && item.size && ' / '}{item.size}
-                  {' @ '}{formatCurrency(item.price)} each
-                </div>
-              )}
-            </div>
-          ))}
+        {/* Items - fixed column areas so long names don't overlap Qty/Amount */}
+        <div className="border-b-2 border-dashed border-black pb-3 mb-3 overflow-hidden">
+          <table className="w-full table-fixed border-collapse" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '55%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '30%' }} />
+            </colgroup>
+            <thead>
+              <tr className="border-b-2 border-black">
+                <th className="text-left font-black py-1 pr-1" style={{ fontWeight: '900', overflow: 'hidden', textOverflow: 'ellipsis' }}>Item</th>
+                <th className="text-center font-black py-1" style={{ fontWeight: '900' }}>Qty</th>
+                <th className="text-right font-black py-1" style={{ fontWeight: '900' }}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sale.items.map((item, index) => (
+                <Fragment key={index}>
+                  <tr>
+                    <td className="font-bold py-0.5 pr-1 align-top overflow-hidden text-ellipsis whitespace-nowrap" title={item.productName}>
+                      {item.productName}
+                    </td>
+                    <td className="text-center font-bold py-0.5 align-top">{item.quantity}</td>
+                    <td className="text-right font-bold py-0.5 align-top">{formatCurrency(item.price * item.quantity)}</td>
+                  </tr>
+                  {(item.color || item.size) && (
+                    <tr>
+                      <td colSpan={3} className="text-black font-medium text-[9px] pl-0 pb-1">
+                        {item.color}{item.color && item.size && ' / '}{item.size}
+                        {' @ '}{formatCurrency(item.price)} each
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {/* Totals */}

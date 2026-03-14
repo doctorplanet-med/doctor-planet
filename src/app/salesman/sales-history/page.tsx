@@ -285,6 +285,10 @@ export default function SalesmanSalesHistoryPage() {
             .border-dashed { border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
             .border-solid { border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px; }
             .flex { display: flex; justify-content: space-between; }
+            .bill-items { width: 100%; table-layout: fixed; border-collapse: collapse; }
+            .bill-items .col-item { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 4px; }
+            .bill-items .col-qty { text-align: center; }
+            .bill-items .col-amt { text-align: right; }
             .text-green { color: green; }
             .text-gray { color: #666; }
             .text-xs { font-size: 9px; }
@@ -317,22 +321,29 @@ export default function SalesmanSalesHistoryPage() {
               ${sale.customerPhone ? `<div class="flex"><span>Phone:</span><span>${sale.customerPhone}</span></div>` : ''}
             </div>
             
-            <div class="border-solid">
-              <div class="flex font-bold"><span>Item</span><span>Qty</span><span>Amount</span></div>
-            </div>
-            
-            <div class="border-dashed space-y">
-              ${sale.items.map(item => `
-                <div>
-                  <div class="flex">
-                    <span style="flex:1">${item.productName}</span>
-                    <span style="width:30px;text-align:center">${item.quantity}</span>
-                    <span style="width:80px;text-align:right">PKR ${(item.price * item.quantity).toLocaleString()}</span>
-                  </div>
-                  ${item.color || item.size ? `<div class="text-xs text-gray" style="padding-left:8px">${item.color || ''}${item.color && item.size ? ' / ' : ''}${item.size || ''}</div>` : ''}
-                </div>
-              `).join('')}
-            </div>
+            <table class="bill-items border-solid" style="margin-bottom: 8px">
+              <colgroup>
+                <col style="width: 55%">
+                <col style="width: 15%">
+                <col style="width: 30%">
+              </colgroup>
+              <thead>
+                <tr style="font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 4px">
+                  <th class="col-item" style="text-align: left">Item</th>
+                  <th class="col-qty">Qty</th>
+                  <th class="col-amt">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sale.items.map(item => {
+                  const nameEscaped = String(item.productName).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                  const variantHtml = item.color || item.size
+                    ? `<tr><td colspan="3" class="text-xs text-gray" style="padding-left:0;padding-top:0">${item.color || ''}${item.color && item.size ? ' / ' : ''}${item.size || ''}</td></tr>`
+                    : ''
+                  return `<tr><td class="col-item" title="${nameEscaped}">${nameEscaped}</td><td class="col-qty">${item.quantity}</td><td class="col-amt">PKR ${(item.price * item.quantity).toLocaleString()}</td></tr>${variantHtml}`
+                }).join('')}
+              </tbody>
+            </table>
             
             <div class="border-dashed space-y">
               <div class="flex"><span>Subtotal:</span><span>PKR ${sale.subtotal.toLocaleString()}</span></div>
