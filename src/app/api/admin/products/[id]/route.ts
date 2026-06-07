@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,6 +87,9 @@ export async function PATCH(
       data: updateData,
     })
 
+    revalidatePath(`/products/${product.slug}`)
+    revalidatePath('/products')
+
     return NextResponse.json(product)
   } catch (error) {
     console.error('Error updating product:', error)
@@ -133,7 +137,7 @@ export async function PUT(
     // Check slug uniqueness if being updated
     if (slug) {
       const existingSlug = await prisma.product.findFirst({
-        where: { 
+        where: {
           slug,
           NOT: { id: params.id }
         }
@@ -142,6 +146,9 @@ export async function PUT(
         return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 400 })
       }
     }
+
+    // Fetch old slug before update so we can invalidate the old cached page
+    const oldProduct = await prisma.product.findUnique({ where: { id: params.id }, select: { slug: true } })
 
     const data: Record<string, unknown> = {
       name,
@@ -217,6 +224,12 @@ export async function PUT(
       where: { id: params.id },
       include: { category: true, customizationCategories: { include: { options: true }, orderBy: { order: 'asc' } } },
     })
+
+    // Invalidate cached pages for both old and new slug
+    if (oldProduct) revalidatePath(`/products/${oldProduct.slug}`)
+    if (slug && slug !== oldProduct?.slug) revalidatePath(`/products/${slug}`)
+    revalidatePath('/products')
+
     return NextResponse.json(updatedProduct!)
   } catch (error) {
     console.error('Error updating product:', error)
