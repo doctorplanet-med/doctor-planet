@@ -2,24 +2,28 @@ import Image from 'next/image'
 
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="flex flex-col items-center gap-6">
-        <div className="animate-pulse">
-          <Image
-            src="/logos/Full Logo.png"
-            alt="Doctor Planet"
-            width={180}
-            height={80}
-            priority
-            className="object-contain"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary-600 animate-bounce [animation-delay:-0.3s]" />
-          <span className="w-2 h-2 rounded-full bg-primary-600 animate-bounce [animation-delay:-0.15s]" />
-          <span className="w-2 h-2 rounded-full bg-primary-600 animate-bounce" />
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-8">
+      <Image
+        src="/logos/Full Logo.png"
+        alt="Doctor Planet"
+        width={160}
+        height={70}
+        priority
+        className="object-contain"
+      />
+      <div className="w-48 h-1 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-full bg-primary-600 rounded-full animate-loading-bar" />
       </div>
+      <style>{`
+        @keyframes loading-bar {
+          0%   { transform: translateX(-100%); }
+          50%  { transform: translateX(0%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-loading-bar {
+          animation: loading-bar 1.4s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   )
 }
