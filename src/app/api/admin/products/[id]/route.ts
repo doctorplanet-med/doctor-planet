@@ -89,6 +89,7 @@ export async function PATCH(
 
     revalidatePath(`/products/${product.slug}`)
     revalidatePath('/products')
+    revalidatePath('/')
 
     return NextResponse.json(product)
   } catch (error) {
@@ -229,6 +230,7 @@ export async function PUT(
     if (oldProduct) revalidatePath(`/products/${oldProduct.slug}`)
     if (slug && slug !== oldProduct?.slug) revalidatePath(`/products/${slug}`)
     revalidatePath('/products')
+    revalidatePath('/')
 
     return NextResponse.json(updatedProduct!)
   } catch (error) {
