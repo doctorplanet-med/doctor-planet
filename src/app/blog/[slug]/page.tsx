@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
 import { Calendar, User, ArrowLeft } from 'lucide-react'
+import RichTextDisplay from '@/components/rich-text-display'
 
 export const revalidate = 60
 
@@ -20,7 +21,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen pt-[84px] sm:pt-[108px] bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
 
         {/* Back */}
         <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-secondary-500 hover:text-primary-600 mb-8 transition-colors">
@@ -56,10 +57,7 @@ export default async function BlogDetailPage({ params }: Props) {
         <hr className="border-secondary-100 mb-8" />
 
         {/* Content */}
-        <div
-          className="prose prose-lg max-w-none text-secondary-800 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: blog.content }}
-        />
+        <RichTextDisplay content={blog.content} className="text-secondary-800" />
 
         {/* Tags */}
         {blog.tags && (

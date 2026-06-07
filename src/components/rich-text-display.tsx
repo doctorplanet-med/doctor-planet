@@ -19,25 +19,29 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
         
         .rich-text-content h1 {
           font-size: 2em;
-          font-weight: bold;
+          font-weight: 800;
+          margin-top: 1.25em;
           margin-bottom: 0.5em;
           color: #1e293b;
+          line-height: 1.2;
         }
-        
+
         .rich-text-content h2 {
           font-size: 1.5em;
-          font-weight: bold;
+          font-weight: 700;
           margin-bottom: 0.5em;
-          margin-top: 1em;
+          margin-top: 1.5em;
           color: #1e293b;
+          line-height: 1.3;
         }
-        
+
         .rich-text-content h3 {
           font-size: 1.25em;
-          font-weight: bold;
-          margin-bottom: 0.5em;
-          margin-top: 0.75em;
+          font-weight: 700;
+          margin-bottom: 0.4em;
+          margin-top: 1.25em;
           color: #1e293b;
+          line-height: 1.4;
         }
         
         .rich-text-content p {
