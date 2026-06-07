@@ -2,7 +2,7 @@
 
 const MESSAGES = [
   'Delivery Time: 5-14 working Days',
-  'Free Shipping on Orders of PKR 5,000 or above',
+  'Free Shipping on Orders of PKR 7,000 or above',
   'Premium Doctor Scrubs & High-Quality Medical Uniforms',
   'Top-Quality OT Kits & Surgical Scrub Suits',
   'Premium Medical Crocs for Doctors, Nurses & Students',

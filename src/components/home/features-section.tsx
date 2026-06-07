@@ -16,7 +16,7 @@ const features = [
   {
     icon: Truck,
     title: 'Free Shipping',
-    description: 'Free delivery on orders over PKR 5,000',
+    description: 'Free delivery on orders over PKR 7,000',
     color: 'from-blue-500 to-cyan-500',
     bgColor: 'bg-blue-50',
   },
