@@ -180,7 +180,7 @@ export default async function HomePage() {
 
       {/* Flexon — products from that subcategory across Male & Female */}
       <SubCategoryFeatureSection
-        title="Flexon"
+        title="Flexon Scrubs"
         products={microStretchProducts}
         viewAllHref="/products"
       />
