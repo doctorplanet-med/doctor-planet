@@ -454,8 +454,8 @@ export default function AdminSettings({ settings: initialSettings, categories = 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingBanner) return
-    if (!editForm.mobileImage.trim() || !editForm.desktopImage.trim()) {
-      toast.error('Mobile and desktop images are required')
+    if (!editForm.desktopImage.trim()) {
+      toast.error('Banner image is required')
       return
     }
     setSaveEditLoading(true)
@@ -524,8 +524,8 @@ export default function AdminSettings({ settings: initialSettings, categories = 
 
   const handleAddBanner = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newBanner.mobileImage.trim() || !newBanner.desktopImage.trim()) {
-      toast.error('Small-screen and large-screen images are required')
+    if (!newBanner.desktopImage.trim()) {
+      toast.error('Banner image is required')
       return
     }
     setAddBannerLoading(true)
@@ -785,10 +785,8 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                   <p className="text-primary-700">When a visitor <strong>clicks the banner</strong> on the home page, they go to the <strong>CTA Link</strong> (e.g. /products or /deals/summer). CTA Text is stored for reference; the banner itself is one clickable image.</p>
                 </div>
                 <div className="rounded-lg bg-secondary-100 p-3 text-sm text-secondary-700">
-                  <p className="font-medium mb-1">Banner image sizes</p>
-                  <p><strong>Small screens (mobile):</strong> Use a <strong>tall/portrait</strong> image (e.g. 800×1200px).</p>
-                  <p><strong>Large screens (desktop):</strong> Use a <strong>wide/landscape</strong> image. Recommended size: <strong>1600×560px</strong> (width × height; max height on site is 560px).</p>
-                  <p className="mt-1">You must add <strong>two images per banner</strong> — one for small and one for large. You can paste a URL or upload from your device.</p>
+                  <p className="font-medium mb-1">Banner image size</p>
+                  <p>Recommended size: <strong>1920×650px</strong> (wide landscape). You can paste a URL or upload from your device.</p>
                 </div>
 
                 <div className="space-y-6">
@@ -888,12 +886,12 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                         </div>
                         
                         {/* Banner Preview */}
-                        {(previewImages.mobile || previewImages.desktop || newBanner.mobileImage || newBanner.desktopImage) && (
+                        {(previewImages.desktop || newBanner.desktopImage) && (
                           <div className="sm:col-span-2 border-t border-secondary-200 pt-6 mt-2">
                             <div className="flex items-center justify-between mb-4">
                               <h4 className="text-sm font-semibold text-secondary-900 flex items-center gap-2">
                                 <ImageIcon className="w-5 h-5 text-primary-600" />
-                                Banner Preview - How it will appear on site
+                                Banner Preview - How it will appear on site (1920×650px)
                               </h4>
                               <button
                                 type="button"
@@ -903,69 +901,24 @@ export default function AdminSettings({ settings: initialSettings, categories = 
                                 }}
                                 className="text-xs text-secondary-500 hover:text-secondary-700"
                               >
-                                Clear previews
+                                Clear preview
                               </button>
                             </div>
-                            
-                            <div className="grid md:grid-cols-2 gap-6">
-                              {/* Mobile Preview */}
-                              {(previewImages.mobile || newBanner.mobileImage) && (
-                                <div>
-                                  <p className="text-xs font-medium text-secondary-700 mb-2 flex items-center gap-1">
-                                    📱 Mobile (Tall - 800×1200px recommended)
-                                  </p>
-                                  <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden border-2 border-primary-200 bg-gradient-to-br from-secondary-50 to-secondary-100">
-                                    <img
-                                      src={previewImages.mobile || newBanner.mobileImage}
-                                      alt="Mobile preview"
-                                      className="w-full h-full object-cover"
-                                    />
-                                    {/* Visible area overlay */}
-                                    <div className="absolute inset-0 border-4 border-dashed border-primary-500 pointer-events-none"></div>
-                                    <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                                      Visible area
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-secondary-500 mt-2 italic">
-                                    ✓ Image fills entire mobile banner
-                                  </p>
-                                </div>
-                              )}
-                              
-                              {/* Desktop Preview */}
-                              {(previewImages.desktop || newBanner.desktopImage) && (
-                                <div>
-                                  <p className="text-xs font-medium text-secondary-700 mb-2 flex items-center gap-1">
-                                    🖥️ Desktop (Wide - 1600×900px recommended)
-                                  </p>
-                                  <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden border-2 border-primary-200 bg-gradient-to-br from-secondary-50 to-secondary-100">
-                                    <img
-                                      src={previewImages.desktop || newBanner.desktopImage}
-                                      alt="Desktop preview"
-                                      className="w-full h-full object-cover"
-                                    />
-                                    {/* Visible area overlay */}
-                                    <div className="absolute inset-0 border-4 border-dashed border-primary-500 pointer-events-none"></div>
-                                    <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                                      Visible area
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-secondary-500 mt-2 italic">
-                                    ✓ Image fills entire desktop banner
-                                  </p>
-                                </div>
-                              )}
+
+                            <div className="relative w-full rounded-xl overflow-hidden border-2 border-primary-200 bg-gradient-to-br from-secondary-50 to-secondary-100" style={{ aspectRatio: '1920/650' }}>
+                              <img
+                                src={previewImages.desktop || newBanner.desktopImage}
+                                alt="Banner preview"
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 border-4 border-dashed border-primary-500 pointer-events-none"></div>
+                              <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                                1920×650px
+                              </div>
                             </div>
-                            
-                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <p className="text-xs text-blue-800">
-                                <strong>💡 Tip:</strong> The dashed border shows the visible banner area. Images use <code className="bg-blue-100 px-1 rounded">object-cover</code> which centers and crops to fill the space. 
-                                <br/>
-                                <strong>Mobile:</strong> Use tall/portrait images (2:3 ratio).
-                                <br/>
-                                <strong>Desktop:</strong> Use wide/landscape images (16:9 ratio).
-                              </p>
-                            </div>
+                            <p className="text-xs text-secondary-500 mt-2 italic">
+                              ✓ Image fills the banner area. Use 1920×650px for best results.
+                            </p>
                           </div>
                         )}
                         
