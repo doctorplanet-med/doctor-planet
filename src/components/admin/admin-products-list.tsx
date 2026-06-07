@@ -100,16 +100,17 @@ export default function AdminProductsList({ products: initialProducts, categorie
       return
     }
     try {
-      await fetch(`/api/admin/products/${productId}`, {
+      const res = await fetch(`/api/admin/products/${productId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stock: newStock }),
       })
+      if (!res.ok) throw new Error('Failed to update stock')
       setProducts(prev =>
         prev.map(p => p.id === productId ? { ...p, stock: newStock } : p)
       )
     } catch {
-      // silently ignore — admin can try again
+      toast.error('Failed to update stock. Please try again.')
     } finally {
       setEditingStockId(null)
     }
