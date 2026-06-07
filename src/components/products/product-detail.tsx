@@ -11,7 +11,6 @@ import {
   Heart,
   Share2,
   ShoppingCart,
-  Check,
   Minus,
   Plus,
   Truck,
@@ -177,32 +176,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
     }
   }
 
-  // Get stock for current color-size selection
-  const getCurrentStock = () => {
-    if (hasVariantStock && selectedColor && selectedSize) {
-      return colorSizeStock[selectedColor]?.[selectedSize] || 0
-    }
-    return product.stock
-  }
-
-  // Get total stock for a specific color
-  const getColorStock = (color: string) => {
-    if (!colorSizeStock[color]) return 0
-    return Object.values(colorSizeStock[color]).reduce((sum, qty) => sum + qty, 0)
-  }
-
-  // Get stock for a specific size in selected color
-  const getSizeStock = (size: string) => {
-    if (!selectedColor || !colorSizeStock[selectedColor]) return 0
-    return colorSizeStock[selectedColor][size] || 0
-  }
-
-  // Check if a size is available for selected color
-  const isSizeAvailable = (size: string) => {
-    if (!hasVariantStock) return true
-    return getSizeStock(size) > 0
-  }
-
   // Handle color selection with image change (switch to that color's images)
   const handleColorSelect = (color: string) => {
     setSelectedColor(color)
@@ -228,7 +201,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
     ? Math.round(((product.price - product.salePrice) / product.price) * 100)
     : 0
 
-  const currentStock = getCurrentStock()
   const canAddToCart = hasVariantStock
     ? (selectedColor && selectedSize)
     : true
@@ -623,7 +595,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                   )}
                 </div>
                 {hasVariantStock && !selectedColor && (
-                  <p className="text-sm text-amber-600 mt-2">Select a color first to see size availability</p>
+                  <p className="text-sm text-amber-600 mt-2">Select a color first to see size options</p>
                 )}
               </div>
             )}
