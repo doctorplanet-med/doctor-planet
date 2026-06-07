@@ -156,7 +156,7 @@ export default async function HomePage() {
     (p as any).isBestSelling && p.category.name.toLowerCase().includes('scrub')
   ).slice(0, 8)
   const microStretchProducts = allProductsRaw.filter(p =>
-    (p as any).subCategory?.name?.toLowerCase().includes('micro')
+    (p as any).subCategory?.name?.toLowerCase().includes('flexon')
   ).slice(0, 8)
   const randomProducts = [...allProductsRaw].sort(() => Math.random() - 0.5).slice(0, 7)
 
@@ -178,9 +178,9 @@ export default async function HomePage() {
       {/* Category grid — full width, zero gap */}
       <CategoryGridSection categories={categories} />
 
-      {/* Micro Stretch Fabric — products from that subcategory across Male & Female */}
+      {/* Flexon — products from that subcategory across Male & Female */}
       <SubCategoryFeatureSection
-        title="Micro Stretch Fabric"
+        title="Flexon"
         products={microStretchProducts}
         viewAllHref="/products"
       />
