@@ -30,7 +30,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
         {/* Cover image */}
         {blog.image && (
-          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-8 bg-secondary-100">
+          <div className="relative w-full aspect-[16/9] max-h-[430px] rounded-2xl overflow-hidden mb-8 bg-secondary-100">
             <Image src={blog.image} alt={blog.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 720px" priority />
           </div>
         )}
