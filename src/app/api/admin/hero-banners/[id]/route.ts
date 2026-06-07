@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +57,7 @@ export async function PUT(
         ...(data.isActive !== undefined && { isActive: !!data.isActive }),
       },
     })
+    revalidatePath('/')
     return NextResponse.json(banner)
   } catch (error) {
     console.error('Failed to update hero banner:', error)
@@ -73,6 +75,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     await prisma.heroBanner.delete({ where: { id: params.id } })
+    revalidatePath('/')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete hero banner:', error)

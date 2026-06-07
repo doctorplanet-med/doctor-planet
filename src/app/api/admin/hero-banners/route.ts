@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { ensureHeroBannerTable, ensureHeroBannerIsActiveColumn } from '@/lib/db-ensure'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
         endDate,
       },
     })
+    revalidatePath('/')
     return NextResponse.json(banner)
   } catch (error) {
     console.error('Failed to create hero banner:', error)
@@ -127,6 +129,7 @@ export async function POST(request: NextRequest) {
             endDate,
           },
         })
+        revalidatePath('/')
         return NextResponse.json(banner)
       } catch (e) {
         console.error('Failed to create HeroBanner table or banner:', e)
