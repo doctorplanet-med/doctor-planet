@@ -39,9 +39,12 @@ interface AdminProductsListProps {
   categories: Category[]
 }
 
-export default function AdminProductsList({ products, categories }: AdminProductsListProps) {
+export default function AdminProductsList({ products: initialProducts, categories }: AdminProductsListProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [editingStockId, setEditingStockId] = useState<string | null>(null)
+  const [editingStockValue, setEditingStockValue] = useState<string>('')
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase())
@@ -87,6 +90,28 @@ export default function AdminProductsList({ products, categories }: AdminProduct
       }
     } catch (error) {
       toast.error('Something went wrong')
+    }
+  }
+
+  const handleStockSave = async (productId: string) => {
+    const newStock = parseInt(editingStockValue, 10)
+    if (isNaN(newStock) || newStock < 0) {
+      setEditingStockId(null)
+      return
+    }
+    try {
+      await fetch(`/api/admin/products/${productId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: newStock }),
+      })
+      setProducts(prev =>
+        prev.map(p => p.id === productId ? { ...p, stock: newStock } : p)
+      )
+    } catch {
+      // silently ignore — admin can try again
+    } finally {
+      setEditingStockId(null)
     }
   }
 
@@ -224,24 +249,47 @@ export default function AdminProductsList({ products, categories }: AdminProduct
                       })()}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {product.stock === 0 ? (
-                          <AlertTriangle className="w-4 h-4 text-red-500" />
-                        ) : product.stock < 10 ? (
-                          <AlertTriangle className="w-4 h-4 text-amber-500" />
-                        ) : (
-                          <Package className="w-4 h-4 text-green-500" />
-                        )}
-                        <span className={`font-medium ${
-                          product.stock === 0 
-                            ? 'text-red-500' 
-                            : product.stock < 10 
-                              ? 'text-amber-500' 
-                              : 'text-secondary-900'
-                        }`}>
-                          {product.stock}
-                        </span>
-                      </div>
+                      {editingStockId === product.id ? (
+                        <input
+                          type="number"
+                          min="0"
+                          autoFocus
+                          value={editingStockValue}
+                          onChange={e => setEditingStockValue(e.target.value)}
+                          onBlur={() => handleStockSave(product.id)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') handleStockSave(product.id)
+                            if (e.key === 'Escape') setEditingStockId(null)
+                          }}
+                          className="w-20 text-center border border-secondary-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingStockId(product.id)
+                            setEditingStockValue(String(product.stock))
+                          }}
+                          className="flex items-center justify-center gap-2 mx-auto group"
+                          title="Click to edit stock"
+                        >
+                          {product.stock === 0 ? (
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
+                          ) : product.stock < 10 ? (
+                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                          ) : (
+                            <Package className="w-4 h-4 text-green-500" />
+                          )}
+                          <span className={`font-medium group-hover:underline ${
+                            product.stock === 0
+                              ? 'text-red-500'
+                              : product.stock < 10
+                                ? 'text-amber-500'
+                                : 'text-secondary-900'
+                          }`}>
+                            {product.stock}
+                          </span>
+                        </button>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
