@@ -1,0 +1,605 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("USER") // USER, ADMIN, or SALESMAN
+  
+  // Profile fields (required for checkout)
+  phone         String?   // Phone with country code e.g., +1234567890
+  address       String?   // Street address
+  city          String?
+  state         String?
+  postalCode    String?
+  country       String?
+  
+  // Professional fields for medical store
+  profession    String?   // e.g., Doctor, Nurse, Pharmacist, Student, Other
+  workplace     String?   // Hospital/Clinic name
+  
+  // Salesman specific fields
+  cnic          String?   // National ID card number
+  gender        String?   // Male, Female, Other
+  granterName   String?   // Granter/Guardian name (optional)
+  granterPhone  String?   // Granter/Guardian phone (optional)
+  
+  isProfileComplete Boolean @default(false)
+  isActive      Boolean   @default(true) // For salesmen accounts
+  
+  // Password reset
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  cart          CartItem[]
+  wishlist      WishlistItem[]
+  posSales      POSSale[] // POS sales made by this salesman
+  expenses      Expense[]  // Expenses added by admin or salesman
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  slug          String        @unique
+  description   String?
+  image         String?
+  order         Int           @default(0)
+  products      Product[]
+  subCategories SubCategory[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model SubCategory {
+  id         String    @id @default(cuid())
+  name       String
+  slug       String
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  order      Int       @default(0)
+  products   Product[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([categoryId, slug])
+}
+
+model Product {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  barcode       String?      @unique  // Unique barcode for POS scanning
+  sku           String?      // Stock Keeping Unit (optional internal code)
+  company       String?      // Brand/Company name (mainly for equipment)
+  description   String
+  costPrice     Float        @default(0)  // Buying price (what seller pays)
+  price         Float        // Sale price (what customer pays)
+  salePrice     Float?       // Discounted sale price (optional)
+  images        String       // JSON array of image URLs
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  subCategoryId String?
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
+  stock       Int         @default(0)  // Total stock (auto-calculated from variants)
+  sizes       String?     // JSON array for clothes/shoes sizes
+  colors      String?     // JSON array of available colors
+  colorImages String?     // JSON: color name -> image URL(s). e.g. {"Black": ["/img1.jpg","/img2.jpg"], "White": ["/img3.jpg"]}. Legacy: value can be single string.
+  colorSizeStock String?  // JSON object for stock per color-size e.g. {"Black": {"S": 10, "M": 15}, "White": {"S": 5}}
+  sizeChartImage String?  // Optional URL to size chart image (shown on product page for some products)
+  hasCustomization Boolean @default(false)  // Product supports custom measurements (e.g. stitching)
+  customizationFields String?  // Legacy: JSON array of field names (use customizationCategories for new data)
+  customizationPrice  Float?   // Extra price (PKR) when customer selects customize
+  tags        String?     // JSON array of SEO tags (unlimited tags per product)
+  featured       Boolean  @default(false)
+  isNewArrival   Boolean  @default(false)
+  isCollection   Boolean  @default(false)
+  isBestSelling  Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  customizationCategories CustomizationCategory[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  wishlistItems WishlistItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// Optional: only present when product has customization. Not compulsory.
+model CustomizationCategory {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // e.g. "Body Measurements", "Size"
+  order     Int      @default(0)  // Display order
+  options   CustomizationOption[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Optional: options under a category (e.g. Shoulder, Chest under "Body Measurements")
+model CustomizationOption {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   CustomizationCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name       String   // e.g. "Shoulder", "Chest", "Length"
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  size      String?
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId, size, color])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  subtotal        Float
+  shippingFee     Float       @default(0)
+  total           Float
+  status          String      @default("PENDING") // PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  shippingAddress String      // JSON object
+  paymentMethod   String      @default("COD") // Cash on Delivery only
+  paymentStatus   String      @default("PENDING") // PENDING, PAID (collected on delivery)
+  notes           String?     // Customer notes for delivery
+  isReturned      Boolean     @default(false) // If order is returned
+  returnReason    String?     // Reason for return
+  returnedAt      DateTime?   // When order was returned
+  returnedBy      String?     // Admin/Salesman who processed return
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id                  String  @id @default(cuid())
+  orderId             String
+  order               Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId           String
+  product             Product @relation(fields: [productId], references: [id])
+  quantity            Int
+  price               Float
+  size                String?
+  color               String?
+  customization       String? // JSON string of customization data
+  customizationPrice  Float?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // ORDER_PLACED, ORDER_CANCELLED, LOW_STOCK, etc.
+  title     String
+  message   String
+  data      String?  // JSON data (orderId, productId, etc.)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  name        String
+  role        String   // e.g., "Software Engineer", "Designer"
+  bio         String   // Description about the person
+  image       String?  // Profile image URL
+  isFounder   Boolean  @default(false)
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  email       String?
+  phone       String?
+  linkedin    String?
+  instagram   String?
+  facebook    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  slug        String   @unique // e.g., "about", "contact", "faq"
+  title       String
+  content     String   // JSON content for the page
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String   // e.g., "Emergency Medicine Physician"
+  image     String?  // Profile image URL
+  content   String   // Review text
+  rating    Int      @default(5) // 1-5 stars
+  isActive  Boolean  @default(true)
+  order     Int      @default(0) // Display order
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// POS (Point of Sale) for in-store sales
+model POSSale {
+  id              String        @id @default(cuid())
+  receiptNumber   String        @unique
+  salesmanId      String
+  salesman        User          @relation(fields: [salesmanId], references: [id])
+  items           POSSaleItem[]
+  subtotal        Float
+  discount        Float         @default(0)
+  discountType    String?       // PERCENTAGE or FIXED
+  total           Float
+  paymentMethod   String        @default("CASH") // CASH, CARD, MIXED, CREDIT
+  amountReceived  Float?        // Cash received from customer
+  changeGiven     Float?        // Change returned
+  customerName    String?       // Optional customer info for POS
+  customerPhone   String?
+  customerType    String        @default("WALKIN") // WALKIN or SHOP
+  shopId          String?       // Reference to Shop if customerType is SHOP
+  shop            Shop?         @relation(fields: [shopId], references: [id])
+  isPaid          Boolean       @default(true) // false for credit/pay-later
+  paidAmount      Float?        // Partial payment amount
+  remainingAmount Float?        // Amount still owed
+  dueDate         DateTime?     // Payment due date for credit
+  notes           String?
+  isReturned      Boolean       @default(false)
+  returnReason    String?
+  returnedAt      DateTime?
+  returnedBy      String?
+  createdAt       DateTime      @default(now())
+}
+
+model POSSaleItem {
+  id                  String   @id @default(cuid())
+  saleId              String
+  sale                POSSale  @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId           String
+  productName         String   // Store product name at time of sale
+  quantity            Int
+  price               Float    // Price at time of sale (selling price)
+  costPrice           Float?   // Cost price per unit at time of sale (for profit calculation)
+  size                String?
+  color               String?
+  customization       String?  // JSON string of customization data
+  customizationPrice  Float?
+}
+
+// Expenses - added by admin or salesman, optional image
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String   // Admin or salesman who added it
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float    // Expense amount
+  description String   // What the expense was for
+  category    String?  // Optional e.g. Rent, Utilities, Supplies
+  expenseDate DateTime @default(now()) // Date of the expense
+  image       String?  // Optional receipt/image URL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// POS Bill/Receipt Settings
+model BillSettings {
+  id                  String   @id @default("main")
+  
+  // Store Info
+  storeName           String   @default("Doctor Planet")
+  storeAddress        String   @default("Medical Plaza, Healthcare City")
+  storePhone          String   @default("+92 300 1234567")
+  storeEmail          String   @default("info@doctorplanet.com")
+  
+  // Bill Header
+  headerText          String?  // Optional header message
+  logoUrl             String?  // Logo for bill
+  
+  // Bill Footer
+  footerText          String   @default("Thank you for shopping with us!")
+  returnPolicy        String   @default("Returns accepted within 7 days with receipt")
+  
+  // Display Options
+  showLogo            Boolean  @default(true)
+  showStoreAddress    Boolean  @default(true)
+  showStorePhone      Boolean  @default(true)
+  showReturnPolicy    Boolean  @default(true)
+  showBarcode         Boolean  @default(false)
+  
+  // Thermal Printer Settings
+  paperWidth          String   @default("80mm") // 58mm, 80mm, A4
+  fontSize            String   @default("normal") // small, normal, large
+  
+  // Tax Settings
+  taxEnabled          Boolean  @default(false)
+  taxName             String   @default("GST") // Tax name (GST, VAT, Sales Tax, etc.)
+  taxRate             Float    @default(0) // Tax percentage (e.g., 17 for 17%)
+  taxIncludedInPrice  Boolean  @default(false) // If true, prices already include tax
+  showTaxBreakdown    Boolean  @default(true) // Show tax breakdown on bill
+  taxNumber           String?  // Business tax registration number (optional)
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Deals - Bundle multiple products with special price
+model Deal {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?    // Deal banner image
+  dealPrice   Float      // Special bundle price
+  originalPrice Float    // Sum of original product prices (auto-calculated)
+  items       DealItem[]
+  isActive    Boolean    @default(true)
+  startDate   DateTime?  // Optional start date
+  endDate     DateTime?  // Optional end date
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model DealItem {
+  id        String  @id @default(cuid())
+  dealId    String
+  deal      Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  productId String
+  quantity  Int     @default(1)
+  
+  @@unique([dealId, productId])
+}
+
+// Home page hero carousel banners (admin-managed)
+model HeroBanner {
+  id                  String    @id @default(cuid())
+  title               String
+  subtitle            String
+  ctaText             String
+  ctaLink             String
+  backgroundGradient  String?   // Tailwind classes e.g. "from-[#1a1a2e] via-[#16213e] to-[#0f3460]"
+  backgroundColor     String?   // Tailwind class e.g. "bg-[#0f3460]"
+  images              String    // JSON: { mobile, tablet?, desktop }
+  order               Int       @default(0)
+  isActive            Boolean   @default(true) // Inactive banners are hidden on the home page
+  startDate           DateTime? // Optional: show banner only after this date
+  endDate             DateTime? // Optional: show banner only until this date
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// Promo banners (3rd section after Categories): multiple images, PNG/JPG/GIF, admin-managed
+model PromoBanner {
+  id        String   @id @default(cuid())
+  imageUrl  String   // URL to image (PNG, JPG, GIF)
+  linkUrl   String   @default("/")
+  alt       String   @default("Promo")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                  String   @id @default("main")
+  
+  // Branding
+  siteName            String   @default("Doctor Planet")
+  siteTagline         String   @default("Medical Scrubs, Crocs & Healthcare Equipment")
+  
+  // Hero Section (legacy single hero - kept for backwards compatibility)
+  heroTitle           String   @default("Professional Medical Apparel")
+  heroSubtitle        String   @default("Premium quality scrubs and lab coats for healthcare heroes")
+  heroBannerImage     String?
+  
+  // Colors (stored as hex)
+  primaryColor        String   @default("#A52A2A")
+  secondaryColor      String   @default("#1a1a1a")
+  accentColor         String   @default("#C41E3A")
+  
+  // Contact Info
+  contactEmail        String   @default("info@doctorplanet.com")
+  contactPhone        String   @default("+1 (234) 567-890")
+  contactAddress      String   @default("123 Medical Plaza, Healthcare City")
+  
+  // Social Links
+  facebookUrl         String?
+  instagramUrl        String?
+  whatsappNumber      String?
+  
+  // Shipping
+  freeShippingMinimum Float    @default(5000)
+  shippingFee         Float    @default(500)
+  
+  // Announcements
+  announcementBar     String?  // Top banner text
+  announcementActive  Boolean  @default(false)
+  
+  // Footer
+  footerText          String   @default("Your trusted partner for premium medical apparel and equipment.")
+  
+  // Hero: default banner IDs hidden by admin (JSON array of strings)
+  hiddenDefaultHeroBannerIds  String?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model SizeGuide {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   // e.g., "scrubs-tops", "scrubs-pants", "shoes", "general"
+  images      String   // JSON array of image URLs
+  content     String   // JSON content for size charts, measurements, etc.
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Shop model for business customers (other shops buying from us)
+model Shop {
+  id               String    @id @default(cuid())
+  name             String
+  ownerName        String?
+  phone            String?
+  address          String?
+  city             String?
+  cnic             String?   // National ID
+  allowCredit      Boolean   @default(false) // Can buy on credit/pay later
+  creditLimit      Float?    // Maximum credit allowed
+  currentCredit    Float     @default(0) // Current outstanding amount
+  isActive         Boolean   @default(true)
+  notes            String?
+  sales            POSSale[] // All sales to this shop
+  udharTransactions UdharTransaction[] // Credit transactions (Udhar account)
+  udharPayments    UdharPayment[] // Payments received for Udhar
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// Udhar Transaction - Items taken on credit by shopkeepers
+model UdharTransaction {
+  id              String   @id @default(cuid())
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  items           String   // JSON array of items with details
+  totalAmount     Float    // Total credit amount for this transaction
+  paidAmount      Float    @default(0) // Amount paid so far for this transaction
+  remainingAmount Float    // Amount still owed
+  status          String   @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE
+  dueDate         DateTime? // Optional due date
+  notes           String?
+  payments        UdharPayment[] // Individual payments for this transaction
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Udhar Payment - Payments received against Udhar transactions
+model UdharPayment {
+  id              String   @id @default(cuid())
+  transactionId   String
+  transaction     UdharTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id])
+  amount          Float
+  paymentMethod   String   @default("CASH") // CASH, BANK, CHEQUE, etc.
+  notes           String?
+  createdBy       String?  // User who recorded this payment
+  createdAt       DateTime @default(now())
+}
+
+model Blog {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String
+  image       String?
+  author      String   @default("Doctor Planet")
+  isPublished Boolean  @default(false)
+  tags        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Global Discount - Site-wide discount that overrides individual sale prices
+model GlobalDiscount {
+  id          String    @id @default("main")
+  isActive    Boolean   @default(false)
+  percentage  Float     @default(0) // Discount percentage (e.g., 5 for 5%)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+

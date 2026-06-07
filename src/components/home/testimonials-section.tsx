@@ -1,0 +1,345 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Star, Quote, User, Sparkles } from 'lucide-react'
+
+interface Testimonial {
+  id: string
+  name: string
+  role: string
+  image: string | null
+  content: string
+  rating: number
+}
+
+// Default testimonials (shown while loading or if no data)
+const defaultTestimonials: Testimonial[] = [
+  {
+    id: '1',
+    name: 'Dr. Rab Nawaz',
+    role: 'General Physician',
+    image: null,
+    content: 'Doctor Planet ke scrubs bohat zyada comfortable hain. Long shifts mein bhi fatigue nahi hoti. Highly recommended for all doctors!',
+    rating: 5,
+  },
+  {
+    id: '2',
+    name: 'Dr. Shah Afridi',
+    role: 'Surgeon',
+    image: null,
+    content: 'OT kit aur scrubs dono zabardast quality ke hain. Delivery bhi fast thi. Doctor Planet is the best medical store in Pakistan.',
+    rating: 5,
+  },
+  {
+    id: '3',
+    name: 'Dr. Laiba',
+    role: 'Medical Student, KEMU',
+    image: null,
+    content: 'Mujhe apni uniform ke liye bohat achi quality ka fabric mila. Prices bhi reasonable hain. Will definitely order again!',
+    rating: 5,
+  },
+  {
+    id: '4',
+    name: 'Dr. Kainat',
+    role: 'House Officer',
+    image: null,
+    content: 'Medical crocs bohot comfortable hain, poori duty mein pair nahi dard karte. Shukriya Doctor Planet!',
+    rating: 5,
+  },
+  {
+    id: '5',
+    name: 'Dr. Iqra',
+    role: 'Nurse, Services Hospital',
+    image: null,
+    content: 'Nursing uniform ki quality aur stitching excellent hai. Colors bhi bilkul waisi hain jaise pictures mein thi. Very satisfied!',
+    rating: 5,
+  },
+]
+
+export default function TestimonialsSection() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(defaultTestimonials)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+
+  // Fetch testimonials from API
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch(`/api/testimonials?t=${Date.now()}`, {
+          cache: 'no-store'
+        })
+        const data = await res.json()
+        
+        if (Array.isArray(data) && data.length > 0) {
+          setTestimonials(data)
+          setCurrentIndex(0)
+        }
+      } catch (error) {
+        console.error('Failed to fetch testimonials:', error)
+      }
+    }
+    
+    fetchTestimonials()
+  }, [])
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!isAutoPlaying || testimonials.length <= 1) return
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length)
+    }, 5000)
+    
+    return () => clearInterval(interval)
+  }, [isAutoPlaying, testimonials.length])
+
+  const nextTestimonial = () => {
+    setIsAutoPlaying(false)
+    setCurrentIndex((prev) => (prev + 1) % testimonials.length)
+  }
+
+  const prevTestimonial = () => {
+    setIsAutoPlaying(false)
+    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+  }
+
+  const goToTestimonial = (index: number) => {
+    setIsAutoPlaying(false)
+    setCurrentIndex(index)
+  }
+
+  if (testimonials.length === 0) return null
+
+  const current = testimonials[currentIndex]
+
+  return (
+    <section className="py-8 sm:py-16 lg:py-20 bg-gradient-to-br from-secondary-900 via-secondary-950 to-secondary-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        {/* Floating Orbs */}
+        <motion.div 
+          className="absolute top-20 left-10 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, 50, 0], 
+            y: [0, 30, 0],
+            scale: [1, 1.2, 1]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, -30, 0], 
+            y: [0, -50, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Quote icons */}
+        <Quote className="absolute top-10 left-10 sm:top-20 sm:left-20 w-32 h-32 sm:w-64 sm:h-64 text-white opacity-5" />
+        <Quote className="absolute bottom-10 right-10 sm:bottom-20 sm:right-20 w-32 h-32 sm:w-64 sm:h-64 text-white opacity-5 rotate-180" />
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }} />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-6 sm:mb-12"
+        >
+          <div className="flex items-center justify-center gap-2 text-primary-400 font-medium text-xs sm:text-sm uppercase tracking-wider mb-1 sm:mb-2">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Happy Doctors
+          </div>
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-heading font-bold text-white mb-2 sm:mb-4">
+            What Our Customers Say
+          </h2>
+          <p className="text-secondary-400 text-sm sm:text-base max-w-lg mx-auto">
+            Join thousands of satisfied healthcare professionals
+          </p>
+        </motion.div>
+
+        {/* Mobile: Card Carousel */}
+        <div className="sm:hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-5"
+            >
+              {/* Stars */}
+              <div className="flex gap-0.5 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < current.rating
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-secondary-600'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Content */}
+              <p className="text-white/90 text-sm leading-relaxed mb-4">
+                "{current.content}"
+              </p>
+
+              {/* Author */}
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary-500/50">
+                  {current.image ? (
+                    <Image
+                      src={current.image}
+                      alt={current.name}
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary-600 flex items-center justify-center">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-white text-sm">
+                    {current.name}
+                  </h4>
+                  <p className="text-secondary-400 text-xs">
+                    {current.role}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Mobile Dots */}
+          {testimonials.length > 1 && (
+            <div className="flex justify-center gap-1.5 mt-4">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToTestimonial(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-primary-500 w-5'
+                      : 'bg-secondary-600 w-1.5'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: Full Carousel */}
+        <div className="hidden sm:block relative max-w-4xl mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 md:p-12"
+            >
+              {/* Stars */}
+              <div className="flex gap-1 mb-6 justify-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-6 h-6 ${
+                      i < current.rating
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-secondary-600'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Content */}
+              <p className="text-xl md:text-2xl text-white/90 text-center leading-relaxed mb-8">
+                "{current.content}"
+              </p>
+
+              {/* Author */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden mb-4 ring-4 ring-primary-500/50">
+                  {current.image ? (
+                    <Image
+                      src={current.image}
+                      alt={current.name}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary-600 flex items-center justify-center">
+                      <User className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                </div>
+                <h4 className="font-heading font-semibold text-white text-lg">
+                  {current.name}
+                </h4>
+                <p className="text-secondary-400">
+                  {current.role}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation Buttons */}
+          {testimonials.length > 1 && (
+            <>
+              <button
+                onClick={prevTestimonial}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-16 w-12 h-12 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center text-white transition-colors"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={nextTestimonial}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-16 w-12 h-12 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center text-white transition-colors"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          {/* Dots */}
+          {testimonials.length > 1 && (
+            <div className="flex justify-center gap-2 mt-8">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToTestimonial(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-primary-500 w-8'
+                      : 'bg-secondary-600 hover:bg-secondary-500'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
