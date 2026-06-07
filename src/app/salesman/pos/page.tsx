@@ -1074,6 +1074,10 @@ export default function SalesmanPOSPage() {
               <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{products.filter(p => p.stock <= 5 && p.stock > 0).length} Low Stock</span>
             </div>
+            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-red-600 font-medium">
+              <X className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>{products.filter(p => p.stock <= 0).length} Out of Stock</span>
+            </div>
           </div>
         </div>
 
@@ -1109,33 +1113,46 @@ export default function SalesmanPOSPage() {
             <>
               <h3 className="text-xs sm:text-sm font-medium text-secondary-500 mb-3 sm:mb-4">Quick Add - All Products</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
-            {products.filter(p => p.stock > 0).slice(0, 20).map((product) => {
+            {products.slice(0, 50).map((product) => {
               const images = JSON.parse(product.images)
               const price = product.salePrice || product.price
               const stockStatus = getStockStatus(product.stock)
-              
+              const isOutOfStock = product.stock <= 0
+
               return (
                 <motion.button
                   key={product.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => addToCart(product)}
-                  className="bg-secondary-50 rounded-xl p-3 text-left hover:bg-secondary-100 transition-colors relative group"
+                  whileHover={isOutOfStock ? {} : { scale: 1.02 }}
+                  whileTap={isOutOfStock ? {} : { scale: 0.98 }}
+                  onClick={() => !isOutOfStock && addToCart(product)}
+                  className={`rounded-xl p-3 text-left transition-colors relative group ${
+                    isOutOfStock
+                      ? 'bg-secondary-100 cursor-not-allowed opacity-70'
+                      : 'bg-secondary-50 hover:bg-secondary-100 cursor-pointer'
+                  }`}
                 >
                   <div className="relative aspect-square mb-2 rounded-lg overflow-hidden bg-white">
                     <Image
                       src={images[0] || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200'}
                       alt={product.name}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform"
+                      className={`object-cover transition-transform ${isOutOfStock ? 'grayscale' : 'group-hover:scale-105'}`}
                     />
-                    {product.salePrice && (
+                    {/* Out of Stock Overlay */}
+                    {isOutOfStock && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold bg-red-600 px-2 py-1 rounded text-center leading-tight">
+                          OUT OF<br/>STOCK
+                        </span>
+                      </div>
+                    )}
+                    {!isOutOfStock && product.salePrice && (
                       <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">
                         SALE
                       </span>
                     )}
                     {/* Profit Badge */}
-                    {product.costPrice > 0 && (
+                    {!isOutOfStock && product.costPrice > 0 && (
                       <span className="absolute top-1 right-1 px-1.5 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded">
                         +{Math.round(((price - product.costPrice) / product.costPrice) * 100)}%
                       </span>
@@ -1146,12 +1163,12 @@ export default function SalesmanPOSPage() {
                   </p>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="font-bold text-primary-600 text-sm">{formatCurrency(price)}</p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${stockStatus.color}`}>
-                        {product.stock}
+                      <p className={`font-bold text-sm ${isOutOfStock ? 'text-secondary-400' : 'text-primary-600'}`}>{formatCurrency(price)}</p>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${isOutOfStock ? 'bg-red-100 text-red-600 font-semibold' : stockStatus.color}`}>
+                        {isOutOfStock ? '0' : product.stock}
                       </span>
                     </div>
-                    {product.costPrice > 0 && (
+                    {!isOutOfStock && product.costPrice > 0 && (
                       <div className="flex items-center justify-between text-[10px]">
                         <span className="text-secondary-400">Batch: {formatAmount(product.costPrice)}</span>
                         <span className="text-green-600 font-semibold">+{formatAmount(price - product.costPrice)}</span>
