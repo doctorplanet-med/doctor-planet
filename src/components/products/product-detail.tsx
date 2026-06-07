@@ -214,7 +214,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
 
   // Handle size selection
   const handleSizeSelect = (size: string) => {
-    if (hasVariantStock && !isSizeAvailable(size)) return
     setSelectedSize(size)
     setQuantity(1)
   }
@@ -230,9 +229,9 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
     : 0
 
   const currentStock = getCurrentStock()
-  const canAddToCart = hasVariantStock 
-    ? (selectedColor && selectedSize && (selectedSize !== 'Custom' ? currentStock > 0 : true))
-    : product.stock > 0
+  const canAddToCart = hasVariantStock
+    ? (selectedColor && selectedSize)
+    : true
 
   const updateCustomizationField = (categoryName: string, optionName: string, value: string) => {
     setCustomizationData(prev => ({
@@ -517,35 +516,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
               )}
             </div>
 
-            {/* Stock Status */}
-            <div className="flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
-              {hasVariantStock ? (
-                selectedColor && selectedSize ? (
-                  currentStock > 0 ? (
-                    <>
-                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 shrink-0" />
-                      <span className="text-green-600 text-xs sm:text-base font-medium">
-                        In Stock
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-red-500 text-xs sm:text-base font-medium">Out of Stock</span>
-                  )
-                ) : (
-                  <span className="text-secondary-500 text-xs sm:text-base">Select color and size to see availability</span>
-                )
-              ) : product.stock > 0 ? (
-                <>
-                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 shrink-0" />
-                  <span className="text-green-600 text-xs sm:text-base font-medium">
-                    In Stock
-                  </span>
-                </>
-              ) : (
-                <span className="text-red-500 text-xs sm:text-base font-medium">Out of Stock</span>
-              )}
-            </div>
-
             {/* Color Selection */}
             {colors.length > 0 && (
               <div className="mb-4 sm:mb-6">
@@ -554,9 +524,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 </label>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
                   {colors.map((color: string) => {
-                    const colorStock = hasVariantStock ? getColorStock(color) : null
-                    const isColorAvailable = !hasVariantStock || colorStock! > 0
-                    
                     return (
                       <motion.button
                         key={color}
@@ -564,9 +531,7 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className={`relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl border-2 text-sm sm:text-base font-medium transition-all ${
-                          !isColorAvailable
-                            ? 'border-secondary-200 bg-secondary-100 text-secondary-400 opacity-60'
-                            : selectedColor === color
+                          selectedColor === color
                             ? 'border-primary-600 bg-primary-50 text-primary-600 shadow-lg shadow-primary-200'
                             : 'border-secondary-200 text-secondary-700 hover:border-primary-300'
                         }`}
@@ -617,20 +582,14 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 </div>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {sizes.map((size: string) => {
-                    const sizeStock = hasVariantStock ? getSizeStock(size) : null
-                    const isAvailable = hasVariantStock ? isSizeAvailable(size) : true
-                    
                     return (
                       <motion.button
                         key={size}
                         onClick={() => handleSizeSelect(size)}
-                        disabled={hasVariantStock && !isAvailable}
-                        whileHover={isAvailable ? { scale: 1.05 } : {}}
-                        whileTap={isAvailable ? { scale: 0.95 } : {}}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         className={`relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border-2 text-sm sm:text-base font-medium transition-all ${
-                          !isAvailable
-                            ? 'border-secondary-200 bg-secondary-100 text-secondary-400 cursor-not-allowed line-through'
-                            : selectedSize === size
+                          selectedSize === size
                             ? 'border-primary-600 bg-primary-50 text-primary-600'
                             : 'border-secondary-200 text-secondary-700 hover:border-primary-300'
                         }`}
@@ -683,8 +642,8 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                   {quantity}
                 </span>
                 <button
-                  onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
-                  disabled={!canAddToCart || quantity >= currentStock}
+                  onClick={() => setQuantity(quantity + 1)}
+                  disabled={!canAddToCart}
                   className="p-2 sm:p-3 hover:bg-secondary-100 transition-colors disabled:opacity-50"
                 >
                   <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600" />
@@ -701,8 +660,6 @@ export default function ProductDetail({ product, relatedProducts }: ProductDetai
                 <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" />
                 {hasVariantStock && (!selectedColor || !selectedSize)
                   ? 'Select Options'
-                  : currentStock === 0
-                  ? 'Out of Stock'
                   : 'Add to Cart'}
               </motion.button>
             </div>
