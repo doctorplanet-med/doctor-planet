@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  # Do NOT set `publish` here: the Netlify Next.js runtime handles the output.
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Firebase web API key is public by design and is inlined into client JS.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_FIREBASE_API_KEY"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
