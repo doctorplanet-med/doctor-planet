@@ -1,6 +1,8 @@
 import HeroSection from '@/components/home/hero-section'
 import CategoryGridSection from '@/components/home/category-grid-section'
 import SubCategoryFeatureSection from '@/components/home/subcategory-feature-section'
+import TrustBar from '@/components/home/trust-bar'
+import SectionHeader from '@/components/home/section-header'
 import PromoBannerSection from '@/components/home/promo-banner-section'
 import ExclusiveOffersSection from '@/components/home/exclusive-offers-section'
 import DealsOffersSection from '@/components/home/deals-offers-section'
@@ -164,15 +166,11 @@ export default async function HomePage() {
     <>
       <HeroSection settings={settings} randomProducts={randomProducts} banners={heroBanners} />
 
+      <TrustBar />
+
       {/* Shop by Category heading */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1 h-px bg-secondary-200" />
-          <h2 className="text-xl sm:text-2xl font-heading font-bold text-secondary-900 whitespace-nowrap">
-            Shop by Category
-          </h2>
-          <div className="flex-1 h-px bg-secondary-200" />
-        </div>
+        <SectionHeader title="Shop by Category" subtitle="Find your fit for every shift" viewAllHref="/products" viewAllLabel="All products" />
       </div>
 
       {/* Category grid — full width, zero gap */}

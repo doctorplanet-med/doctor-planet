@@ -44,7 +44,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-nunito)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-nunito)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-heading)', 'var(--font-nunito)', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import ProductCard from '@/components/products/product-card'
+import SectionHeader from './section-header'
 
 interface Product {
   id: string
@@ -24,36 +24,17 @@ export default function SubCategoryFeatureSection({ title, products, viewAllHref
   if (!products.length) return null
 
   return (
-    <section className="py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        {/* Heading with lines */}
-        <div className="flex items-center gap-4 mb-2">
-          <div className="flex-1 h-px bg-secondary-200" />
-          <h2 className="text-xl sm:text-2xl font-heading font-bold text-secondary-900 whitespace-nowrap">
-            {title}
-          </h2>
-          <div className="flex-1 h-px bg-secondary-200" />
-        </div>
-        {/* View All */}
-        {viewAllHref && (
-          <div className="text-center mt-2">
-            <Link
-              href={viewAllHref}
-              className="text-sm text-secondary-600 underline underline-offset-2 hover:text-primary-600 transition-colors"
-            >
-              View All
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* Product cards grid */}
+    <section className="py-8 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <SectionHeader title={title} viewAllHref={viewAllHref} />
+        {/* Mobile: swipeable snap carousel (peek of next card). sm+: regular grid. */}
+        <ul className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-px-4 -mx-4 px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
           {products.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
+            <li key={product.id} className="snap-start shrink-0 w-[44%] min-[480px]:w-[34%] sm:w-auto">
+              <ProductCard product={product} index={index} />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   )

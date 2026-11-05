@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { ArrowRight, Flame, ChevronLeft, ChevronRight, Sparkles, Star } from 'lucide-react'
+import SectionHeader from './section-header'
 import ProductCard from '@/components/products/product-card'
 
 interface Product {
@@ -69,19 +70,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
         transition={{ duration: 10, repeat: Infinity }}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-2">
-          <div className="flex-1 h-px bg-secondary-200" />
-          <h2 className="text-xl sm:text-2xl font-heading font-bold text-secondary-900 whitespace-nowrap">
-            Best Sellers
-          </h2>
-          <div className="flex-1 h-px bg-secondary-200" />
-        </div>
-        <div className="text-center mb-5 sm:mb-8">
-          <Link href="/products?featured=true" className="text-sm text-secondary-600 underline underline-offset-2 hover:text-primary-600 transition-colors">
-            View All
-          </Link>
-        </div>
+        <SectionHeader title="Best Sellers" subtitle="What healthcare professionals reorder most" viewAllHref="/products?featured=true" />
 
         {/* Mobile: horizontal scroll with arrows overlay on products */}
         <div className="sm:hidden relative -mx-4 px-4">
@@ -95,7 +84,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                 initial={{ opacity: 0, x: 20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ delay: index * 0.05 }}
-                className="flex-shrink-0 w-[56vw] max-w-[220px] snap-start"
+                className="flex-shrink-0 w-[44vw] max-w-[190px] snap-start"
               >
                 <ProductCard product={product} index={index} />
               </motion.div>

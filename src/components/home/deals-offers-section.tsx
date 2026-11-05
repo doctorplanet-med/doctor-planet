@@ -4,6 +4,8 @@ import { useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
+import SectionHeader from './section-header'
+import DealCountdown from './deal-countdown'
 import { ArrowRight, Tag, ChevronLeft, ChevronRight, Package } from 'lucide-react'
 
 interface DealItemProduct {
@@ -83,6 +85,7 @@ function DealCard({ deal, index }: { deal: DealForSection; index: number }) {
               Save {savings}%
             </span>
           )}
+          {deal.endDate && <DealCountdown endDate={deal.endDate} />}
         </div>
         <div className="p-3 flex-1 flex flex-col">
           <h3 className="font-semibold text-secondary-900 text-sm line-clamp-2 group-hover:text-primary-600 transition-colors">
@@ -126,19 +129,7 @@ export default function DealsOffersSection({ deals }: DealsOffersSectionProps) {
   return (
     <section ref={sectionRef} className="py-2 sm:py-14 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-2">
-          <div className="flex-1 h-px bg-secondary-200" />
-          <h2 className="text-xl sm:text-2xl font-heading font-bold text-secondary-900 whitespace-nowrap">
-            Deals
-          </h2>
-          <div className="flex-1 h-px bg-secondary-200" />
-        </div>
-        <div className="text-center mb-5 sm:mb-8">
-          <Link href="/deals" className="text-sm text-secondary-600 underline underline-offset-2 hover:text-primary-600 transition-colors">
-            View All
-          </Link>
-        </div>
+        <SectionHeader title="Bundle Deals" subtitle="Save more when you buy together" viewAllHref="/deals" />
 
         {/* Mobile: horizontal scroll with arrows overlay */}
         <div className="sm:hidden relative -mx-4 px-4">
@@ -149,7 +140,7 @@ export default function DealsOffersSection({ deals }: DealsOffersSectionProps) {
             {deals.map((deal, index) => (
               <div
                 key={deal.id}
-                className="flex-shrink-0 w-[56vw] max-w-[220px] snap-start"
+                className="flex-shrink-0 w-[44vw] max-w-[190px] snap-start"
               >
                 <DealCard deal={deal} index={index} />
               </div>
