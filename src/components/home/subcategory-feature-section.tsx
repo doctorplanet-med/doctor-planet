@@ -18,10 +18,12 @@ interface SubCategoryFeatureSectionProps {
   title: string
   products: Product[]
   viewAllHref?: string
+  /** Hide the row when it would look sparse (default 3) */
+  minProducts?: number
 }
 
-export default function SubCategoryFeatureSection({ title, products, viewAllHref }: SubCategoryFeatureSectionProps) {
-  if (!products.length) return null
+export default function SubCategoryFeatureSection({ title, products, viewAllHref, minProducts = 3 }: SubCategoryFeatureSectionProps) {
+  if (products.length < minProducts) return null
 
   return (
     <section className="py-8 sm:py-10">

@@ -8,7 +8,6 @@ import ExclusiveOffersSection from '@/components/home/exclusive-offers-section'
 import DealsOffersSection from '@/components/home/deals-offers-section'
 import FeaturedProducts from '@/components/home/featured-products'
 import AllProductsSection from '@/components/home/all-products-section'
-import FeaturesSection from '@/components/home/features-section'
 import TestimonialsSection from '@/components/home/testimonials-section'
 import NewsletterSection from '@/components/home/newsletter-section'
 import prisma from '@/lib/prisma'
@@ -208,9 +207,7 @@ export default async function HomePage() {
       <ExclusiveOffersSection products={productsOnSale} />
       <DealsOffersSection deals={activeDeals} />
       <FeaturedProducts products={featuredProducts} />
-      <AllProductsSection products={allProducts} />
-      <FeaturesSection />
-      <TestimonialsSection />
+      <AllProductsSection products={allProducts} />      <TestimonialsSection />
       <NewsletterSection />
     </>
   )
