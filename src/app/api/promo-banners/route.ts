@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { ensurePromoBannerTable } from '@/lib/db-ensure'
+import { cachedJson } from '@/lib/cache-headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +12,7 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { order: 'asc' },
     })
-    return NextResponse.json(banners)
+    return cachedJson(banners, 60)
   } catch (error) {
     const msg = (error instanceof Error ? error.message : String(error)) || ''
     if (msg.includes('no such table') || msg.includes('does not exist')) {

@@ -67,9 +67,7 @@ export default function TestimonialsSection() {
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const res = await fetch(`/api/testimonials?t=${Date.now()}`, {
-          cache: 'no-store'
-        })
+        const res = await fetch('/api/testimonials')
         const data = await res.json()
         
         if (Array.isArray(data) && data.length > 0) {

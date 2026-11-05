@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { cachedJson } from '@/lib/cache-headers'
+
+export const dynamic = 'force-dynamic'
 
 // GET - Fetch all active team members (public)
 export async function GET() {
@@ -26,7 +29,7 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(members)
+    return cachedJson(members, 300)
   } catch (error) {
     console.error('Failed to fetch team members:', error)
     return NextResponse.json([])

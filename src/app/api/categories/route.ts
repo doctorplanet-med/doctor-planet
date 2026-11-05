@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { cachedJson } from '@/lib/cache-headers'
+
+export const dynamic = 'force-dynamic'
 
 // Public endpoint to get all categories
 export async function GET() {
@@ -13,7 +16,7 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(categories)
+    return cachedJson(categories, 60)
   } catch (error) {
     console.error('Error fetching categories:', error)
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })

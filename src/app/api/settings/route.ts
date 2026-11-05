@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { cachedJson } from '@/lib/cache-headers'
+
+export const dynamic = 'force-dynamic'
 
 // Public endpoint to get site settings
 export async function GET() {
@@ -10,7 +13,7 @@ export async function GET() {
 
     if (!settings) {
       // Return default settings if none exist
-      return NextResponse.json({
+      return cachedJson({
         siteName: 'Doctor Planet',
         siteTagline: 'Medical Scrubs, Crocs & Healthcare Equipment',
         contactEmail: 'info@doctorplanet.com',
@@ -27,7 +30,7 @@ export async function GET() {
       })
     }
 
-    return NextResponse.json(settings)
+    return cachedJson(settings, 60)
   } catch (error) {
     console.error('Error fetching settings:', error)
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { cachedJson } from '@/lib/cache-headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +11,7 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { order: 'asc' },
     })
-    return NextResponse.json(banners)
+    return cachedJson(banners, 60)
   } catch (error) {
     console.error('Failed to fetch hero banners:', error)
     return NextResponse.json({ error: 'Failed to fetch hero banners' }, { status: 500 })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { cachedJson } from '@/lib/cache-headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,43 +14,32 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ products: [], categories: [] })
     }
 
-    const search = q.toLowerCase()
-
-    // SQLite doesn't support mode: 'insensitive', so fetch all and filter in memory
-    const [allProducts, allCategories] = await Promise.all([
+    // Filter in the database (SQLite LIKE is case-insensitive for ASCII) instead of
+    // loading every product + description into memory on each keystroke.
+    const [products, categories] = await Promise.all([
       prisma.product.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          OR: [{ name: { contains: q } }, { description: { contains: q } }],
+        },
         select: {
           id: true,
           name: true,
           slug: true,
-          description: true,
           category: { select: { name: true, slug: true } },
         },
         orderBy: { name: 'asc' },
+        take: MAX_PRODUCTS,
       }),
       prisma.category.findMany({
+        where: { name: { contains: q } },
         select: { id: true, name: true, slug: true },
         orderBy: { name: 'asc' },
+        take: MAX_CATEGORIES,
       }),
     ])
 
-    // Filter products (case-insensitive)
-    const products = allProducts
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(search) ||
-          (p.description && p.description.toLowerCase().includes(search))
-      )
-      .slice(0, MAX_PRODUCTS)
-      .map(({ description, ...rest }) => rest)
-
-    // Filter categories (case-insensitive)
-    const categories = allCategories
-      .filter((c) => c.name.toLowerCase().includes(search))
-      .slice(0, MAX_CATEGORIES)
-
-    return NextResponse.json({ products, categories })
+    return cachedJson({ products, categories }, 60)
   } catch (error) {
     console.error('Search suggestions error:', error)
     return NextResponse.json({ products: [], categories: [] }, { status: 500 })

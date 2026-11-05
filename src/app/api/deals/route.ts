@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { cachedJson } from '@/lib/cache-headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,10 +62,10 @@ export async function GET(request: NextRequest) {
         product: products.find((p) => p.id === item.productId),
       }))
 
-      return NextResponse.json({
+      return cachedJson({
         ...deal,
         items: itemsWithProducts,
-      })
+      }, 60)
     }
 
     // Fetch ALL deals and filter in JS for SQLite compatibility
@@ -83,15 +84,13 @@ export async function GET(request: NextRequest) {
       return true
     })
 
-    // Fetch product details for each deal
-    const dealsWithProducts = await Promise.all(
-      deals.map(async (deal) => {
-        const productIds = deal.items.map((item) => item.productId)
-        const products = await prisma.product.findMany({
-          where: { 
-            id: { in: productIds },
-            isActive: true,
-          },
+    // Fetch product details for all deals in ONE query (was one per deal)
+    const allProductIds = Array.from(
+      new Set(deals.flatMap((deal) => deal.items.map((item) => item.productId)))
+    )
+    const products = allProductIds.length
+      ? await prisma.product.findMany({
+          where: { id: { in: allProductIds }, isActive: true },
           select: {
             id: true,
             name: true,
@@ -102,20 +101,18 @@ export async function GET(request: NextRequest) {
             stock: true,
           },
         })
+      : []
+    const productById = new Map(products.map((p) => [p.id, p]))
 
-        const itemsWithProducts = deal.items.map((item) => ({
-          ...item,
-          product: products.find((p) => p.id === item.productId),
-        }))
+    const dealsWithProducts = deals.map((deal) => ({
+      ...deal,
+      items: deal.items.map((item) => ({
+        ...item,
+        product: productById.get(item.productId),
+      })),
+    }))
 
-        return {
-          ...deal,
-          items: itemsWithProducts,
-        }
-      })
-    )
-
-    return NextResponse.json(dealsWithProducts)
+    return cachedJson(dealsWithProducts, 60)
   } catch (error) {
     console.error('Fetch deals error:', error)
     return NextResponse.json({ error: 'Failed to fetch deals' }, { status: 500 })

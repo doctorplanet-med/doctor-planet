@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Disable caching for this route
+import { cachedJson } from '@/lib/cache-headers'
+
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 // GET - Fetch all active testimonials (public)
 export async function GET() {
@@ -24,14 +24,7 @@ export async function GET() {
       }
     })
     
-    console.log('Fetched active testimonials:', testimonials.length)
-    
-    // Return with no-cache headers
-    return NextResponse.json(testimonials, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
-      }
-    })
+    return cachedJson(testimonials, 60)
   } catch (error) {
     console.error('Failed to fetch testimonials:', error)
     // Return empty array instead of error to avoid breaking the frontend

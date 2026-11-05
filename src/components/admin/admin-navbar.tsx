@@ -50,10 +50,12 @@ export default function AdminNavbar({ onMenuClick }: AdminNavbarProps) {
     }
   }
 
-  // Poll for new notifications every 30 seconds
+  // Poll for new notifications every 2 minutes, only while the tab is visible
   useEffect(() => {
     fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30000)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchNotifications()
+    }, 120000)
     return () => clearInterval(interval)
   }, [])
 
