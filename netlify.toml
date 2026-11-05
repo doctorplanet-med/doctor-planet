@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
-  # Do NOT set `publish` here: the Netlify Next.js runtime handles the output.
+  # Must be .next (not the repo root) — overrides the UI setting.
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
